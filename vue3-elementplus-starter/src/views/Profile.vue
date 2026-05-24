@@ -4,7 +4,7 @@
       <!-- 头部头像 + 基本信息 -->
       <div class="profile-header">
         <div class="avatar-wrapper">
-          <el-avatar :size="72" :src="userInfo.avatar?.startsWith('http') ? userInfo.avatar : 'http://localhost:8080' + (userInfo.avatar || '')" class="profile-avatar">
+          <el-avatar :size="72" :src="avatarSrc" class="profile-avatar">
             <template #error><el-icon :size="36"><UserFilled /></el-icon></template>
           </el-avatar>
           <div class="avatar-overlay" @click="$refs.avatarInput.click()">
@@ -121,7 +121,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Camera, UserFilled } from '@element-plus/icons-vue'
 import request from '@/api/request'
@@ -145,6 +145,13 @@ async function fetchUserInfo() {
 }
 
 const avatarInput = ref(null)
+const BASE = 'http://localhost:8080'
+
+const avatarSrc = computed(() => {
+  const a = userInfo.value?.avatar
+  if (!a) return undefined
+  return a.startsWith('http') ? a : BASE + a
+})
 
 async function uploadAvatar(e) {
   const file = e.target.files?.[0]
