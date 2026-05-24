@@ -30,7 +30,7 @@
               </div>
               <h1 class="post-title">{{ post.title }}</h1>
               <div class="header-author">
-                <el-avatar :size="32" icon="UserFilled" />
+                <el-avatar :size="32" :src="post.authorAvatar?.startsWith('http') ? post.authorAvatar : 'http://localhost:8080' + (post.authorAvatar || '')" />
                 <div class="author-info">
                   <span class="author-name">{{ post.author || '匿名' }}</span>
                   <span class="author-date">{{ post.date }}</span>
