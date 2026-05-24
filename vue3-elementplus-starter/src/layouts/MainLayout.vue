@@ -138,7 +138,7 @@
           <!-- 已登录 -->
           <el-dropdown v-else trigger="click">
             <span class="user-info">
-              <el-avatar :size="32" icon="UserFilled" />
+              <el-avatar :size="32" :src="authStore.avatar ? ('http://localhost:8080' + authStore.avatar) : undefined" icon="UserFilled" />
               <span class="username">{{ authStore.nickname || authStore.username }}</span>
             </span>
             <template #dropdown>

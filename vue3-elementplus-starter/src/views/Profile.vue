@@ -161,6 +161,7 @@ async function uploadAvatar(e) {
   try {
     const res = await request.post('/users/me/avatar', fd, { headers: { 'Content-Type': 'multipart/form-data' } })
     userInfo.value.avatar = res.url + '?t=' + Date.now()
+    authStore.saveUser(authStore.token, authStore.username, authStore.nickname, res.url, authStore.role, authStore.userId)
     ElMessage.success('头像已更新')
   } catch { ElMessage.error('上传失败') }
 }
