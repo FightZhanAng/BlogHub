@@ -11,6 +11,8 @@ public class PostResponse {
 
     private Long id;
     private String slug;
+    private Integer isPinned;
+    private String authorAvatar;
     private String title;
     private String description;
     private String content;
@@ -43,6 +45,7 @@ public class PostResponse {
         r.setUpdatedAt(post.getUpdatedAt());
         r.setAuthorName(post.getAuthorName());
         r.setAuthorId(post.getAuthorId());
+        r.setIsPinned(post.getIsPinned());
         return r;
     }
 
@@ -74,6 +77,10 @@ public class PostResponse {
     public void setAuthorName(String authorName) { this.authorName = authorName; }
     public Long getAuthorId() { return authorId; }
     public void setAuthorId(Long authorId) { this.authorId = authorId; }
+    public Integer getIsPinned() { return isPinned; }
+    public void setIsPinned(Integer isPinned) { this.isPinned = isPinned; }
+    public String getAuthorAvatar() { return authorAvatar; }
+    public void setAuthorAvatar(String authorAvatar) { this.authorAvatar = authorAvatar; }
     public String getCoverImage() { return coverImage; }
     public void setCoverImage(String coverImage) { this.coverImage = coverImage; }
     public String getScheduledAt() { return scheduledAt; }
