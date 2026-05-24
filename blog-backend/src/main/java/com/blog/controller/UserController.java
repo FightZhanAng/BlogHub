@@ -67,7 +67,7 @@ public class UserController {
     @AuditLog(action = "删除用户", resource = "#id")
     public Result<Void> delete(@PathVariable Long id) {
         userService.removeById(id);
-        return Result.noContent();
+        return Result.success();
     }
 
     // ========== 用户搜索（@ 提及用） ==========
