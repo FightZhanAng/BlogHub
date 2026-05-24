@@ -4,7 +4,7 @@
       <!-- 头部头像 + 基本信息 -->
       <div class="profile-header">
         <div class="avatar-wrapper">
-          <el-avatar :size="72" :src="userInfo.avatar" class="profile-avatar">
+          <el-avatar :size="72" :src="userInfo.avatar?.startsWith('http') ? userInfo.avatar : 'http://localhost:8080' + (userInfo.avatar || '')" class="profile-avatar">
             <template #error><el-icon :size="36"><UserFilled /></el-icon></template>
           </el-avatar>
           <div class="avatar-overlay" @click="$refs.avatarInput.click()">

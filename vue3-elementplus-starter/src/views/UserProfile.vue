@@ -2,7 +2,7 @@
   <div class="user-profile">
     <el-card shadow="never" class="profile-card">
       <div class="profile-header">
-        <el-avatar :size="64" :src="user?.avatar">
+        <el-avatar :size="64" :src="user?.avatar?.startsWith('http') ? user.avatar : 'http://localhost:8080' + (user.avatar || '')">
           <template #error><el-icon :size="32"><UserFilled /></el-icon></template>
         </el-avatar>
         <div class="profile-info">
