@@ -55,6 +55,11 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
             m.put("likes", c.getLikes() != null ? c.getLikes() : 0);
             m.put("dislikes", c.getDislikes() != null ? c.getDislikes() : 0);
             m.put("createdAt", c.getCreatedAt());
+            // 设置头像
+            if (c.getUserId() != null) {
+                com.blog.entity.User u = userService.getUserById(c.getUserId());
+                if (u != null) m.put("avatar", u.getAvatar());
+            }
             return m;
         }).collect(Collectors.toList());
     }

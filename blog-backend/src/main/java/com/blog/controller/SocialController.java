@@ -26,6 +26,9 @@ import java.util.Map;
 public class SocialController {
 
     @Autowired
+    private com.blog.mapper.UserMapper userMapper;
+
+    @Autowired
     private FollowMapper followMapper;
 
     @Autowired
@@ -102,6 +105,15 @@ public class SocialController {
     public Result<Map<String, Object>> profile(@PathVariable Long id) {
         Map<String, Object> data = new HashMap<>();
         data.put("userId", id);
+        // 用户基本信息
+        com.blog.entity.User user = userMapper.selectById(id);
+        if (user != null) {
+            data.put("username", user.getUsername());
+            data.put("nickname", user.getNickname());
+            data.put("avatar", user.getAvatar());
+            data.put("bio", user.getBio());
+            data.put("role", user.getRole());
+        }
         data.put("followerCount", followMapper.selectCount(
                 new LambdaQueryWrapper<Follow>().eq(Follow::getFollowingId, id)));
         data.put("followingCount", followMapper.selectCount(
