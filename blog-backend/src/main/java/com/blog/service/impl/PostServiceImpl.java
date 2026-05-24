@@ -48,6 +48,9 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
     private DailyViewsMapper dailyViewsMapper;
 
     @Autowired
+    private com.blog.mapper.UserMapper userMapper;
+
+    @Autowired
     private TagService tagService;
 
     @Override
@@ -217,9 +220,6 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
         baseMapper.deleteById(id);
         log.info("文章删除成功: id={}", id);
     }
-
-    @Autowired
-    private com.blog.mapper.UserMapper userMapper;
 
     @Override
     @Transactional(rollbackFor = Exception.class)

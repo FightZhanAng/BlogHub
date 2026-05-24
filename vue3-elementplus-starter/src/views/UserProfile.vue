@@ -71,6 +71,7 @@ onMounted(async () => {
       request.get('/posts', { params: { authorId: id, page: 1, size: 20 } }),
     ])
     stats.value = profileRes
+    user.value = profileRes   // profileRes 现在包含 username/avatar/bio
     posts.value = postsRes.list || []
   } catch { /* ignore */ }
   loading.value = false
