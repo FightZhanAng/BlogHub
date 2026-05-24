@@ -9,9 +9,13 @@ import com.blog.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -20,6 +24,9 @@ import java.util.Map;
 public class UserController {
 
     private static final Logger log = LoggerFactory.getLogger(UserController.class);
+
+    @Value("${upload.dir:./uploads}")
+    private String uploadDir;
 
     @Autowired
     private UserService userService;
@@ -72,6 +79,34 @@ public class UserController {
             return Result.success(Collections.emptyList());
         }
         return Result.success(userService.searchByUsername(q.trim(), limit));
+    }
+
+    // ========== 头像上传 ==========
+
+    @PutMapping("/me/avatar")
+    public Result<Map<String, String>> uploadAvatar(
+            @RequestAttribute Long userId,
+            @RequestParam("file") org.springframework.web.multipart.MultipartFile file) {
+        if (file.isEmpty()) return Result.error(400, "文件不能为空");
+        try {
+            // 头像存 ./uploads/avatars/ 目录
+            String dateDir = java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy/MM"));
+            Path targetDir = Paths.get(uploadDir).resolve("avatars").resolve(dateDir);
+            java.nio.file.Files.createDirectories(targetDir);
+            String ext = file.getOriginalFilename();
+            ext = ext != null && ext.contains(".") ? ext.substring(ext.lastIndexOf('.') + 1).toLowerCase() : "png";
+            String filename = "avatar_" + userId + "_" + java.util.UUID.randomUUID().toString().substring(0, 8) + "." + ext;
+            file.transferTo(targetDir.resolve(filename).toFile());
+            String url = "/uploads/avatars/" + dateDir + "/" + filename;
+            userService.updateProfile(userId, null, url);
+            log.info("头像上传成功: userId={}, url={}", userId, url);
+            Map<String, String> r = new HashMap<>();
+            r.put("url", url);
+            return Result.success(r);
+        } catch (java.io.IOException e) {
+            log.error("头像上传失败", e);
+            return Result.error(500, "头像上传失败");
+        }
     }
 
     // ========== 个人中心 ==========

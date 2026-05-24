@@ -26,6 +26,7 @@
                 <button v-if="hasCodeBlock" class="code-theme-btn" @click="toggleCodeTheme" :title="codeTheme === 'dark' ? '切换亮色代码' : '切换暗色代码'">
                   <i :class="codeTheme === 'dark' ? 'bi bi-sun' : 'bi bi-moon'"></i>
                 </button>
+                <a class="export-btn" :href="`/api/posts/${post.slug}/export`" title="下载 Markdown"><i class="bi bi-download"></i></a>
               </div>
               <h1 class="post-title">{{ post.title }}</h1>
               <div class="header-author">
@@ -125,6 +126,12 @@
               </div>
             </div>
 
+            <!-- 阅读趋势图（管理员可见） -->
+            <div v-if="authStore.isAdmin && post.id" class="trend-section">
+              <h3 class="trend-title"><el-icon style="vertical-align:middle;margin-right:6px"><DataAnalysis /></el-icon>阅读趋势</h3>
+              <div ref="trendChartRef" style="height:200px"></div>
+            </div>
+
             <!-- 评论区 -->
             <BlogComments :slug="slug" />
           </el-card>
@@ -161,6 +168,7 @@ import ImageLightbox from '@/components/ImageLightbox.vue'
 import { useLikes, useBookmarks } from '@/composables/useInteraction'
 import { useAuthStore } from '@/stores/auth'
 import request from '@/api/request'
+import * as echarts from 'echarts'
 import BlogToc from '@/components/BlogToc.vue'
 import BlogActionBar from '@/components/BlogActionBar.vue'
 import BlogReadingProgress from '@/components/BlogReadingProgress.vue'
@@ -184,6 +192,7 @@ const loading = ref(true)
 const { liked, count, toggleLike } = useLikes(slug)
 const { bookmarked, toggleBookmark } = useBookmarks(slug)
 const relatedPosts = ref([])
+const trendChartRef = ref(null)
 
 const canEdit = computed(() => {
   if (!authStore.isLoggedIn || !post.value) return false
@@ -267,6 +276,25 @@ onMounted(async () => {
     const res = await request.get('/posts/' + slug + '/related', { params: { limit: 4 } })
     relatedPosts.value = Array.isArray(res) ? res : []
   } catch { /* ignore */ }
+  // 加载阅读趋势图（管理员）
+  if (authStore.isAdmin && post.value?.id) {
+    try {
+      const trendRes = await request.get(`/stats/post/${post.value.id}/trend`)
+      if (Array.isArray(trendRes) && trendRes.length && trendChartRef.value) {
+        const chart = echarts.init(trendChartRef.value)
+        chart.setOption({
+          tooltip: { trigger: 'axis' },
+          grid: { left: 40, right: 16, top: 16, bottom: 24 },
+          xAxis: { type: 'category', data: trendRes.map(p => p.date.slice(5)), axisLabel: { fontSize: 11 } },
+          yAxis: { type: 'value', minInterval: 1 },
+          series: [{ type: 'line', data: trendRes.map(p => p.views), smooth: true,
+            areaStyle: { color: 'rgba(64,158,255,0.1)' },
+            lineStyle: { color: '#409eff' },
+            itemStyle: { color: '#409eff' } }]
+        })
+      }
+    } catch { /* ignore */ }
+  }
 })
 </script>
 
@@ -651,6 +679,38 @@ onMounted(async () => {
   margin-top: 32px;
   padding-top: 24px;
   border-top: 1px solid #f0f0f0;
+}
+
+/* ===== 阅读趋势 ===== */
+.trend-section {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid #f0f0f0;
+}
+.trend-title {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0 0 16px;
+  color: #303133;
+}
+.export-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid #e4e7ed;
+  border-radius: 50%;
+  color: #909399;
+  text-decoration: none;
+  font-size: 14px;
+  vertical-align: middle;
+  margin-left: 6px;
+}
+.export-btn:hover {
+  border-color: #409eff;
+  color: #409eff;
+  background: #ecf5ff;
 }
 
 /* ===== 底部导航 ===== */

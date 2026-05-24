@@ -3,7 +3,16 @@
     <el-card shadow="never" class="profile-card">
       <!-- 头部头像 + 基本信息 -->
       <div class="profile-header">
-        <el-avatar :size="72" icon="UserFilled" class="profile-avatar" />
+        <div class="avatar-wrapper">
+          <el-avatar :size="72" :src="userInfo.avatar" class="profile-avatar">
+            <template #error><el-icon :size="36"><UserFilled /></el-icon></template>
+          </el-avatar>
+          <div class="avatar-overlay" @click="$refs.avatarInput.click()">
+            <el-icon :size="20"><Camera /></el-icon>
+            <span>更换头像</span>
+          </div>
+          <input ref="avatarInput" type="file" accept="image/*" style="display:none" @change="uploadAvatar" />
+        </div>
         <div class="profile-info">
           <h1>{{ userInfo.nickname || userInfo.username || '用户' }}</h1>
           <p class="profile-role">{{ userInfo.role === 'admin' ? '管理员' : '普通用户' }}</p>
@@ -114,6 +123,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
+import { Camera, UserFilled } from '@element-plus/icons-vue'
 import request from '@/api/request'
 import { useAuthStore } from '@/stores/auth'
 
@@ -132,6 +142,20 @@ async function fetchUserInfo() {
     userInfo.value = res
     profileForm.nickname = res.nickname || ''
   } catch {}
+}
+
+const avatarInput = ref(null)
+
+async function uploadAvatar(e) {
+  const file = e.target.files?.[0]
+  if (!file) return
+  const fd = new FormData()
+  fd.append('file', file)
+  try {
+    const res = await request.put('/users/me/avatar', fd, { headers: { 'Content-Type': 'multipart/form-data' } })
+    userInfo.value.avatar = res.url + '?t=' + Date.now()
+    ElMessage.success('头像已更新')
+  } catch { ElMessage.error('上传失败') }
 }
 
 async function saveProfile() {
@@ -257,6 +281,30 @@ onMounted(() => {
 
 .profile-avatar {
   flex-shrink: 0;
+}
+.avatar-wrapper {
+  position: relative;
+  flex-shrink: 0;
+  border-radius: 50%;
+  overflow: hidden;
+  cursor: pointer;
+}
+.avatar-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s;
+  font-size: 11px;
+  gap: 2px;
+}
+.avatar-wrapper:hover .avatar-overlay {
+  opacity: 1;
 }
 
 .profile-info h1 {

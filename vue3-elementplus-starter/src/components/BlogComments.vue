@@ -34,7 +34,7 @@
     <div class="comment-list" v-if="comments.length">
       <div v-for="comment in rootComments" :key="comment.id" class="comment-item">
         <div class="comment-avatar">
-          <el-avatar :size="36">{{ comment.nickname[0] }}</el-avatar>
+          <el-avatar :size="36" :src="comment.avatar">{{ comment.nickname[0] }}</el-avatar>
         </div>
         <div class="comment-body">
           <div class="comment-header">
@@ -81,7 +81,7 @@
             <template v-for="reply in getReplies(comment.id)" :key="reply.id">
               <div class="reply-item">
                 <div class="reply-avatar">
-                  <el-avatar :size="28">{{ reply.nickname[0] }}</el-avatar>
+                  <el-avatar :size="28" :src="reply.avatar">{{ reply.nickname[0] }}</el-avatar>
                 </div>
                 <div class="reply-body">
                   <div class="reply-header">
@@ -120,7 +120,7 @@
                   <div class="sub-replies" v-if="getReplies(reply.id).length">
                     <div v-for="sub in getReplies(reply.id)" :key="sub.id" class="reply-item">
                       <div class="reply-avatar">
-                        <el-avatar :size="26">{{ sub.nickname[0] }}</el-avatar>
+                        <el-avatar :size="26" :src="sub.avatar">{{ sub.nickname[0] }}</el-avatar>
                       </div>
                       <div class="reply-body">
                         <div class="reply-header">

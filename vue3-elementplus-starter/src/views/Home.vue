@@ -63,7 +63,10 @@
               :class="{ 'no-border': i === recentPosts.length - 1 }"
               @click="$router.push(`/blog/${post.slug}`)"
             >
-              <div class="recent-title">{{ post.title }}</div>
+              <div class="recent-title">
+                <el-tag v-if="post.isPinned" size="small" type="warning" effect="plain" style="margin-right:4px;vertical-align:middle">置顶</el-tag>
+                {{ post.title }}
+              </div>
               <div class="recent-meta">
                 <span>{{ post.date }}</span>
                 <span>·</span>
