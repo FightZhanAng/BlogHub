@@ -26,11 +26,11 @@
                 <button v-if="hasCodeBlock" class="code-theme-btn" @click="toggleCodeTheme" :title="codeTheme === 'dark' ? '切换亮色代码' : '切换暗色代码'">
                   <i :class="codeTheme === 'dark' ? 'bi bi-sun' : 'bi bi-moon'"></i>
                 </button>
-                <a class="export-btn" :href="`${BASE}/posts/${post.slug}/export`" title="下载 Markdown" download><i class="bi bi-download"></i></a>
+                <a class="export-btn" :href="`${API_BASE}/posts/${post.slug}/export`" title="下载 Markdown" download><i class="bi bi-download"></i></a>
               </div>
               <h1 class="post-title">{{ post.title }}</h1>
               <div class="header-author">
-                <el-avatar :size="32" :src="post.authorAvatar ? (post.authorAvatar.startsWith('http') ? post.authorAvatar : BASE + post.authorAvatar) : undefined" />
+                <el-avatar :size="32" :src="post.authorAvatar ? (post.authorAvatar.startsWith('http') ? post.authorAvatar : STATIC_BASE + post.authorAvatar) : undefined" />
                 <div class="author-info">
                   <span class="author-name">{{ post.author || '匿名' }}</span>
                   <span class="author-date">{{ post.date }}</span>
@@ -122,7 +122,7 @@
                   v-for="rp in relatedPosts"
                   :key="rp.slug"
                   class="related-card"
-                  @click="$router.push('/blog/' + rp.slug)"
+                  @click="goToRelated(rp)"
                 >
                   <div class="related-name">{{ rp.title }}</div>
                   <div class="related-meta">{{ rp.views }} 次阅读</div>
@@ -165,7 +165,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { usePosts } from '@/composables/usePosts'
 import ImageLightbox from '@/components/ImageLightbox.vue'
@@ -179,7 +179,9 @@ import BlogReadingProgress from '@/components/BlogReadingProgress.vue'
 import BlogComments from '@/components/BlogComments.vue'
 
 const route = useRoute()
-const BASE = 'http://localhost:8080/api'
+const router = useRouter()
+const STATIC_BASE = 'http://localhost:8080'
+const API_BASE = 'http://localhost:8080/api'
 const slug = route.params.slug
 const { getPost } = usePosts()
 const lightboxSrc = ref('')
@@ -288,7 +290,7 @@ onMounted(async () => {
   try {
     const res = await request.get('/posts/' + slug + '/related', { params: { limit: 4 } })
     relatedPosts.value = Array.isArray(res) ? res : []
-  } catch { /* ignore */ }
+  } catch (e) { /* ignore */ }
   // 加载阅读趋势图（管理员）
   if (authStore.isAdmin && post.value?.id) {
     try {
@@ -306,9 +308,14 @@ onMounted(async () => {
             itemStyle: { color: '#409eff' } }]
         })
       }
-    } catch { /* ignore */ }
+    } catch (e) { /* ignore */ }
   }
 })
+
+function goToRelated(rp) {
+  if (!rp || !rp.slug) return
+  router.push({ name: 'BlogPost', params: { slug: rp.slug } })
+}
 </script>
 
 <style scoped>
