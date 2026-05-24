@@ -182,8 +182,8 @@ const route = useRoute()
 const router = useRouter()
 const STATIC_BASE = 'http://localhost:8080'
 const API_BASE = 'http://localhost:8080/api'
-const slug = route.params.slug
 const { getPost } = usePosts()
+const slug = ref(route.params.slug)
 const lightboxSrc = ref('')
 
 function onPostContentClick(e) {
@@ -196,7 +196,7 @@ const authStore = useAuthStore()
 
 const post = ref(null)
 const loading = ref(true)
-const { liked, count, toggleLike } = useLikes(slug)
+const { liked, count, toggleLike } = useLikes(slug.value)
 
 async function togglePin() {
   try {
@@ -205,7 +205,7 @@ async function togglePin() {
     ElMessage.success(res.isPinned ? '已置顶' : '已取消置顶')
   } catch { ElMessage.error('操作失败') }
 }
-const { bookmarked, toggleBookmark } = useBookmarks(slug)
+const { bookmarked, toggleBookmark } = useBookmarks(slug.value)
 const relatedPosts = ref([])
 const trendChartRef = ref(null)
 
@@ -283,12 +283,12 @@ function shareTo(platform) {
 }
 
 onMounted(async () => {
-  post.value = await getPost(slug)
+  post.value = await getPost(slug.value)
   loading.value = false
   checkFollow()
   // 加载相关文章
   try {
-    const res = await request.get('/posts/' + slug + '/related', { params: { limit: 4 } })
+    const res = await request.get('/posts/' + slug.value + '/related', { params: { limit: 4 } })
     relatedPosts.value = Array.isArray(res) ? res : []
   } catch (e) { /* ignore */ }
   // 加载阅读趋势图（管理员）
@@ -314,7 +314,8 @@ onMounted(async () => {
 
 function goToRelated(rp) {
   if (!rp || !rp.slug) return
-  router.push({ name: 'BlogPost', params: { slug: rp.slug } })
+  // 使用整页跳转确保组件完全重新初始化
+  window.location.href = '/blog/' + rp.slug
 }
 </script>
 
