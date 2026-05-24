@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true" scanPeriod="60 seconds">
+
+    <!-- 日志存放路径 -->
+    <property name="log.path" value="logs/blog-backend"/>
+    <!-- 日志保留天数 -->
+    <property name="log.max-history" value="15"/>
+    <!-- 单个日志文件最大大小 -->
+    <property name="log.max-size" value="10MB"/>
+
+    <!-- ========== 控制台输出 ========== -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <!-- ========== 应用日志文件（INFO 及以上） ========== -->
+    <appender name="FILE_INFO" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${log.path}/info.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${log.path}/info.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <maxHistory>${log.max-history}</maxHistory>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>${log.max-size}</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+        <!-- 只记录 INFO 及以上 -->
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>INFO</level>
+        </filter>
+    </appender>
+
+    <!-- ========== 错误日志文件（ERROR 级别） ========== -->
+    <appender name="FILE_ERROR" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${log.path}/error.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${log.path}/error.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <maxHistory>${log.max-history}</maxHistory>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>${log.max-size}</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+        <!-- 只记录 ERROR -->
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>ERROR</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+    </appender>
+
+    <!-- ========== SQL 日志文件（TRACE，仅 MyBatis） ========== -->
+    <appender name="FILE_SQL" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${log.path}/sql.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${log.path}/sql.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <maxHistory>7</maxHistory>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>${log.max-size}</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <!-- ========== 日志级别配置 ========== -->
+
+    <!-- 应用日志 -->
+    <logger name="com.blog" level="DEBUG"/>
+
+    <!-- SQL 日志（输出到单独文件） -->
+    <logger name="com.blog.mapper" level="TRACE" additivity="false">
+        <appender-ref ref="FILE_SQL"/>
+        <appender-ref ref="CONSOLE"/>
+    </logger>
+
+    <!-- Spring 框架 -->
+    <logger name="org.springframework" level="WARN"/>
+
+    <!-- MyBatis -->
+    <logger name="com.baomidou.mybatisplus" level="WARN"/>
+
+    <!-- HikariCP 连接池 -->
+    <logger name="com.zaxxer.hikari" level="INFO"/>
+    <logger name="com.zaxxer.hikari.pool" level="WARN"/>
+
+    <!-- 根日志 -->
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="FILE_INFO"/>
+        <appender-ref ref="FILE_ERROR"/>
+    </root>
+
+</configuration>

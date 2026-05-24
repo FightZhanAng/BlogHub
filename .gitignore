@@ -1,0 +1,30 @@
+# Java / Maven
+blog-backend/target/
+blog-backend/*.log
+blog-backend/.vscode/
+blog-backend/.idea/
+blog-backend/*.iml
+
+# Node / Vue
+vue3-elementplus-starter/node_modules/
+vue3-elementplus-starter/dist/
+vue3-elementplus-starter/*.local
+vue3-elementplus-starter/.env.local
+vue3-elementplus-starter/*.log
+vue3-elementplus-starter/.vscode/
+vue3-elementplus-starter/.idea/
+
+# Root
+node_modules/
+*.log
+.DS_Store
+.vscode/
+.idea/
+*.iml
+
+# Uploads (用户上传文件不提交)
+uploads/
+
+# MySQL helper (项目根的工具脚本依赖)
+node_modules/
+package-lock.json
