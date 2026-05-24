@@ -77,7 +77,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
         String token = jwtUtil.generateToken(user.getId(), user.getUsername(), user.getRole());
         log.info("用户登录成功: username={}, role={}", user.getUsername(), user.getRole());
-        return new LoginResponse(token, user.getUsername(), user.getNickname(), user.getRole(), user.getId());
+        return new LoginResponse(token, user.getUsername(), user.getNickname(), user.getAvatar(), user.getRole(), user.getId());
     }
 
     @Override
@@ -97,7 +97,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
         String token = jwtUtil.generateToken(user.getId(), user.getUsername(), user.getRole());
         log.info("用户注册成功: username={}", user.getUsername());
-        return new LoginResponse(token, user.getUsername(), user.getNickname(), user.getRole(), user.getId());
+        return new LoginResponse(token, user.getUsername(), user.getNickname(), user.getAvatar(), user.getRole(), user.getId());
     }
 
     @Override
