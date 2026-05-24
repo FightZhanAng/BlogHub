@@ -26,7 +26,7 @@
                 <button v-if="hasCodeBlock" class="code-theme-btn" @click="toggleCodeTheme" :title="codeTheme === 'dark' ? '切换亮色代码' : '切换暗色代码'">
                   <i :class="codeTheme === 'dark' ? 'bi bi-sun' : 'bi bi-moon'"></i>
                 </button>
-                <a class="export-btn" :href="`/api/posts/${post.slug}/export`" title="下载 Markdown"><i class="bi bi-download"></i></a>
+                <a class="export-btn" :href="`${BASE}/posts/${post.slug}/export`" title="下载 Markdown" download><i class="bi bi-download"></i></a>
               </div>
               <h1 class="post-title">{{ post.title }}</h1>
               <div class="header-author">
@@ -175,6 +175,7 @@ import BlogReadingProgress from '@/components/BlogReadingProgress.vue'
 import BlogComments from '@/components/BlogComments.vue'
 
 const route = useRoute()
+const BASE = 'http://localhost:8080/api'
 const slug = route.params.slug
 const { getPost } = usePosts()
 const lightboxSrc = ref('')

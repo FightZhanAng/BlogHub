@@ -152,7 +152,7 @@ async function uploadAvatar(e) {
   const fd = new FormData()
   fd.append('file', file)
   try {
-    const res = await request.put('/users/me/avatar', fd, { headers: { 'Content-Type': 'multipart/form-data' } })
+    const res = await request.post('/users/me/avatar', fd, { headers: { 'Content-Type': 'multipart/form-data' } })
     userInfo.value.avatar = res.url + '?t=' + Date.now()
     ElMessage.success('头像已更新')
   } catch { ElMessage.error('上传失败') }

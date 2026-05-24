@@ -83,15 +83,14 @@ public class UserController {
 
     // ========== 头像上传 ==========
 
-    @PutMapping("/me/avatar")
+    @PostMapping("/me/avatar")
     public Result<Map<String, String>> uploadAvatar(
             @RequestAttribute Long userId,
             @RequestParam("file") org.springframework.web.multipart.MultipartFile file) {
         if (file.isEmpty()) return Result.error(400, "文件不能为空");
         try {
-            // 头像存 ./uploads/avatars/ 目录
             String dateDir = java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy/MM"));
-            Path targetDir = Paths.get(uploadDir).resolve("avatars").resolve(dateDir);
+            Path targetDir = Paths.get(uploadDir).toAbsolutePath().normalize().resolve("avatars").resolve(dateDir);
             java.nio.file.Files.createDirectories(targetDir);
             String ext = file.getOriginalFilename();
             ext = ext != null && ext.contains(".") ? ext.substring(ext.lastIndexOf('.') + 1).toLowerCase() : "png";
