@@ -37,7 +37,9 @@ function formatPost(raw) {
     likes: raw.likes || 0,
     author: raw.authorName || '',
     authorId: raw.authorId || null,
+    authorAvatar: raw.authorAvatar || '',
     coverImage: raw.coverImage || '',
+    isPinned: raw.isPinned || 0,
   }
 }
 
