@@ -104,6 +104,10 @@
                   </el-dropdown-menu>
                 </template>
               </el-dropdown>
+              <el-button v-if="authStore.isAdmin" round size="small" :type="post.isPinned ? 'warning' : 'default'" @click="togglePin">
+                <i :class="post.isPinned ? 'bi bi-pin-angle-fill' : 'bi bi-pin-angle'"></i>
+                {{ post.isPinned ? '已置顶' : '置顶' }}
+              </el-button>
               <el-button v-if="canEdit" round size="small" @click="$router.push(`/blog/${slug}/edit`)">
                 <i class="bi bi-pencil"></i>
                 编辑
@@ -191,6 +195,14 @@ const authStore = useAuthStore()
 const post = ref(null)
 const loading = ref(true)
 const { liked, count, toggleLike } = useLikes(slug)
+
+async function togglePin() {
+  try {
+    const res = await request.put(`/posts/${post.value.id}/pin`)
+    post.value.isPinned = res.isPinned
+    ElMessage.success(res.isPinned ? '已置顶' : '已取消置顶')
+  } catch { ElMessage.error('操作失败') }
+}
 const { bookmarked, toggleBookmark } = useBookmarks(slug)
 const relatedPosts = ref([])
 const trendChartRef = ref(null)

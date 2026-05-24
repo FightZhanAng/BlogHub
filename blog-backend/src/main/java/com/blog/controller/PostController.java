@@ -140,6 +140,21 @@ public class PostController {
         return Result.success(postService.getRelatedPosts(slug, limit));
     }
 
+    @Operation(summary = "切换置顶（管理员）")
+    @PutMapping("/{id}/pin")
+    public Result<Map<String, Object>> togglePin(@PathVariable Long id) {
+        String role = getCurrentRole();
+        if (!"admin".equals(role)) return Result.error(403, "无权操作");
+        Post post = postService.getById(id);
+        if (post == null) return Result.error(404, "文章不存在");
+        boolean pinned = post.getIsPinned() != null && post.getIsPinned() == 1;
+        post.setIsPinned(pinned ? 0 : 1);
+        postService.updateById(post);
+        Map<String, Object> r = new java.util.HashMap<>();
+        r.put("isPinned", post.getIsPinned());
+        return Result.success(r);
+    }
+
     @DeleteMapping("/{id}")
     public Result<Void> delete(@PathVariable Long id) {
         postService.deletePost(id, getCurrentUserId(), getCurrentRole());
