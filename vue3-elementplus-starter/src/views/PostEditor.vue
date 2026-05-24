@@ -362,7 +362,23 @@ onMounted(() => {
   } catch { /* ignore */ }
 })
 
+// ========== 键盘快捷键 ==========
+
+function handleKeydown(e) {
+  if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+    e.preventDefault()
+    saveDraft()
+    ElMessage.success('草稿已保存')
+  }
+  if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'p' || e.key === 'P')) {
+    e.preventDefault()
+    isPreview.value = !isPreview.value
+  }
+}
+
+onMounted(() => { document.addEventListener('keydown', handleKeydown) })
 onUnmounted(() => {
+  document.removeEventListener('keydown', handleKeydown)
   clearTimeout(autoSaveTimer)
   // 离开页面前保存一次
   if (form.value.content || form.value.title) {

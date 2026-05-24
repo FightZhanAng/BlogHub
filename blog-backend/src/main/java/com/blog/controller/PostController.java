@@ -76,6 +76,31 @@ public class PostController {
         return Result.success(postService.getPostDetail(slug));
     }
 
+    @Operation(summary = "导出 Markdown")
+    @GetMapping("/{slug}/export")
+    public void export(@PathVariable String slug, javax.servlet.http.HttpServletResponse response) {
+        Post post = postService.getBySlug(slug);
+        if (post == null) {
+            response.setStatus(404);
+            return;
+        }
+        String filename = post.getSlug() + ".md";
+        String content = "---\n"
+            + "title: \"" + post.getTitle() + "\"\n"
+            + "slug: \"" + post.getSlug() + "\"\n"
+            + "date: " + (post.getCreatedAt() != null ? post.getCreatedAt().toLocalDate() : "") + "\n"
+            + "tags: [" + (post.getTags() != null ? post.getTags() : "") + "]\n"
+            + "---\n\n"
+            + post.getContent();
+        response.setContentType("text/markdown;charset=utf-8");
+        response.setHeader("Content-Disposition", "attachment; filename=\"" + filename + "\"");
+        try {
+            response.getWriter().write(content);
+        } catch (Exception e) {
+            // ignore
+        }
+    }
+
     @Operation(summary = "创建文章")
     @PostMapping
     public Result<PostResponse> create(@Valid @RequestBody CreatePostRequest request) {

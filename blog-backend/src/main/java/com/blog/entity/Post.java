@@ -51,4 +51,7 @@ public class Post extends BaseEntity {
 
     /** 所属系列 ID */
     private Long seriesId;
+
+    /** 是否置顶 0=否 1=是 */
+    private Integer isPinned;
 }

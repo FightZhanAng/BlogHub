@@ -22,6 +22,10 @@ node_modules/
 .idea/
 *.iml
 
+# Reasonix AI 工作流配置
+.reasonix/
+.mcp.json
+
 # Uploads (用户上传文件不提交)
 uploads/
 

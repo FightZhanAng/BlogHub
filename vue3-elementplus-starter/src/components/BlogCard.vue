@@ -20,7 +20,10 @@
       </div>
 
       <!-- 标题 -->
-      <h3 class="card-title">{{ title }}</h3>
+      <h3 class="card-title">
+        <el-tag v-if="isPinned" size="small" type="warning" effect="plain" class="pinned-tag">置顶</el-tag>
+        {{ title }}
+      </h3>
 
       <!-- 摘要 -->
       <p class="card-desc" v-if="description">{{ description }}</p>
@@ -68,6 +71,7 @@ defineProps({
   likes: { type: Number, default: 0 },
   views: { type: Number, default: 0 },
   isBookmarked: { type: Boolean, default: false },
+  isPinned: { type: Boolean, default: false },
 })
 </script>
 
@@ -129,6 +133,10 @@ defineProps({
   color: #909399;
 }
 
+.pinned-tag {
+  margin-right: 6px;
+  vertical-align: middle;
+}
 .card-title {
   margin: 0;
   font-size: 17px;

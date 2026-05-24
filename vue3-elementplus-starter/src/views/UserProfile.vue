@@ -2,7 +2,9 @@
   <div class="user-profile">
     <el-card shadow="never" class="profile-card">
       <div class="profile-header">
-        <el-avatar :size="64" icon="UserFilled" />
+        <el-avatar :size="64" :src="user?.avatar">
+          <template #error><el-icon :size="32"><UserFilled /></el-icon></template>
+        </el-avatar>
         <div class="profile-info">
           <h2>{{ user?.username || '用户' }}</h2>
           <p class="bio">{{ user?.bio || '这个人很懒，什么都没写' }}</p>

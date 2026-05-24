@@ -2,8 +2,10 @@ package com.blog.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.blog.common.Result;
+import com.blog.entity.DailyViews;
 import com.blog.entity.Post;
 import com.blog.mapper.CommentMapper;
+import com.blog.mapper.DailyViewsMapper;
 import com.blog.mapper.PostMapper;
 import com.blog.mapper.UserMapper;
 import org.slf4j.Logger;
@@ -35,6 +37,9 @@ public class StatsController {
 
     @Autowired
     private com.blog.config.JwtUtil jwtUtil;
+
+    @Autowired
+    private DailyViewsMapper dailyViewsMapper;
 
     private boolean isAdmin(HttpServletRequest request) {
         try {
@@ -71,6 +76,30 @@ public class StatsController {
         }
         data.put("recentTrend", trend);
         return Result.success(data);
+    }
+
+    /** 文章阅读趋势 */
+    @GetMapping("/post/{postId}/trend")
+    public Result<List<Map<String, Object>>> postTrend(
+            @PathVariable Long postId,
+            @RequestParam(defaultValue = "7") int days) {
+        LocalDate start = LocalDate.now().minusDays(days - 1);
+        List<DailyViews> records = dailyViewsMapper.selectList(
+                new LambdaQueryWrapper<DailyViews>()
+                        .eq(DailyViews::getPostId, postId)
+                        .ge(DailyViews::getDate, start)
+                        .orderByAsc(DailyViews::getDate));
+        Map<LocalDate, Integer> map = new HashMap<>();
+        for (DailyViews r : records) map.put(r.getDate(), r.getViews());
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (int i = 0; i < days; i++) {
+            LocalDate d = start.plusDays(i);
+            Map<String, Object> point = new HashMap<>();
+            point.put("date", d.toString());
+            point.put("views", map.getOrDefault(d, 0));
+            result.add(point);
+        }
+        return Result.success(result);
     }
 
     /** 热门搜索词 */

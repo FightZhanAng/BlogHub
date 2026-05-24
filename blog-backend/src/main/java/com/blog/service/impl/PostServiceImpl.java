@@ -8,8 +8,10 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.blog.dto.CreatePostRequest;
 import com.blog.dto.PostResponse;
 import com.blog.dto.UpdatePostRequest;
+import com.blog.entity.DailyViews;
 import com.blog.entity.Image;
 import com.blog.entity.Post;
+import com.blog.mapper.DailyViewsMapper;
 import com.blog.entity.PostVersion;
 import com.blog.exception.BusinessException;
 import com.blog.exception.ResourceNotFoundException;
@@ -43,6 +45,9 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
     private ImageMapper imageMapper;
 
     @Autowired
+    private DailyViewsMapper dailyViewsMapper;
+
+    @Autowired
     private TagService tagService;
 
     @Override
@@ -50,6 +55,7 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
         log.info("查询文章列表 page={}, size={}, tag={}, keyword={}", page, size, tag, keyword);
         LambdaQueryWrapper<Post> wrapper = new LambdaQueryWrapper<Post>()
                 .eq(Post::getStatus, 1)
+                .orderByDesc(Post::getIsPinned)
                 .orderByDesc(Post::getCreatedAt);
         if (tag != null && !tag.trim().isEmpty()) {
             // 同时按 slug 和 name 匹配（兼容前端传 tag name 或 slug）
@@ -83,6 +89,26 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
         baseMapper.update(null, new LambdaUpdateWrapper<Post>()
                 .setSql("views = views + 1")
                 .eq(Post::getId, id));
+        // 记录每日阅读量
+        try {
+            java.time.LocalDate today = java.time.LocalDate.now();
+            DailyViews dv = dailyViewsMapper.selectOne(
+                    new LambdaQueryWrapper<DailyViews>()
+                            .eq(DailyViews::getPostId, id)
+                            .eq(DailyViews::getDate, today));
+            if (dv != null) {
+                dv.setViews(dv.getViews() + 1);
+                dailyViewsMapper.updateById(dv);
+            } else {
+                dv = new DailyViews();
+                dv.setPostId(id);
+                dv.setDate(today);
+                dv.setViews(1);
+                dailyViewsMapper.insert(dv);
+            }
+        } catch (Exception e) {
+            log.warn("记录每日阅读量失败: {}", e.getMessage());
+        }
     }
 
     @Override
