@@ -124,8 +124,14 @@
                   class="related-card"
                   @click="goToRelated(rp)"
                 >
+                  <div class="related-card-img" v-if="rp.coverImage">
+                    <img :src="rp.coverImage.startsWith('http') ? rp.coverImage : STATIC_BASE + rp.coverImage" alt="" />
+                  </div>
                   <div class="related-name">{{ rp.title }}</div>
-                  <div class="related-meta">{{ rp.views }} 次阅读</div>
+                  <div class="related-meta">
+                    <i class="bi bi-eye" style="font-size:12px"></i>
+                    {{ rp.views }} 次阅读
+                  </div>
                 </div>
               </div>
             </div>
@@ -700,6 +706,81 @@ function goToRelated(rp) {
   margin-top: 32px;
   padding-top: 24px;
   border-top: 1px solid #f0f0f0;
+}
+
+/* ===== 推荐阅读 ===== */
+.related-posts {
+  margin-top: 28px;
+  padding-top: 24px;
+  border-top: 1px solid #f0f0f0;
+}
+.related-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 18px;
+  color: #303133;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.related-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 14px;
+}
+.related-card {
+  background: #f8f9fa;
+  border: 1px solid #eef0f2;
+  border-radius: 10px;
+  padding: 18px 20px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+.related-card-img {
+  width: 100%;
+  height: 100px;
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+.related-card-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+.related-card:hover .related-card-img img {
+  transform: scale(1.05);
+}
+.related-card:hover {
+  background: #fff;
+  border-color: #d0d5dd;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+  transform: translateY(-2px);
+}
+.related-card:active {
+  transform: translateY(0);
+}
+.related-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1a1a1a;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+.related-card:hover .related-name {
+  color: #409eff;
+}
+.related-meta {
+  font-size: 12px;
+  color: #b0b4b8;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 /* ===== 阅读趋势 ===== */
