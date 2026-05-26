@@ -86,6 +86,18 @@ const routes = [
         meta: { title: '我的收藏' },
       },
       {
+        path: 'albums',
+        name: 'AlbumList',
+        component: () => import('@/views/AlbumList.vue'),
+        meta: { title: '宝宝相册', requiresAuth: true },
+      },
+      {
+        path: 'albums/:id',
+        name: 'AlbumDetail',
+        component: () => import('@/views/AlbumDetail.vue'),
+        meta: { title: '相册详情', requiresAuth: true },
+      },
+      {
         path: 'users',
         name: 'UserManage',
         component: () => import('@/views/UserManage.vue'),

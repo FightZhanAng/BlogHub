@@ -3,7 +3,8 @@
     <Transition name="lightbox">
       <div v-if="visible" class="lightbox-overlay" @click.self="close" @keydown.esc="close" tabindex="0">
         <button class="lightbox-close" @click="close">&times;</button>
-        <img v-if="visible" :src="src" :alt="alt" class="lightbox-img" @load="loaded = true" />
+        <video v-if="isVideo" :src="src" class="lightbox-video" controls autoplay />
+        <img v-else :src="src" :alt="alt" class="lightbox-img" />
         <div v-if="alt" class="lightbox-alt">{{ alt }}</div>
       </div>
     </Transition>
@@ -11,31 +12,35 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted, onUnmounted } from 'vue'
-
-const props = defineProps({
-  src: String,
-  alt: { type: String, default: '' },
-})
+import { ref, onMounted, onUnmounted } from 'vue'
 
 const emit = defineEmits(['close'])
 
 const visible = ref(false)
-const loaded = ref(false)
+const src = ref('')
+const alt = ref('')
+const isVideo = ref(false)
 
-function open() { visible.value = true; loaded.value = false }
-function close() { visible.value = false; loaded.value = false; emit('close') }
+function open(newSrc, newAlt = '') {
+  src.value = newSrc || ''
+  alt.value = newAlt
+  isVideo.value = /\.(mp4|webm|ogg|mov)(\?|$)/i.test(newSrc || '')
+  visible.value = true
+}
+
+function close() {
+  visible.value = false
+  emit('close')
+}
 
 function onKeydown(e) {
   if (e.key === 'Escape' && visible.value) close()
 }
 
-watch(() => props.src, (val) => {
-  if (val) open()
-})
-
 onMounted(() => window.addEventListener('keydown', onKeydown))
 onUnmounted(() => window.removeEventListener('keydown', onKeydown))
+
+defineExpose({ open, close })
 </script>
 
 <style scoped>
@@ -56,6 +61,13 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
   object-fit: contain;
   border-radius: 4px;
   user-select: none;
+}
+
+.lightbox-video {
+  max-width: 90vw;
+  max-height: 90vh;
+  border-radius: 4px;
+  outline: none;
 }
 
 .lightbox-close {

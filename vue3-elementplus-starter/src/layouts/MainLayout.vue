@@ -74,6 +74,10 @@
           <el-icon><StarFilled /></el-icon>
           <template #title>收藏</template>
         </el-menu-item>
+        <el-menu-item index="/albums">
+          <el-icon><Camera /></el-icon>
+          <template #title>宝宝相册</template>
+        </el-menu-item>
         <el-menu-item index="/about">
           <el-icon><InfoFilled /></el-icon>
           <template #title>关于</template>
@@ -235,6 +239,7 @@ const crumbConfig = {
   '/archive': [{ path: '/archive', title: '文章归档' }],
   '/images': [{ path: '/images', title: '图片管理' }],
   '/bookmarks': [{ path: '/bookmarks', title: '收藏' }],
+  '/albums': [{ path: '/albums', title: '宝宝相册' }],
   '/blog': [{ path: '/blog', title: '博客' }],
   '/blog/new': [{ path: '/blog', title: '博客' }, { path: '/blog/new', title: '写文章' }],
   '/users': [{ path: '/users', title: '用户管理' }],
@@ -247,6 +252,9 @@ const breadcrumbs = computed(() => {
   if (crumbConfig[path]) return crumbConfig[path]
   if (path.startsWith('/blog/')) {
     return [{ path: '/blog', title: '博客' }, { path, title: '文章详情' }]
+  }
+  if (path.startsWith('/albums/')) {
+    return [{ path: '/albums', title: '宝宝相册' }, { path, title: '相册详情' }]
   }
   return [{ path, title: route.meta.title || '未知' }]
 })
