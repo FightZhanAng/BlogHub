@@ -139,6 +139,12 @@ const routes = [
         component: () => import('@/views/ImageManage.vue'),
         meta: { title: '图片管理', requiresAuth: true, roles: ['admin'] },
       },
+      {
+        path: 'hot',
+        name: 'HotTopics',
+        component: () => import('@/views/HotTopics.vue'),
+        meta: { title: '每日热点' },
+      },
     ],
   },
 ]

@@ -14,6 +14,7 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "mysql2": "^3.22.3"
+    "mysql2": "^3.22.3",
+    "pptxgenjs": "^4.0.1"
   }
 }
