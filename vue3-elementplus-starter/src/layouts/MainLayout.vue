@@ -78,6 +78,10 @@
           <el-icon><Camera /></el-icon>
           <template #title>宝宝相册</template>
         </el-menu-item>
+        <el-menu-item index="/hot">
+          <el-icon><TrendCharts /></el-icon>
+          <template #title>每日热点</template>
+        </el-menu-item>
         <el-menu-item index="/about">
           <el-icon><InfoFilled /></el-icon>
           <template #title>关于</template>
@@ -240,6 +244,7 @@ const crumbConfig = {
   '/images': [{ path: '/images', title: '图片管理' }],
   '/bookmarks': [{ path: '/bookmarks', title: '收藏' }],
   '/albums': [{ path: '/albums', title: '宝宝相册' }],
+  '/hot': [{ path: '/hot', title: '每日热点' }],
   '/blog': [{ path: '/blog', title: '博客' }],
   '/blog/new': [{ path: '/blog', title: '博客' }, { path: '/blog/new', title: '写文章' }],
   '/users': [{ path: '/users', title: '用户管理' }],

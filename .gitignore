@@ -20,6 +20,10 @@ node_modules/
 .DS_Store
 .vscode/
 .idea/
+.playwright-mcp/
+.codegraph/
+.claude/
+.reasonix/
 *.iml
 
 # Reasonix AI 工作流配置
