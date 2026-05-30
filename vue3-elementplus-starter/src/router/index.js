@@ -181,8 +181,18 @@ router.beforeEach((to, from, next) => {
   }
   descEl.content = descMap[title] || 'BlogHub - 技术博客平台'
 
-  const token = localStorage.getItem('blog_token')
-  const role = localStorage.getItem('blog_role')
+  // 从 pinia-plugin-persistedstate 存储中读取认证信息
+  let token = ''
+  let role = ''
+  try {
+    const auth = JSON.parse(localStorage.getItem('blog_auth'))
+    token = auth?.token || ''
+    role = auth?.role || ''
+  } catch {
+    // 兼容旧版 localStorage 键
+    token = localStorage.getItem('blog_token') || ''
+    role = localStorage.getItem('blog_role') || ''
+  }
 
   if (to.meta.requiresAuth && !token) {
     next({ path: '/login', query: { redirect: to.fullPath } })

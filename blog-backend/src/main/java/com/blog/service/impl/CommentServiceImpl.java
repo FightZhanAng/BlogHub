@@ -15,9 +15,9 @@ import com.blog.mapper.UserMapper;
 import com.blog.service.CommentService;
 import com.blog.service.PostService;
 import com.blog.service.UserService;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,18 +25,16 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> implements CommentService {
 
     private static final Logger log = LoggerFactory.getLogger(CommentServiceImpl.class);
 
-    @Autowired
-    private PostService postService;
+    private final PostService postService;
 
-    @Autowired
-    private NotificationMapper notificationMapper;
+    private final NotificationMapper notificationMapper;
 
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
 
     @Override
     public List<Map<String, Object>> getPostComments(String slug) {
@@ -45,6 +43,12 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
                 new LambdaQueryWrapper<Comment>()
                         .eq(Comment::getPostId, post.getId())
                         .orderByAsc(Comment::getCreatedAt));
+
+        // 统计每条评论的直接子回复数
+        Map<Long, Long> replyCountMap = list.stream()
+                .filter(c -> c.getParentId() != null)
+                .collect(Collectors.groupingBy(Comment::getParentId, Collectors.counting()));
+
         return list.stream().map(c -> {
             Map<String, Object> m = new LinkedHashMap<>();
             m.put("id", c.getId());
@@ -55,6 +59,7 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
             m.put("likes", c.getLikes() != null ? c.getLikes() : 0);
             m.put("dislikes", c.getDislikes() != null ? c.getDislikes() : 0);
             m.put("createdAt", c.getCreatedAt());
+            m.put("replyCount", replyCountMap.getOrDefault(c.getId(), 0L).intValue());
             // 设置头像
             if (c.getUserId() != null) {
                 com.blog.entity.User u = userService.getUserById(c.getUserId());
@@ -179,6 +184,44 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
             m.put("nickname", c.getNickname());
             m.put("content", c.getContent());
             m.put("createdAt", c.getCreatedAt());
+            return m;
+        }).collect(Collectors.toList());
+
+        PageResult<Map<String, Object>> result = new PageResult<>();
+        result.setList(list);
+        result.setTotal(ipage.getTotal());
+        result.setPage(ipage.getCurrent());
+        result.setSize(ipage.getSize());
+        result.setPages(ipage.getPages());
+        return result;
+    }
+
+    @Override
+    public PageResult<Map<String, Object>> getCommentReplies(Long commentId, int page, int size) {
+        IPage<Comment> ipage = baseMapper.selectPage(
+                new Page<>(page, size),
+                new LambdaQueryWrapper<Comment>()
+                        .eq(Comment::getParentId, commentId)
+                        .orderByAsc(Comment::getCreatedAt));
+
+        List<Map<String, Object>> list = ipage.getRecords().stream().map(c -> {
+            Map<String, Object> m = new LinkedHashMap<>();
+            m.put("id", c.getId());
+            m.put("postId", c.getPostId());
+            m.put("parentId", c.getParentId());
+            m.put("nickname", c.getNickname());
+            m.put("content", c.getContent());
+            m.put("likes", c.getLikes() != null ? c.getLikes() : 0);
+            m.put("dislikes", c.getDislikes() != null ? c.getDislikes() : 0);
+            m.put("createdAt", c.getCreatedAt());
+            // 统计该回复自己的子回复数
+            Long childCount = baseMapper.selectCount(
+                    new LambdaQueryWrapper<Comment>().eq(Comment::getParentId, c.getId()));
+            m.put("replyCount", childCount != null ? childCount.intValue() : 0);
+            if (c.getUserId() != null) {
+                User u = userService.getUserById(c.getUserId());
+                if (u != null) m.put("avatar", u.getAvatar());
+            }
             return m;
         }).collect(Collectors.toList());
 

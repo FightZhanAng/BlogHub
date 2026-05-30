@@ -1,10 +1,13 @@
 <template>
-  <router-view />
+  <ErrorBoundary>
+    <router-view />
+  </ErrorBoundary>
 </template>
 
 <script setup>
 // 修复 Element Plus 给 body 加 aria-hidden 触发 Chrome 警告
 import { onMounted } from 'vue'
+import ErrorBoundary from '@/components/ErrorBoundary.vue'
 
 onMounted(() => {
   const observer = new MutationObserver(() => {

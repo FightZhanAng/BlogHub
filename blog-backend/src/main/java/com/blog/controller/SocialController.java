@@ -6,16 +6,20 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.blog.common.Result;
 import com.blog.config.JwtUtil;
+import com.blog.dto.FollowRequest;
 import com.blog.entity.Follow;
 import com.blog.entity.Notification;
 import com.blog.entity.Post;
 import com.blog.mapper.FollowMapper;
 import com.blog.mapper.NotificationMapper;
 import com.blog.mapper.PostMapper;
-import org.springframework.beans.factory.annotation.Autowired;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -23,25 +27,21 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
+@RequiredArgsConstructor
+@Tag(name = "社交功能", description = "关注、通知和排行榜")
 public class SocialController {
 
-    @Autowired
-    private com.blog.mapper.UserMapper userMapper;
+    private final com.blog.mapper.UserMapper userMapper;
 
-    @Autowired
-    private FollowMapper followMapper;
+    private final FollowMapper followMapper;
 
-    @Autowired
-    private NotificationMapper notificationMapper;
+    private final NotificationMapper notificationMapper;
 
-    @Autowired
-    private PostMapper postMapper;
+    private final PostMapper postMapper;
 
-    @Autowired
-    private JwtUtil jwtUtil;
+    private final JwtUtil jwtUtil;
 
-    @Autowired
-    private HttpServletRequest request;
+    private final HttpServletRequest request;
 
     private Long getUserId() {
         try {
@@ -65,12 +65,13 @@ public class SocialController {
 
     // ==================== 关注 ====================
 
+    @Operation(summary = "关注用户")
     @PostMapping("/follows")
-    public Result<Void> follow(@RequestBody Map<String, Long> body) {
+    public Result<Void> follow(@Valid @RequestBody FollowRequest body) {
         Long userId = getUserId();
         if (userId == null) return Result.error(403, "请先登录");
-        Long followingId = body.get("userId");
-        if (followingId == null || userId.equals(followingId)) return Result.error(400, "参数错误");
+        Long followingId = body.getUserId();
+        if (userId.equals(followingId)) return Result.error(400, "不能关注自己");
         Follow f = new Follow();
         f.setFollowerId(userId);
         f.setFollowingId(followingId);
@@ -91,6 +92,7 @@ public class SocialController {
         return Result.success(null);
     }
 
+    @Operation(summary = "取消关注")
     @DeleteMapping("/follows/{userId}")
     public Result<Void> unfollow(@PathVariable Long userId) {
         Long cur = getUserId();
@@ -101,6 +103,7 @@ public class SocialController {
         return Result.success(null);
     }
 
+    @Operation(summary = "获取用户主页信息")
     @GetMapping("/users/{id}/profile")
     public Result<Map<String, Object>> profile(@PathVariable Long id) {
         Map<String, Object> data = new HashMap<>();
@@ -130,6 +133,7 @@ public class SocialController {
 
     // ==================== 通知 ====================
 
+    @Operation(summary = "获取通知列表")
     @GetMapping("/notifications")
     public Result<IPage<Notification>> notifications(
             @RequestParam(defaultValue = "1") int page,
@@ -142,6 +146,7 @@ public class SocialController {
                         .orderByDesc(Notification::getCreatedAt)));
     }
 
+    @Operation(summary = "获取未读通知数")
     @GetMapping("/notifications/unread-count")
     public Result<Map<String, Long>> unreadCount() {
         Long userId = getUserId();
@@ -159,6 +164,7 @@ public class SocialController {
         return Result.success(r);
     }
 
+    @Operation(summary = "标记全部通知已读")
     @PutMapping("/notifications/read-all")
     public Result<Void> readAll() {
         Long userId = getUserId();
@@ -172,6 +178,7 @@ public class SocialController {
 
     // ==================== 排行榜 ====================
 
+    @Operation(summary = "获取文章排行榜")
     @GetMapping("/posts/ranking")
     public Result<List<Post>> ranking() {
         List<Post> top = postMapper.selectList(

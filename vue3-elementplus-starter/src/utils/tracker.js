@@ -2,14 +2,9 @@
  * 前端埋点工具
  * 使用 navigator.sendBeacon 确保页面关闭时数据不丢失
  */
+import { getVisitorId } from '@/utils/visitorId'
 
 const TRACK_URL = '/api/stats/track'
-
-let visitorId = localStorage.getItem('visitor_id')
-if (!visitorId) {
-  visitorId = 'v_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8)
-  localStorage.setItem('visitor_id', visitorId)
-}
 
 /**
  * 发送埋点事件
@@ -22,7 +17,7 @@ export function track(event, data = {}) {
       event,
       data,
       url: location.href,
-      visitorId,
+      visitorId: getVisitorId(),
       ts: Date.now(),
     })
     navigator.sendBeacon(TRACK_URL, payload)

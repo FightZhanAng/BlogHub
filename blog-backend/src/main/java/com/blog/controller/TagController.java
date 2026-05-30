@@ -8,7 +8,7 @@ import com.blog.entity.Post;
 import com.blog.entity.Tag;
 import com.blog.service.TagService;
 import io.swagger.v3.oas.annotations.Operation;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,10 +17,10 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/tags")
 @io.swagger.v3.oas.annotations.tags.Tag(name = "标签管理", description = "标签云及标签筛选接口")
+@RequiredArgsConstructor
 public class TagController {
 
-    @Autowired
-    private TagService tagService;
+    private final TagService tagService;
 
     @Operation(summary = "标签列表", description = "获取所有标签，按文章数降序")
     @GetMapping

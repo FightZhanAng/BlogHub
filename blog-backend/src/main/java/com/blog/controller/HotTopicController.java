@@ -4,17 +4,17 @@ import com.blog.common.Result;
 import com.blog.service.HotTopicService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 
 @Tag(name = "每日热点")
 @RestController
 @RequestMapping("/api/hot-topics")
+@RequiredArgsConstructor
 public class HotTopicController {
 
-    @Autowired
-    private HotTopicService hotTopicService;
+    private final HotTopicService hotTopicService;
 
     @Operation(summary = "获取今日热点（按平台分组）")
     @GetMapping

@@ -26,4 +26,7 @@ public interface CommentService extends IService<Comment> {
 
     /** 分页查询所有评论（管理员） */
     PageResult<Map<String, Object>> getCommentList(int page, int size, String keyword, String nickname);
+
+    /** 懒加载某条评论的子回复 */
+    PageResult<Map<String, Object>> getCommentReplies(Long commentId, int page, int size);
 }

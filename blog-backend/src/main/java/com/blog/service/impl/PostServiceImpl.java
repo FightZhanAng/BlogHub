@@ -20,9 +20,9 @@ import com.blog.mapper.PostMapper;
 import com.blog.mapper.PostVersionMapper;
 import com.blog.service.PostService;
 import com.blog.service.TagService;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,26 +32,23 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements PostService {
 
     private static final Logger log = LoggerFactory.getLogger(PostServiceImpl.class);
 
-    @Autowired
-    private PostVersionMapper postVersionMapper;
+    private final PostVersionMapper postVersionMapper;
 
-    @Autowired
-    private ImageMapper imageMapper;
+    private final ImageMapper imageMapper;
 
-    @Autowired
-    private DailyViewsMapper dailyViewsMapper;
+    private final DailyViewsMapper dailyViewsMapper;
 
-    @Autowired
-    private com.blog.mapper.UserMapper userMapper;
+    private final com.blog.mapper.UserMapper userMapper;
 
-    @Autowired
-    private TagService tagService;
+    private final TagService tagService;
 
     @Override
     public IPage<Post> getPublishedPosts(int page, int size, String tag, String keyword) {
@@ -61,10 +58,16 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
                 .orderByDesc(Post::getIsPinned)
                 .orderByDesc(Post::getCreatedAt);
         if (tag != null && !tag.trim().isEmpty()) {
-            // 同时按 slug 和 name 匹配（兼容前端传 tag name 或 slug）
-            String esc = tag.replace("'", "''");
-            wrapper.inSql(Post::getId,
-                    "SELECT pt.post_id FROM post_tag pt INNER JOIN tag t ON pt.tag_id = t.id WHERE t.slug = '" + esc + "' OR t.name = '" + esc + "'");
+            // 安全查询：先通过参数化查询获取 tagId，再关联 post_tag
+            List<Long> tagIds = tagService.getTagIdsBySlugOrName(tag.trim());
+            if (!tagIds.isEmpty()) {
+                wrapper.inSql(Post::getId,
+                    "SELECT post_id FROM post_tag WHERE tag_id IN (" +
+                    tagIds.stream().map(String::valueOf).collect(Collectors.joining(",")) + ")");
+            } else {
+                // 无匹配标签，返回空结果
+                wrapper.inSql(Post::getId, "SELECT id FROM post WHERE 1=0");
+            }
         }
         if (keyword != null && !keyword.trim().isEmpty()) {
             wrapper.and(w -> w
@@ -242,24 +245,38 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
     @Override
     public List<Post> getRelatedPosts(String slug, int limit) {
         Post current = getBySlug(slug);
+        int safeLimit = Math.max(1, Math.min(limit, 100));
         if (current.getTags() == null || current.getTags().trim().isEmpty()) {
             return baseMapper.selectList(
                     new LambdaQueryWrapper<Post>()
                             .eq(Post::getStatus, 1)
                             .ne(Post::getId, current.getId())
                             .orderByDesc(Post::getViews)
-                            .last("LIMIT " + limit));
+                            .last("LIMIT " + safeLimit));
         }
-        // 按标签匹配（通过 post_tag 关联表）
+        // 按标签匹配（通过 post_tag 关联表），拆分逗号分隔的标签
+        List<Long> tagIds = new ArrayList<>();
+        for (String tag : current.getTags().split(",")) {
+            tagIds.addAll(tagService.getTagIdsBySlugOrName(tag.trim()));
+        }
+        tagIds = tagIds.stream().distinct().collect(Collectors.toList());
+        if (tagIds.isEmpty()) {
+            return baseMapper.selectList(
+                    new LambdaQueryWrapper<Post>()
+                            .eq(Post::getStatus, 1)
+                            .ne(Post::getId, current.getId())
+                            .orderByDesc(Post::getViews)
+                            .last("LIMIT " + safeLimit));
+        }
         return baseMapper.selectList(
                 new LambdaQueryWrapper<Post>()
                         .eq(Post::getStatus, 1)
                         .ne(Post::getId, current.getId())
                         .inSql(Post::getId,
                                 "SELECT DISTINCT pt.post_id FROM post_tag pt WHERE pt.tag_id IN (" +
-                                "SELECT t.id FROM tag t INNER JOIN post_tag pt2 ON t.id = pt2.tag_id WHERE pt2.post_id = " + current.getId() + ")" )
+                                tagIds.stream().map(String::valueOf).collect(Collectors.joining(",")) + ")")
                         .orderByDesc(Post::getViews)
-                        .last("LIMIT " + limit));
+                        .last("LIMIT " + safeLimit));
     }
 
     @Override
@@ -279,11 +296,12 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
 
     @Override
     public List<Post> getRankingByLikes(int limit) {
+        int safeLimit = Math.max(1, Math.min(limit, 100));
         return baseMapper.selectList(
                 new LambdaQueryWrapper<Post>()
                         .eq(Post::getStatus, 1)
                         .orderByDesc(Post::getLikes)
-                        .last("LIMIT " + limit));
+                        .last("LIMIT " + safeLimit));
     }
 
     @Override

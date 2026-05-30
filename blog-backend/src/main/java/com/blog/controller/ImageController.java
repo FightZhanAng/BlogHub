@@ -6,9 +6,11 @@ import com.blog.entity.Image;
 import com.blog.entity.Post;
 import com.blog.mapper.ImageMapper;
 import com.blog.mapper.PostMapper;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,19 +27,20 @@ import java.util.stream.Collectors;
  */
 @RestController
 @RequestMapping("/api/images")
+@RequiredArgsConstructor
+@Tag(name = "图片管理", description = "上传图片的管理和删除")
 public class ImageController {
 
     private static final Logger log = LoggerFactory.getLogger(ImageController.class);
 
-    @Autowired
-    private ImageMapper imageMapper;
+    private final ImageMapper imageMapper;
 
-    @Autowired
-    private PostMapper postMapper;
+    private final PostMapper postMapper;
 
     @Value("${upload.dir:./uploads}")
     private String uploadDir;
 
+    @Operation(summary = "获取图片列表")
     @GetMapping
     public Result<List<Map<String, Object>>> list() {
         List<Image> records = imageMapper.selectList(
@@ -72,6 +75,7 @@ public class ImageController {
         return Result.success(result);
     }
 
+    @Operation(summary = "关联图片到文章")
     @PostMapping("/link")
     public Result<Void> linkPost(@RequestParam Long imageId, @RequestParam Long postId,
                                   @RequestParam(defaultValue = "unknown") String type) {
@@ -83,6 +87,7 @@ public class ImageController {
         return Result.success(null);
     }
 
+    @Operation(summary = "删除图片")
     @DeleteMapping
     public Result<Void> delete(@RequestParam String path) {
         if (path == null || !path.startsWith("/uploads/")) {

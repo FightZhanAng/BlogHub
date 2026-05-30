@@ -3,10 +3,12 @@ package com.blog.controller;
 import com.blog.common.Result;
 import com.blog.entity.Image;
 import com.blog.mapper.ImageMapper;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -21,6 +23,8 @@ import java.util.*;
 
 @RestController
 @RequestMapping("/api/upload")
+@RequiredArgsConstructor
+@Tag(name = "文件上传", description = "图片文件上传")
 public class UploadController {
 
     private static final Logger log = LoggerFactory.getLogger(UploadController.class);
@@ -29,8 +33,7 @@ public class UploadController {
             "image/jpeg", "image/png", "image/gif", "image/webp", "image/svg+xml");
     private static final long MAX_SIZE = 5 * 1024 * 1024; // 5MB
 
-    @Autowired
-    private ImageMapper imageMapper;
+    private final ImageMapper imageMapper;
 
     @Value("${upload.dir:./uploads}")
     private String uploadDir;
@@ -43,6 +46,7 @@ public class UploadController {
         Files.createDirectories(uploadPath);
     }
 
+    @Operation(summary = "上传图片文件")
     @PostMapping
     public Result<Map<String, String>> upload(@RequestParam("file") MultipartFile file) {
         if (file.isEmpty()) {

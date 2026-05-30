@@ -7,10 +7,12 @@ import com.blog.entity.Notification;
 import com.blog.entity.Post;
 import com.blog.mapper.NotificationMapper;
 import com.blog.service.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -19,27 +21,23 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/posts/{slug}")
+@RequiredArgsConstructor
+@Tag(name = "互动功能", description = "点赞和收藏操作")
 public class InteractionController {
 
     private static final Logger log = LoggerFactory.getLogger(InteractionController.class);
 
-    @Autowired
-    private PostService postService;
+    private final PostService postService;
 
-    @Autowired
-    private LikeService likeService;
+    private final LikeService likeService;
 
-    @Autowired
-    private BookmarkService bookmarkService;
+    private final BookmarkService bookmarkService;
 
-    @Autowired
-    private JwtUtil jwtUtil;
+    private final JwtUtil jwtUtil;
 
-    @Autowired
-    private NotificationMapper notificationMapper;
+    private final NotificationMapper notificationMapper;
 
-    @Autowired
-    private HttpServletRequest request;
+    private final HttpServletRequest request;
 
     /** 从 Authorization 头提取 userId（未登录返回 null） */
     private Long getUserIdFromToken() {
@@ -59,6 +57,7 @@ public class InteractionController {
         return VisitorIdUtil.getVisitorId(request, userId);
     }
 
+    @Operation(summary = "切换文章点赞状态")
     @PostMapping("/like")
     public Result<Map<String, Object>> toggleLike(@PathVariable String slug) {
         Post post = postService.getBySlug(slug);
@@ -87,6 +86,7 @@ public class InteractionController {
         return Result.success(data);
     }
 
+    @Operation(summary = "获取文章点赞状态")
     @GetMapping("/like")
     public Result<Map<String, Object>> getLikeStatus(@PathVariable String slug) {
         Post post = postService.getBySlug(slug);
@@ -99,6 +99,7 @@ public class InteractionController {
         return Result.success(data);
     }
 
+    @Operation(summary = "切换文章收藏状态")
     @PostMapping("/bookmark")
     public Result<Map<String, Object>> toggleBookmark(@PathVariable String slug) {
         Post post = postService.getBySlug(slug);
@@ -109,6 +110,7 @@ public class InteractionController {
         return Result.success(data);
     }
 
+    @Operation(summary = "获取文章收藏状态")
     @GetMapping("/bookmark")
     public Result<Map<String, Object>> getBookmarkStatus(@PathVariable String slug) {
         Post post = postService.getBySlug(slug);

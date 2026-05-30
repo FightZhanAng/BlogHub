@@ -9,6 +9,11 @@ export const commentApi = {
     return request.get(`/posts/${slug}/comments`)
   },
 
+  /** 懒加载某条评论的回复 */
+  getReplies(commentId, page = 1, size = 10) {
+    return request.get(`/comments/${commentId}/replies`, { params: { page, size } })
+  },
+
   /** 发表评论 */
   create(slug, data) {
     return request.post(`/posts/${slug}/comments`, data)
