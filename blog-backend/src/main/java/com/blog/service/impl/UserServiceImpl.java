@@ -15,6 +15,7 @@ import com.blog.entity.User;
 import com.blog.exception.BusinessException;
 import com.blog.mapper.CommentMapper;
 import com.blog.mapper.UserMapper;
+import com.blog.service.BadgeService;
 import com.blog.service.PostService;
 import com.blog.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -41,6 +42,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     private final CommentMapper commentMapper;
 
     private final PostService postService;
+
+    private final BadgeService badgeService;
 
     private String encryptPassword(String password) {
         return passwordEncoder.encode(password);
@@ -74,6 +77,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
         String token = jwtUtil.generateToken(user.getId(), user.getUsername(), user.getRole());
         log.info("用户登录成功: username={}, role={}", user.getUsername(), user.getRole());
+
+        // 检查徽章（登录）
+        badgeService.checkAndGrant(user.getId(), "USER_LOGIN");
+
+        // 管理员徽章自动授予
+        if ("admin".equals(user.getRole())) {
+            badgeService.grantBadge(user.getId(), 9L);
+        }
+
         return new LoginResponse(token, user.getUsername(), user.getNickname(), user.getAvatar(), user.getRole(), user.getId());
     }
 
@@ -94,6 +106,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
         String token = jwtUtil.generateToken(user.getId(), user.getUsername(), user.getRole());
         log.info("用户注册成功: username={}", user.getUsername());
+
+        // 检查徽章（注册）
+        badgeService.checkAndGrant(user.getId(), "USER_REGISTERED");
+
         return new LoginResponse(token, user.getUsername(), user.getNickname(), user.getAvatar(), user.getRole(), user.getId());
     }
 

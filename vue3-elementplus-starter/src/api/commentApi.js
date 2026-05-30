@@ -18,4 +18,19 @@ export const commentApi = {
   create(slug, data) {
     return request.post(`/posts/${slug}/comments`, data)
   },
+
+  /** 点赞/点踩评论 */
+  react(commentId, type) {
+    return request.post(`/comments/${commentId}/reaction`, { type })
+  },
+
+  /** 取消评论反应 */
+  removeReaction(commentId) {
+    return request.delete(`/comments/${commentId}/reaction`)
+  },
+
+  /** 获取评论反应统计 */
+  getReactions(commentId) {
+    return request.get(`/comments/${commentId}/reactions`)
+  },
 }

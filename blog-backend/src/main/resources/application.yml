@@ -40,7 +40,7 @@ spring:
 
 # 文件上传
 upload:
-  dir: ../uploads
+  dir: ./uploads
 
 mybatis-plus:
   mapper-locations: classpath:mapper/*.xml
@@ -58,10 +58,16 @@ logging:
     com.blog.mapper: trace
   config: classpath:logback-spring.xml
 
-# SpringDoc OpenAPI（Swagger）
+# Knife4j API 文档
+knife4j:
+  enable: true
+  setting:
+    language: zh_cn
+
 springdoc:
   api-docs:
     enabled: true
+    path: /v3/api-docs
   swagger-ui:
     path: /swagger-ui.html
 

@@ -6,6 +6,9 @@ import com.blog.common.PageResult;
 import com.blog.common.Result;
 import com.blog.config.JwtUtil;
 import com.blog.dto.CommentRequest;
+import com.blog.dto.ReactionRequest;
+import com.blog.dto.ReactionResponse;
+import com.blog.service.CommentReactionService;
 import com.blog.service.CommentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -23,6 +26,8 @@ import java.util.Map;
 public class CommentController {
 
     private final CommentService commentService;
+
+    private final CommentReactionService reactionService;
 
     private final JwtUtil jwtUtil;
 
@@ -81,18 +86,38 @@ public class CommentController {
 
     // ========== 评论赞/踩（公开） ==========
 
-    @Operation(summary = "评论点赞")
-    @PostMapping("/api/comments/{id}/like")
-    public Result<Void> like(@PathVariable Long id) {
-        commentService.likeComment(id);
+    @Operation(summary = "评论点赞/点踩")
+    @PostMapping("/api/comments/{id}/reaction")
+    public Result<Void> react(@PathVariable Long id, @Valid @RequestBody ReactionRequest body) {
+        Long userId = getCurrentUserId();
+        String ip = getClientIp();
+        reactionService.react(id, userId, ip, body.getType());
         return Result.success(null);
     }
 
-    @Operation(summary = "评论点踩")
-    @PostMapping("/api/comments/{id}/dislike")
-    public Result<Void> dislike(@PathVariable Long id) {
-        commentService.dislikeComment(id);
+    @Operation(summary = "取消评论反应")
+    @DeleteMapping("/api/comments/{id}/reaction")
+    public Result<Void> removeReaction(@PathVariable Long id) {
+        Long userId = getCurrentUserId();
+        String ip = getClientIp();
+        reactionService.removeReaction(id, userId, ip);
         return Result.success(null);
+    }
+
+    @Operation(summary = "获取评论反应统计")
+    @GetMapping("/api/comments/{id}/reactions")
+    public Result<ReactionResponse> getReactions(@PathVariable Long id) {
+        Long userId = getCurrentUserId();
+        String ip = getClientIp();
+        return Result.success(reactionService.getReactions(id, userId, ip));
+    }
+
+    private String getClientIp() {
+        String xff = request.getHeader("X-Forwarded-For");
+        if (xff != null && !xff.isEmpty()) {
+            return xff.split(",")[0].trim();
+        }
+        return request.getRemoteAddr();
     }
 
     // ========== 评论统计 ==========

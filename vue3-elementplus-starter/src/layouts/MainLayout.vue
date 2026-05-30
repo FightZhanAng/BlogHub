@@ -74,6 +74,10 @@
           <el-icon><StarFilled /></el-icon>
           <template #title>收藏</template>
         </el-menu-item>
+        <el-menu-item index="/badges">
+          <el-icon><Trophy /></el-icon>
+          <template #title>我的徽章</template>
+        </el-menu-item>
         <el-menu-item index="/albums">
           <el-icon><Camera /></el-icon>
           <template #title>宝宝相册</template>

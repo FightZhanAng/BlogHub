@@ -104,11 +104,11 @@
             <version>1.17.2</version>
         </dependency>
 
-        <!-- API docs: SpringDoc OpenAPI -->
+        <!-- API docs: Knife4j (based on SpringDoc OpenAPI) -->
         <dependency>
-            <groupId>org.springdoc</groupId>
-            <artifactId>springdoc-openapi-ui</artifactId>
-            <version>1.7.0</version>
+            <groupId>com.github.xiaoymin</groupId>
+            <artifactId>knife4j-openapi3-spring-boot-starter</artifactId>
+            <version>4.3.0</version>
         </dependency>
 
         <!-- Cache -->

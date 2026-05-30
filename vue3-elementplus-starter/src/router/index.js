@@ -110,6 +110,12 @@ const routes = [
         meta: { title: '个人中心', requiresAuth: true },
       },
       {
+        path: 'badges',
+        name: 'UserBadges',
+        component: () => import('@/views/UserBadges.vue'),
+        meta: { title: '我的徽章', requiresAuth: true },
+      },
+      {
         path: 'my-posts',
         name: 'MyPosts',
         component: () => import('@/views/MyPosts.vue'),
