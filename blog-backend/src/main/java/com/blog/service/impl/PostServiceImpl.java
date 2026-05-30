@@ -18,6 +18,7 @@ import com.blog.exception.ResourceNotFoundException;
 import com.blog.mapper.ImageMapper;
 import com.blog.mapper.PostMapper;
 import com.blog.mapper.PostVersionMapper;
+import com.blog.service.BadgeService;
 import com.blog.service.PostService;
 import com.blog.service.TagService;
 import lombok.RequiredArgsConstructor;
@@ -49,6 +50,8 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
     private final com.blog.mapper.UserMapper userMapper;
 
     private final TagService tagService;
+
+    private final BadgeService badgeService;
 
     @Override
     public IPage<Post> getPublishedPosts(int page, int size, String tag, String keyword) {
@@ -164,6 +167,12 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
         // 关联图片
         linkPostImages(post.getId(), request.getContent(), request.getCoverImage());
         log.info("文章创建成功: id={}, slug={}", post.getId(), post.getSlug());
+
+        // 检查徽章
+        if (userId != null) {
+            badgeService.checkAndGrant(userId, "POST_CREATED");
+        }
+
         return PostResponse.from(post);
     }
 
@@ -231,6 +240,11 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
         incrementViews(post.getId());
         post.setViews(post.getViews() + 1);
         log.info("查看文章: slug={}, views={}", slug, post.getViews());
+
+        // 检查徽章（文章阅读量）
+        if (post.getAuthorId() != null) {
+            badgeService.checkAndGrant(post.getAuthorId(), "POST_VIEWED");
+        }
         PostResponse res = PostResponse.from(post);
         // 设置作者头像
         if (post.getAuthorId() != null) {

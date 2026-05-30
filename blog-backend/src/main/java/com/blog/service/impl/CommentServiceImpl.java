@@ -12,6 +12,7 @@ import com.blog.mapper.CommentMapper;
 import com.blog.mapper.NotificationMapper;
 import com.blog.entity.User;
 import com.blog.mapper.UserMapper;
+import com.blog.service.BadgeService;
 import com.blog.service.CommentService;
 import com.blog.service.PostService;
 import com.blog.service.UserService;
@@ -36,6 +37,8 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
 
     private final UserService userService;
 
+    private final BadgeService badgeService;
+
     @Override
     public List<Map<String, Object>> getPostComments(String slug) {
         Post post = postService.getBySlug(slug);
@@ -54,6 +57,7 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
             m.put("id", c.getId());
             m.put("postId", c.getPostId());
             m.put("parentId", c.getParentId());
+            m.put("userId", c.getUserId());
             m.put("nickname", c.getNickname());
             m.put("content", c.getContent());
             m.put("likes", c.getLikes() != null ? c.getLikes() : 0);
@@ -121,6 +125,11 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
         }
 
         log.info("评论发表成功: postId={}, nickname={}", post.getId(), nickname);
+
+        // 检查徽章
+        if (userId != null) {
+            badgeService.checkAndGrant(userId, "COMMENT_CREATED");
+        }
     }
 
     @Override
@@ -209,6 +218,7 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
             m.put("id", c.getId());
             m.put("postId", c.getPostId());
             m.put("parentId", c.getParentId());
+            m.put("userId", c.getUserId());
             m.put("nickname", c.getNickname());
             m.put("content", c.getContent());
             m.put("likes", c.getLikes() != null ? c.getLikes() : 0);

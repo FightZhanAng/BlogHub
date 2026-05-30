@@ -7,6 +7,7 @@ import com.blog.entity.Notification;
 import com.blog.entity.Post;
 import com.blog.mapper.NotificationMapper;
 import com.blog.service.*;
+import com.blog.service.impl.BadgeServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
@@ -28,6 +29,8 @@ public class InteractionController {
     private final LikeService likeService;
 
     private final BookmarkService bookmarkService;
+
+    private final BadgeService badgeService;
 
     private final JwtUtil jwtUtil;
 
@@ -79,6 +82,12 @@ public class InteractionController {
         Map<String, Object> data = new HashMap<>();
         data.put("liked", liked);
         data.put("count", count);
+
+        // 检查徽章（文章被点赞）
+        if (liked && post.getAuthorId() != null) {
+            badgeService.checkAndGrant(post.getAuthorId(), "POST_LIKED");
+        }
+
         return Result.success(data);
     }
 
@@ -103,6 +112,12 @@ public class InteractionController {
         boolean bookmarked = bookmarkService.toggleBookmark(post.getId(), visitorId);
         Map<String, Object> data = new HashMap<>();
         data.put("bookmarked", bookmarked);
+
+        // 检查徽章（文章被收藏）
+        if (bookmarked && post.getAuthorId() != null) {
+            badgeService.checkAndGrant(post.getAuthorId(), "POST_BOOKMARKED");
+        }
+
         return Result.success(data);
     }
 

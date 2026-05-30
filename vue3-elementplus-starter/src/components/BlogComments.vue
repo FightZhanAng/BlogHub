@@ -25,7 +25,10 @@
         </div>
         <!-- 右侧内容 -->
         <div class="item-content">
-          <div class="item-nickname">{{ comment.nickname }}</div>
+          <div class="item-nickname">
+            {{ comment.nickname }}
+            <BadgeIcons v-if="comment.userId" :user-id="comment.userId" :max="3" />
+          </div>
           <div class="item-text">{{ comment.content }}</div>
           <div class="item-meta">
             <span>{{ formatTime(comment.createdAt) }}</span>
@@ -42,10 +45,7 @@
               <svg v-else viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"/></svg>
             </button>
             <div class="act-spacer"></div>
-            <button class="act-btn like" @click="handleLike(comment)">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-              <span v-if="comment.likes">{{ comment.likes }}</span>
-            </button>
+            <CommentReactions :comment-id="comment.id" />
           </div>
 
           <!-- 回复输入框 -->
@@ -66,6 +66,7 @@
               <div class="reply-content-wrap">
                 <div class="reply-header">
                   <span class="reply-name">{{ reply.nickname }}</span>
+                  <BadgeIcons v-if="reply.userId" :user-id="reply.userId" :max="2" />
                   <template v-if="getReplyTarget(reply)">
                     <span class="reply-sep">回复</span>
                     <span class="reply-target">{{ getReplyTarget(reply) }}</span>
@@ -75,10 +76,7 @@
                 <div class="reply-footer">
                   <span class="reply-time">{{ formatTime(reply.createdAt) }}</span>
                   <button class="reply-act" @click="startReply(reply, comment.id)">回复</button>
-                  <button class="reply-act like-sm" @click="handleLike(reply)">
-                    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-                    <span v-if="reply.likes">{{ reply.likes }}</span>
-                  </button>
+                  <CommentReactions :comment-id="reply.id" />
                 </div>
 
                 <!-- 回复输入框 -->
@@ -111,7 +109,8 @@ import { ref, reactive, computed, nextTick } from 'vue'
 import { ElMessage } from 'element-plus'
 import { commentApi } from '@/api/commentApi'
 import { useAuthStore } from '@/stores/auth'
-import request from '@/api/request'
+import CommentReactions from './CommentReactions.vue'
+import BadgeIcons from './BadgeIcons.vue'
 
 const props = defineProps({ slug: String })
 
@@ -225,13 +224,6 @@ async function loadReplies(commentId, page, replace = false) {
 
 async function loadMoreReplies(comment) {
   await loadReplies(comment.id, (replyPages[comment.id] || 1) + 1)
-}
-
-async function handleLike(comment) {
-  try {
-    await request.post(`/comments/${comment.id}/like`)
-    comment.likes = (comment.likes || 0) + 1
-  } catch {}
 }
 
 fetchComments()
@@ -364,9 +356,6 @@ fetchComments()
 
 .act-btn:hover { color: #409eff; }
 
-.act-btn.like:hover { color: #f56c6c; }
-.act-btn.like:hover svg { fill: #f56c6c; stroke: #f56c6c; }
-
 /* ===== 回复编辑器 ===== */
 .reply-editor {
   margin: 8px 0;
@@ -490,9 +479,6 @@ fetchComments()
 }
 
 .reply-act:hover { color: #409eff; }
-
-.like-sm:hover { color: #f56c6c; }
-.like-sm:hover svg { fill: #f56c6c; stroke: #f56c6c; }
 
 /* 加载更多 */
 .load-more {
