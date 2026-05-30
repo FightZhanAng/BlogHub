@@ -12,8 +12,8 @@ import com.blog.service.PostService;
 import org.slf4j.Logger;
 import java.util.List;
 import java.util.Map;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -25,18 +25,16 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @RestController
 @RequestMapping("/api/posts")
 @Tag(name = "文章管理", description = "博客文章 CRUD 接口")
+@RequiredArgsConstructor
 public class PostController {
 
     private static final Logger log = LoggerFactory.getLogger(PostController.class);
 
-    @Autowired
-    private PostService postService;
+    private final PostService postService;
 
-    @Autowired
-    private JwtUtil jwtUtil;
+    private final JwtUtil jwtUtil;
 
-    @Autowired
-    private HttpServletRequest request;
+    private final HttpServletRequest request;
 
     private Long getCurrentUserId() {
         try {

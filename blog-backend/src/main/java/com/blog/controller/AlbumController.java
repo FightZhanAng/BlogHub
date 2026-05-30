@@ -10,9 +10,9 @@ import com.blog.service.AlbumService;
 import com.blog.service.PhotoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -22,22 +22,19 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/albums")
+@RequiredArgsConstructor
 @Tag(name = "宝宝相册", description = "相册和照片管理接口")
 public class AlbumController {
 
     private static final Logger log = LoggerFactory.getLogger(AlbumController.class);
 
-    @Autowired
-    private AlbumService albumService;
+    private final AlbumService albumService;
 
-    @Autowired
-    private PhotoService photoService;
+    private final PhotoService photoService;
 
-    @Autowired
-    private JwtUtil jwtUtil;
+    private final JwtUtil jwtUtil;
 
-    @Autowired
-    private HttpServletRequest request;
+    private final HttpServletRequest request;
 
     private Long getCurrentUserId() {
         try {

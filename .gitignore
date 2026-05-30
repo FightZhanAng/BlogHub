@@ -24,6 +24,7 @@ node_modules/
 .codegraph/
 .claude/
 .reasonix/
+.cc-connect/
 *.iml
 
 # Reasonix AI 工作流配置

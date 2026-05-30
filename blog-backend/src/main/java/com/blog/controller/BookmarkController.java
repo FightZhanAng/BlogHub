@@ -7,9 +7,11 @@ import com.blog.dto.PostResponse;
 import com.blog.entity.Post;
 import com.blog.service.BookmarkService;
 import com.blog.service.PostService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -18,21 +20,19 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/bookmarks")
+@RequiredArgsConstructor
+@Tag(name = "收藏管理", description = "文章收藏功能")
 public class BookmarkController {
 
     private static final Logger log = LoggerFactory.getLogger(BookmarkController.class);
 
-    @Autowired
-    private BookmarkService bookmarkService;
+    private final BookmarkService bookmarkService;
 
-    @Autowired
-    private PostService postService;
+    private final PostService postService;
 
-    @Autowired
-    private JwtUtil jwtUtil;
+    private final JwtUtil jwtUtil;
 
-    @Autowired
-    private HttpServletRequest request;
+    private final HttpServletRequest request;
 
     private Long getUserIdFromToken() {
         try {
@@ -46,6 +46,7 @@ public class BookmarkController {
     }
 
     /** 获取当前用户收藏的文章列表（已登录按 user:id，未登录按 IP） */
+    @Operation(summary = "获取收藏的文章列表")
     @GetMapping
     public Result<List<PostResponse>> list() {
         Long userId = getUserIdFromToken();

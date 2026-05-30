@@ -5,9 +5,9 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.blog.entity.HotTopic;
 import com.blog.mapper.HotTopicMapper;
 import com.blog.service.HotTopicService;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -18,6 +18,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class HotTopicServiceImpl extends ServiceImpl<HotTopicMapper, HotTopic> implements HotTopicService {
 
     private static final Logger log = LoggerFactory.getLogger(HotTopicServiceImpl.class);
@@ -33,8 +34,7 @@ public class HotTopicServiceImpl extends ServiceImpl<HotTopicMapper, HotTopic> i
         PLATFORMS.put("toutiao", API_BASE + "toutiao");
     }
 
-    @Autowired
-    private RestTemplate restTemplate;
+    private final RestTemplate restTemplate;
 
     @Override
     public Map<String, List<HotTopic>> getTodayTopics() {

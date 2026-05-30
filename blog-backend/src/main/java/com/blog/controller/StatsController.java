@@ -2,21 +2,23 @@ package com.blog.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.blog.common.Result;
+import com.blog.dto.TrackRequest;
 import com.blog.entity.DailyViews;
 import com.blog.entity.Post;
 import com.blog.mapper.CommentMapper;
 import com.blog.mapper.DailyViewsMapper;
 import com.blog.mapper.PostMapper;
 import com.blog.mapper.UserMapper;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.*;
 
 /**
@@ -24,22 +26,19 @@ import java.util.*;
  */
 @RestController
 @RequestMapping("/api/stats")
+@RequiredArgsConstructor
+@Tag(name = "数据统计", description = "仪表盘和埋点统计")
 public class StatsController {
 
-    @Autowired
-    private PostMapper postMapper;
+    private final PostMapper postMapper;
 
-    @Autowired
-    private UserMapper userMapper;
+    private final UserMapper userMapper;
 
-    @Autowired
-    private CommentMapper commentMapper;
+    private final CommentMapper commentMapper;
 
-    @Autowired
-    private com.blog.config.JwtUtil jwtUtil;
+    private final com.blog.config.JwtUtil jwtUtil;
 
-    @Autowired
-    private DailyViewsMapper dailyViewsMapper;
+    private final DailyViewsMapper dailyViewsMapper;
 
     private boolean isAdmin(HttpServletRequest request) {
         try {
@@ -51,6 +50,7 @@ public class StatsController {
         return false;
     }
 
+    @Operation(summary = "获取仪表盘数据")
     @GetMapping("/dashboard")
     public Result<Map<String, Object>> dashboard(HttpServletRequest request) {
         if (!isAdmin(request)) return Result.error(403, "无权访问");
@@ -79,6 +79,7 @@ public class StatsController {
     }
 
     /** 文章阅读趋势 */
+    @Operation(summary = "获取文章阅读趋势")
     @GetMapping("/post/{postId}/trend")
     public Result<List<Map<String, Object>>> postTrend(
             @PathVariable Long postId,
@@ -103,6 +104,7 @@ public class StatsController {
     }
 
     /** 热门搜索词 */
+    @Operation(summary = "获取热门搜索词")
     @GetMapping("/search-keywords")
     public Result<List<String>> searchKeywords() {
         return Result.success(new ArrayList<>());
@@ -111,9 +113,10 @@ public class StatsController {
     /** 埋点事件接收 */
     private static final Logger statsLog = LoggerFactory.getLogger("tracking");
 
+    @Operation(summary = "接收埋点事件")
     @PostMapping("/track")
-    public Result<Void> track(@RequestBody Map<String, Object> body) {
-        statsLog.info("event={} url={}", body.get("event"), body.get("url"));
+    public Result<Void> track(@Valid @RequestBody TrackRequest body) {
+        statsLog.info("event={} url={} visitorId={}", body.getEvent(), body.getUrl(), body.getVisitorId());
         return Result.success(null);
     }
 }

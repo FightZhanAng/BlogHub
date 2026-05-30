@@ -14,9 +14,9 @@ import com.blog.exception.ResourceNotFoundException;
 import com.blog.mapper.AlbumMapper;
 import com.blog.mapper.PhotoMapper;
 import com.blog.service.PhotoService;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,6 +34,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class PhotoServiceImpl extends ServiceImpl<PhotoMapper, Photo> implements PhotoService {
 
     private static final Logger log = LoggerFactory.getLogger(PhotoServiceImpl.class);
@@ -44,8 +45,7 @@ public class PhotoServiceImpl extends ServiceImpl<PhotoMapper, Photo> implements
     private static final long MAX_IMAGE_SIZE = 10 * 1024 * 1024;   // 10MB
     private static final long MAX_VIDEO_SIZE = 200 * 1024 * 1024;  // 200MB
 
-    @Autowired
-    private AlbumMapper albumMapper;
+    private final AlbumMapper albumMapper;
 
     @Value("${upload.dir:../uploads}")
     private String uploadDir;

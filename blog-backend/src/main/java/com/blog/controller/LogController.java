@@ -8,23 +8,24 @@ import com.blog.common.Result;
 import com.blog.config.JwtUtil;
 import com.blog.entity.SysLog;
 import com.blog.mapper.SysLogMapper;
-import org.springframework.beans.factory.annotation.Autowired;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 
 @RestController
 @RequestMapping("/api/logs")
+@RequiredArgsConstructor
+@Tag(name = "操作日志", description = "系统操作日志查询")
 public class LogController {
 
-    @Autowired
-    private SysLogMapper sysLogMapper;
+    private final SysLogMapper sysLogMapper;
 
-    @Autowired
-    private JwtUtil jwtUtil;
+    private final JwtUtil jwtUtil;
 
-    @Autowired
-    private HttpServletRequest request;
+    private final HttpServletRequest request;
 
     private boolean isAdmin() {
         try {
@@ -37,6 +38,7 @@ public class LogController {
         return false;
     }
 
+    @Operation(summary = "分页查询操作日志")
     @GetMapping
     public Result<PageResult<SysLog>> list(
             @RequestParam(defaultValue = "1") int page,

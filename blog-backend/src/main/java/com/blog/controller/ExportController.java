@@ -7,7 +7,9 @@ import com.blog.entity.User;
 import com.blog.mapper.CommentMapper;
 import com.blog.mapper.PostMapper;
 import com.blog.mapper.UserMapper;
-import org.springframework.beans.factory.annotation.Autowired;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -25,19 +27,17 @@ import java.util.stream.Collectors;
  */
 @RestController
 @RequestMapping("/api/export")
+@RequiredArgsConstructor
+@Tag(name = "数据导出", description = "CSV格式数据导出")
 public class ExportController {
 
-    @Autowired
-    private PostMapper postMapper;
+    private final PostMapper postMapper;
 
-    @Autowired
-    private UserMapper userMapper;
+    private final UserMapper userMapper;
 
-    @Autowired
-    private CommentMapper commentMapper;
+    private final CommentMapper commentMapper;
 
-    @Autowired
-    private com.blog.config.JwtUtil jwtUtil;
+    private final com.blog.config.JwtUtil jwtUtil;
 
     private boolean isAdmin(HttpServletRequest req) {
         try {
@@ -49,6 +49,7 @@ public class ExportController {
         return false;
     }
 
+    @Operation(summary = "导出文章数据")
     @GetMapping("/posts")
     public ResponseEntity<byte[]> exportPosts(HttpServletRequest req) {
         if (!isAdmin(req)) return ResponseEntity.status(403).build();
@@ -63,6 +64,7 @@ public class ExportController {
         return csvResponse("posts_" + LocalDate.now() + ".csv", csv);
     }
 
+    @Operation(summary = "导出用户数据")
     @GetMapping("/users")
     public ResponseEntity<byte[]> exportUsers(HttpServletRequest req) {
         if (!isAdmin(req)) return ResponseEntity.status(403).build();
@@ -76,6 +78,7 @@ public class ExportController {
         return csvResponse("users_" + LocalDate.now() + ".csv", csv);
     }
 
+    @Operation(summary = "导出评论数据")
     @GetMapping("/comments")
     public ResponseEntity<byte[]> exportComments(HttpServletRequest req) {
         if (!isAdmin(req)) return ResponseEntity.status(403).build();

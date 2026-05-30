@@ -11,9 +11,11 @@ import com.blog.mapper.PostMapper;
 import com.blog.mapper.PostTagMapper;
 import com.blog.mapper.TagMapper;
 import com.blog.service.TagService;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,20 +23,19 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class TagServiceImpl extends ServiceImpl<TagMapper, Tag> implements TagService {
 
     private static final Logger log = LoggerFactory.getLogger(TagServiceImpl.class);
 
-    @Autowired
-    private TagMapper tagMapper;
+    private final TagMapper tagMapper;
 
-    @Autowired
-    private PostTagMapper postTagMapper;
+    private final PostTagMapper postTagMapper;
 
-    @Autowired
-    private PostMapper postMapper;
+    private final PostMapper postMapper;
 
     @Override
+    @Cacheable(value = "tags", key = "'all'")
     public List<Tag> getAllTags() {
         return tagMapper.selectList(
                 new LambdaQueryWrapper<Tag>()
@@ -62,6 +63,7 @@ public class TagServiceImpl extends ServiceImpl<TagMapper, Tag> implements TagSe
 
     @Override
     @Transactional
+    @CacheEvict(value = "tags", allEntries = true)
     public Long findOrCreate(String name) {
         if (name == null || name.trim().isEmpty()) return null;
         String tagName = name.trim();
@@ -86,6 +88,7 @@ public class TagServiceImpl extends ServiceImpl<TagMapper, Tag> implements TagSe
 
     @Override
     @Transactional
+    @CacheEvict(value = "tags", key = "'all'")
     public void updatePostTags(Long postId, String tagsStr) {
         // 删除旧关联
         postTagMapper.delete(
@@ -120,6 +123,18 @@ public class TagServiceImpl extends ServiceImpl<TagMapper, Tag> implements TagSe
             tag.setPostCount(count.intValue());
             tagMapper.updateById(tag);
         }
+    }
+
+    @Override
+    public List<Long> getTagIdsBySlugOrName(String tag) {
+        return tagMapper.selectList(
+                new LambdaQueryWrapper<Tag>()
+                        .eq(Tag::getSlug, tag)
+                        .or()
+                        .eq(Tag::getName, tag))
+                .stream()
+                .map(Tag::getId)
+                .collect(Collectors.toList());
     }
 
     /** 从标签名生成 slug */

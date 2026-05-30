@@ -3,9 +3,9 @@ package com.blog.config;
 import com.blog.common.Result;
 import com.blog.common.ResultCode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
@@ -18,12 +18,12 @@ import java.nio.charset.StandardCharsets;
  * 认证拦截器 — 校验请求头中的 Token
  */
 @Component
+@RequiredArgsConstructor
 public class AuthInterceptor implements HandlerInterceptor {
 
     private static final Logger log = LoggerFactory.getLogger(AuthInterceptor.class);
 
-    @Autowired
-    private JwtUtil jwtUtil;
+    private final JwtUtil jwtUtil;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 

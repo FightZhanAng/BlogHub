@@ -5,7 +5,9 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.blog.entity.Post;
 import com.blog.service.PostService;
-import org.springframework.beans.factory.annotation.Autowired;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -15,11 +17,13 @@ import java.time.format.DateTimeFormatter;
  * RSS 订阅
  */
 @RestController
+@RequiredArgsConstructor
+@Tag(name = "订阅源", description = "RSS和Sitemap订阅")
 public class FeedController {
 
-    @Autowired
-    private PostService postService;
+    private final PostService postService;
 
+    @Operation(summary = "生成Sitemap")
     @GetMapping(value = "/sitemap.xml", produces = "application/xml;charset=utf-8")
     public String sitemap() {
         IPage<Post> page = postService.getPublishedPosts(1, 500, null, null);
@@ -46,6 +50,7 @@ public class FeedController {
         return xml.toString();
     }
 
+    @Operation(summary = "生成RSS订阅源")
     @GetMapping(value = "/feed.xml", produces = "application/rss+xml;charset=utf-8")
     public String rss() {
         IPage<Post> page = postService.getPublishedPosts(1, 20, null, null);
