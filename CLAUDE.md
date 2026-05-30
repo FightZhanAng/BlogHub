@@ -95,15 +95,22 @@ Key conventions:
 
 - MySQL 8.0, database name `blog_db`
 - MyBatis-Plus: auto-increment IDs, underscore-to-camelCase mapping, SQL logged to stdout in dev
-- Migration scripts in `blog-backend/sql/` (init.sql) and `blog-backend/src/main/resources/db/`
+- Single migration script in `blog-backend/sql/init.sql` (no separate migration files)
 - Entities use `@TableField(fill = FieldFill.INSERT)` for auto-filled timestamps via `MyMetaObjectHandler`
+- All tables must have `created_at` + `updated_at` columns; entity classes extend `BaseEntity`
+
+### API Documentation
+
+Knife4j (Swagger) API documentation available at `http://localhost:8080/doc.html` after starting backend.
 
 ### Key Features to Know
 
 - **Posts**: Markdown content, custom slug, cover image, draft/scheduled publish, version history (auto-snapshot per edit, max 50)
 - **Tags**: Normalized `tag` + `post_tag` join table, `findOrCreate` pattern
-- **Comments**: Nested via `parentId`, supports anonymous + authenticated, XSS-sanitized with jsoup
+- **Comments**: Flat 2-level Douyin-style with `A→B` reply format, lazy-loading replies, anonymous + authenticated support, XSS-sanitized with jsoup
+- **Comment Reactions**: Like/dislike with visitor ID (IP) and user ID dedup, shows user's reaction state
 - **Social**: Likes (IP-based for guests, user-based for logged-in), bookmarks, follows, notifications
+- **Badge System**: 10 badges (interaction/content/activity/special), auto-triggered by rules stored in DB, displayed on profile page and comment area
 - **Albums**: Baby photo/video albums with waterfall layout and timeline view
 - **Hot Topics**: Aggregated trending from Weibo/Zhihu/Douyin/Bilibili/Toutiao/GitHub (refreshes every 2h)
 - **Admin**: Dashboard with ECharts stats, user/comment/image/log management, CSV export
@@ -114,9 +121,16 @@ Key conventions:
 
 Configured in `.mcp.json`: codegraph, fetch, memory, sequential-thinking, playwright (Edge browser).
 
+- `codegraph` — Code analysis and search
+- `fetch` — Web content fetching (mcp-server-fetch-typescript)
+- `memory` — Knowledge graph for persistent memory
+- `sequential-thinking` — Complex problem solving
+- `playwright` — Browser automation (Edge)
+
 ## Environment
 
 - Backend config: `blog-backend/src/main/resources/application.yml`
 - Frontend env: `.env` / `.env.development` / `.env.production` in `vue3-elementplus-starter/`
 - DB connection: `localhost:3306/blog_db` (root/root), Docker maps to `:3307`
-- Upload directory: `../uploads` relative to backend (mapped to `/app/uploads` in Docker)
+- Upload directory: `./uploads` relative to backend working directory
+- MySQL client: `D:\MySQL\MySQL Server 5.7\bin\mysql.exe`
