@@ -45,6 +45,11 @@ request.interceptors.request.use(
   (config) => {
     config.headers['X-Visitor-Id'] = getVisitorId()
 
+    // FormData 时清除 Content-Type，让 axios 自动设置 multipart boundary
+    if (config.data instanceof FormData) {
+      delete config.headers['Content-Type']
+    }
+
     // 自动注入 Token（从 pinia persist 存储读取）
     const token = getAuthToken()
     if (token) {

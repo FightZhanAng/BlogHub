@@ -56,8 +56,7 @@ export function useAiChat() {
    * 上传图片
    */
   async function uploadImage(file) {
-    const { data } = await aiApi.uploadImage(file)
-    return data
+    return await aiApi.uploadImage(file)
   }
 
   return {

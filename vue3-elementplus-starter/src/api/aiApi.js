@@ -127,8 +127,6 @@ export const aiApi = {
   uploadImage(file) {
     const formData = new FormData()
     formData.append('file', file)
-    return request.post('/ai/upload-image', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    })
+    return request.post('/ai/upload-image', formData)
   }
 }

@@ -23,6 +23,7 @@ public class MiMoModelConfig {
     public static class ModelInfo {
         private String id;
         private String name;
+        private String apiModel;
         private String description;
         private Integer maxTokens;
         private Boolean supportThinking;

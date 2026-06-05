@@ -156,6 +156,6 @@ public class PostController {
     @DeleteMapping("/{id}")
     public Result<Void> delete(@PathVariable Long id) {
         postService.deletePost(id, getCurrentUserId(), getCurrentRole());
-        return Result.noContent();
+        return Result.success();
     }
 }

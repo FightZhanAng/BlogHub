@@ -1,18 +1,13 @@
 server:
   port: 8080
 
+spring:
+  profiles:
+    active: local
   # 全局错误（兜底，不给客户端暴露 stack trace）
   error:
     include-stacktrace: never
     include-message: never
-
-# JWT 配置
-jwt:
-  secret: QmxvZ0h1YkAyMDI0U2VjcmV0S2V5Rm9ySldUVG9rZW5HZW5lcmF0aW9u
-  expiration: 86400000       # Access Token: 24h
-  refresh-expiration: 604800000  # Refresh Token: 7d
-
-spring:
   datasource:
     url: jdbc:mysql://localhost:3306/blog_db?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&useSSL=false
     username: root
@@ -37,6 +32,12 @@ spring:
       enabled: true
       max-file-size: 200MB
       max-request-size: 500MB
+
+# JWT 配置
+jwt:
+  secret: QmxvZ0h1YkAyMDI0U2VjcmV0S2V5Rm9ySldUVG9rZW5HZW5lcmF0aW9u
+  expiration: 86400000       # Access Token: 24h
+  refresh-expiration: 604800000  # Refresh Token: 7d
 
 # 文件上传
 upload:
@@ -74,11 +75,12 @@ springdoc:
 # MiMo AI 配置
 mimo:
   api-key: ${MIMO_API_KEY:}
-  api-url: ${MIMO_API_URL:https://api.xiaomimimo.com/v1/chat/completions}
+  api-url: ${MIMO_API_URL:https://token-plan-cn.xiaomimimo.com/v1/chat/completions}
   default-model: mimo-v2.5-pro
   models:
     - id: mimo-v2.5-pro
       name: MiMo V2.5 Pro
+      api-model: mimo-v2.5-pro
       description: 强大的通用模型，适合大多数任务
       max-tokens: 4096
       support-thinking: true
@@ -87,6 +89,7 @@ mimo:
       top-p: 0.95
     - id: mimo-v2.5-flash
       name: MiMo V2.5 Flash
+      api-model: mimo-v2.5
       description: 快速响应，适合简单对话
       max-tokens: 2048
       support-thinking: false
@@ -95,6 +98,7 @@ mimo:
       top-p: 0.95
     - id: mimo-v2.5
       name: MiMo V2.5
+      api-model: mimo-v2.5
       description: 支持图像理解，多模态能力
       max-tokens: 4096
       support-thinking: true

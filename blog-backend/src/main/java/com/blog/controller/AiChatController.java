@@ -71,7 +71,7 @@ public class AiChatController {
     public Result<Void> deleteHistory(@PathVariable Long id, HttpServletRequest request) {
         Long userId = (Long) request.getAttribute("userId");
         aiChatService.deleteConversation(id, userId);
-        return Result.noContent();
+        return Result.success();
     }
 
     @Operation(summary = "流式聊天")
