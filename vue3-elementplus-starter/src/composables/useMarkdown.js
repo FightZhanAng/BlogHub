@@ -22,6 +22,17 @@ function getMd() {
 }
 
 /**
+ * useMarkdown composable — 供组件使用
+ */
+export function useMarkdown() {
+  function renderMarkdown(text) {
+    if (!text) return ''
+    return getMd().render(text)
+  }
+  return { renderMarkdown }
+}
+
+/**
  * 简易 frontmatter 解析（不依赖 gray-matter，避免 eval 问题）
  */
 export function parseFrontmatter(raw) {

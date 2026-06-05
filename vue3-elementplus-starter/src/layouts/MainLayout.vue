@@ -86,6 +86,10 @@
           <el-icon><TrendCharts /></el-icon>
           <template #title>每日热点</template>
         </el-menu-item>
+        <el-menu-item index="/ai-assistant">
+          <el-icon><ChatDotRound /></el-icon>
+          <template #title>AI 助手</template>
+        </el-menu-item>
         <el-menu-item index="/about">
           <el-icon><InfoFilled /></el-icon>
           <template #title>关于</template>
@@ -249,6 +253,7 @@ const crumbConfig = {
   '/bookmarks': [{ path: '/bookmarks', title: '收藏' }],
   '/albums': [{ path: '/albums', title: '宝宝相册' }],
   '/hot': [{ path: '/hot', title: '每日热点' }],
+  '/ai-assistant': [{ path: '/ai-assistant', title: 'AI 助手' }],
   '/blog': [{ path: '/blog', title: '博客' }],
   '/blog/new': [{ path: '/blog', title: '博客' }, { path: '/blog/new', title: '写文章' }],
   '/users': [{ path: '/users', title: '用户管理' }],

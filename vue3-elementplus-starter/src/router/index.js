@@ -151,6 +151,12 @@ const routes = [
         component: () => import('@/views/HotTopics.vue'),
         meta: { title: '每日热点' },
       },
+      {
+        path: 'ai-assistant',
+        name: 'AiAssistant',
+        component: () => import('@/views/AiAssistant.vue'),
+        meta: { title: 'AI 助手', requiresAuth: true },
+      },
     ],
   },
 ]
