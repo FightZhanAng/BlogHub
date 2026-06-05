@@ -84,6 +84,13 @@ public class GlobalExceptionHandler {
         return Result.badRequest("请求体格式错误");
     }
 
+    /** 参数非法 */
+    @ExceptionHandler(IllegalArgumentException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public Result<Void> handleIllegalArgument(IllegalArgumentException e) {
+        return Result.badRequest(e.getMessage());
+    }
+
     /** 兜底异常 */
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)

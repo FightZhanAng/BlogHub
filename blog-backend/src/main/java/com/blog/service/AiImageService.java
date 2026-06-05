@@ -37,6 +37,8 @@ public class AiImageService {
      * 上传图片
      */
     public ImageUploadResponse uploadImage(MultipartFile file, Long userId) throws Exception {
+        log.info("收到图片上传: filename={}, size={}, contentType={}", 
+                file.getOriginalFilename(), file.getSize(), file.getContentType());
         // 校验文件
         if (file.isEmpty()) {
             throw new IllegalArgumentException("文件不能为空");
@@ -56,6 +58,7 @@ public class AiImageService {
         // 保存文件
         String dateDir = java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy/MM"));
         Path targetDir = Paths.get(uploadDir).toAbsolutePath().normalize().resolve("ai-images").resolve(dateDir);
+        log.info("保存目录: {}", targetDir);
         Files.createDirectories(targetDir);
 
         String ext = file.getOriginalFilename();

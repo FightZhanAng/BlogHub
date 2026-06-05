@@ -87,6 +87,6 @@ public class SeriesController {
     @DeleteMapping("/{id}")
     public Result<Void> delete(@PathVariable Long id) {
         seriesMapper.deleteById(id);
-        return Result.noContent();
+        return Result.success();
     }
 }
