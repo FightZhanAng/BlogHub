@@ -5,19 +5,30 @@
 
 ## 🚀 简介
 
-BlogHub 是一个功能完整的技术博客系统，支持文章管理、评论互动、社交功能、管理后台等全链路博客运营需求。
+BlogHub 是一个功能完整的技术博客系统，支持文章管理、评论互动、社交功能、AI 助手、管理后台等全链路博客运营需求。
 
 ## 🛠 技术栈
 
 | 层 | 技术 |
 |------|------|
 | **前端** | Vue 3 + Vite + Element Plus + Pinia + Vue Router |
-| **后端** | Spring Boot + MyBatis-Plus + MySQL |
+| **后端** | Spring Boot 2.7 + MyBatis-Plus + MySQL 8 |
 | **认证** | JWT（Access Token + Refresh Token） |
+| **AI** | MiMo V2.5（小米大模型，SSE 流式输出） |
 | **热点数据** | 60s API + GitHub API |
-| **构建** | Maven（后端） / Vite（前端） |
+| **构建** | Maven（后端） / Vite（前端） / Docker Compose |
 
 ## ✨ 功能总览
+
+### 🤖 AI 助手
+- 集成小米 MiMo V2.5 大模型（Pro / Flash / 多模态三款可选）
+- SSE 流式输出，逐字显示 + 渐变光标动画
+- 深度思考模式（Thinking），可折叠查看思考过程
+- 图片输入理解（MiMo V2.5 多模态模型）
+- 对话历史管理（按时间归档：今天/昨天/近7天/更早，可折叠分组）
+- Markdown 渲染（代码高亮 + 折叠 + 复制）
+- 暗色/亮色主题一键切换
+- 消息复制、图片灯箱预览
 
 ### 📰 文章系统
 - Markdown 编辑器（实时预览、图片拖拽/粘贴上传）
@@ -93,48 +104,51 @@ BlogHub 是一个功能完整的技术博客系统，支持文章管理、评论
 ### 🔍 其他
 - 全文搜索（标题/内容/描述模糊匹配）
 - SEO 优化（每页独立 title + description）
-- 响应式布局 + 深色模式
+- 暗色/亮色主题切换（localStorage 持久化）
 
 ## 🏗 项目结构
 
 ```
-blog-hub/
+BlogHub/
 ├── blog-backend/                  # Spring Boot 后端
 │   ├── src/main/java/com/blog/
-│   │   ├── config/                # JWT、拦截器、跨域、安全
-│   │   ├── controller/            # REST API 控制器
-│   │   ├── service/               # 业务逻辑层
+│   │   ├── config/                # JWT、拦截器、跨域、MiMo 配置
+│   │   ├── controller/            # REST API 控制器（含 AiChatController）
+│   │   ├── service/               # 业务逻辑层（含 AiChatService 流式处理）
 │   │   ├── mapper/                # MyBatis-Plus Mapper
 │   │   ├── entity/                # 数据实体
 │   │   ├── dto/                   # 请求/响应 DTO
 │   │   ├── common/                # 公共工具、响应封装
 │   │   └── exception/             # 全局异常处理
+│   ├── sql/
+│   │   ├── init.sql               # 完整建表 + 种子数据
+│   │   └── migration-ai.sql       # AI 助手表迁移
 │   └── src/main/resources/
 │       ├── application.yml        # 应用配置
-│       └── db/                    # 数据库迁移脚本
+│       └── application-local.yml  # 本地 API Key（gitignore）
 │
 ├── vue3-elementplus-starter/      # Vue 3 前端
 │   ├── src/
-│   │   ├── views/                 # 页面组件
-│   │   ├── components/            # 公共组件
-│   │   ├── composables/           # 组合式函数
+│   │   ├── views/                 # 页面组件（含 AiAssistant）
+│   │   ├── components/            # 公共组件（ChatMessage/ChatHistory 等）
+│   │   ├── composables/           # 组合式函数（useAiChat/useMarkdown）
 │   │   ├── layouts/               # 布局组件
 │   │   ├── router/                # 路由 + 守卫
 │   │   ├── stores/                # Pinia 状态
-│   │   ├── api/                   # API 请求封装
-│   │   └── styles/                # 全局样式
+│   │   ├── api/                   # API 请求封装（含 aiApi）
+│   │   └── styles/                # 全局样式 + 暗色/亮色主题变量
 │   └── public/
 │
-├── scripts/                       # 辅助脚本（DB 扫描等）
-├── mysql.js                       # MySQL 命令行助手
+├── docker-compose.yml             # 一键部署（MySQL + 后端 + Nginx）
+├── nginx.conf                     # Nginx 反向代理配置
 └── docs/                          # 设计文档
 ```
 
-## 🚦 本地运行
+## 🚀 快速开始
 
 ### 前置条件
 
-- JDK 17+
+- JDK 8+
 - Node.js 18+
 - MySQL 8.0+
 - Maven
@@ -145,16 +159,29 @@ blog-hub/
 mysql -u root -p < blog-backend/sql/init.sql
 ```
 
-### 2. 后端
+### 2. AI 配置
+
+在 `blog-backend/src/main/resources/` 下创建 `application-local.yml`：
+
+```yaml
+mimo:
+  api-key: 你的_MiMo_Token_Plan_API_Key
+```
+
+> ⚠️ `application-local.yml` 已被 gitignore，不会提交到版本库。
+
+### 3. 后端
 
 ```bash
 cd blog-backend
 mvn spring-boot:run
+# 或指定本地 profile
+mvn spring-boot:run -Dspring-boot.run.arguments="--spring.profiles.active=local"
 ```
 
-后端默认运行在 `http://localhost:8080`
+后端运行在 `http://localhost:8080`
 
-### 3. 前端
+### 4. 前端
 
 ```bash
 cd vue3-elementplus-starter
@@ -162,18 +189,22 @@ npm install
 npm run dev
 ```
 
-前端默认运行在 `http://localhost:5173`
+前端运行在 `http://localhost:3000`（代理 API 到 :8080）
+
+### 5. Docker（可选）
+
+```bash
+docker-compose up -d    # MySQL :3307, Backend :8080, Frontend :80
+```
 
 ## 🔗 API 文档
 
-集成 Knife4j API 文档，启动后端后访问：
+启动后端后访问 Knife4j 文档：
 
 ```
 http://localhost:8080/doc.html
 ```
 
-提供完整的接口文档、在线调试、参数说明等功能。
-
-## 📄  License
+## 📄 License
 
 MIT
