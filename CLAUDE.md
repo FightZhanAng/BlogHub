@@ -24,7 +24,7 @@ mvn test -Dtest=ClassName        # Run single test class
 ### Frontend (from `vue3-elementplus-starter/`)
 ```bash
 npm install
-npm run dev        # Dev server on :3000 (proxies /uploads to :8080)
+npm run dev        # Dev server on :3000 (proxies /api + /uploads to :8080)
 npm run build      # Production build → dist/
 npm run lint       # ESLint with auto-fix
 ```
@@ -52,7 +52,8 @@ entity/      → DB entities with Lombok @Data, extend BaseEntity (auto fill cre
 dto/         → Request/response DTOs
 config/      → Auth, CORS, JWT, MyBatis-Plus, WebMvc
 common/      → Result wrapper, enums, rate limiting, audit logging, HTML sanitizer
-exception/   → GlobalExceptionHandler → catches BusinessException/ResourceNotFoundException
+aspect/       → AOP aspects (RateLimitAspect, AuditLogAspect, LoggingAspect)
+exception/    → GlobalExceptionHandler → catches BusinessException/ResourceNotFoundException
 ```
 
 ### API Response Contract
@@ -76,13 +77,14 @@ Codes: 200 success, 201 created, 204 no content, 400 bad request, 401 unauthoriz
 ```
 src/
   api/          → Axios modules per domain (postApi, authApi, commentApi, etc.)
-  api/request.js → Shared Axios instance (baseURL: :8080/api), auto-injects Bearer token + X-Visitor-Id
+  api/request.js → Shared Axios instance (baseURL: /api), auto-injects Bearer token + X-Visitor-Id
   views/        → Page components (Home, BlogList, BlogPost, Dashboard, etc.)
   components/   → Shared UI (BlogCard, BlogComments, BlogToc, ImageLightbox, etc.)
   composables/  → useApi, useInteraction, useMarkdown, usePosts
-  stores/       → Pinia stores (auth.js — token/user/role state)
+  stores/       → Pinia stores (auth.js — token/user/role state, persisted via pinia-plugin-persistedstate)
   router/       → Vue Router with beforeEach guard (auth + admin checks + SEO meta)
   layouts/      → MainLayout.vue (shell with navbar/sidebar)
+  utils/        → logger.js (frontend logging), tracker.js (behavior tracking), visitorId.js (anonymous visitor ID)
 ```
 
 Key conventions:
@@ -95,9 +97,15 @@ Key conventions:
 
 - MySQL 8.0, database name `blog_db`
 - MyBatis-Plus: auto-increment IDs, underscore-to-camelCase mapping, SQL logged to stdout in dev
-- Single migration script in `blog-backend/sql/init.sql` (no separate migration files)
+- HikariCP connection pool (5 min idle, 20 max connections)
+- Single migration script in `blog-backend/sql/init.sql` (contains all tables + seed data)
 - Entities use `@TableField(fill = FieldFill.INSERT)` for auto-filled timestamps via `MyMetaObjectHandler`
 - All tables must have `created_at` + `updated_at` columns; entity classes extend `BaseEntity`
+
+### Caching
+
+- Caffeine in-memory cache (configured via `spring-boot-starter-cache` + `caffeine`)
+- Use `@Cacheable` / `@CacheEvict` annotations for service methods
 
 ### API Documentation
 

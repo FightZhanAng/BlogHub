@@ -13,8 +13,6 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
       - ./blog-backend/sql/init.sql:/docker-entrypoint-initdb.d/01-init.sql
-      - ./blog-backend/src/main/resources/db/migration-images.sql:/docker-entrypoint-initdb.d/02-images.sql
-      - ./blog-backend/src/main/resources/db/migration-v2.sql:/docker-entrypoint-initdb.d/03-v2.sql
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
       interval: 10s
