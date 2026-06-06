@@ -44,3 +44,7 @@ package-lock.json
 .superpowers/
 .agents/
 docs/
+
+cleanup-direct.bat
+reasonix.toml
+.kilo/
