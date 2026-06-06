@@ -11,6 +11,7 @@
 
       <el-menu
         :default-active="route.path"
+        :default-openeds="defaultOpeneds"
         :collapse="isCollapse"
         :collapse-transition="false"
         router
@@ -19,81 +20,28 @@
         active-text-color="#409eff"
         class="sidebar-menu"
       >
-        
-        <el-menu-item index="/home">
-          <el-icon><HomeFilled /></el-icon>
-          <template #title>首页</template>
-        </el-menu-item>
-      
-        <!-- 博客核心功能 -->
-        <el-menu-item index="/blog" class="nav-primary">
-          <el-icon :size="20"><Notebook /></el-icon>
-          <template #title>博客</template>
-        </el-menu-item>
-        <el-menu-item index="/my-posts">
-          <el-icon :size="18"><Document /></el-icon>
-          <template #title>我的文章</template>
-        </el-menu-item>
-        <el-menu-item index="/blog/new">
-          <el-icon :size="18"><EditPen /></el-icon>
-          <template #title>写文章</template>
-        </el-menu-item>
-        <el-menu-item index="/tags">
-          <el-icon><CollectionTag /></el-icon>
-          <template #title>标签云</template>
-        </el-menu-item>
-        <el-menu-item index="/archive">
-          <el-icon><Timer /></el-icon>
-          <template #title>文章归档</template>
-        </el-menu-item>
+        <template v-for="item in menuTree" :key="item.id">
+          <!-- 独立顶级项（无子菜单） -->
+          <el-menu-item v-if="!item.children" :index="item.path">
+            <el-icon v-if="item.icon"><component :is="item.icon" /></el-icon>
+            <template #title>{{ item.title }}</template>
+          </el-menu-item>
 
-        <el-divider class="menu-divider" />
-
-        <!-- 管理（仅管理员） -->
-        <el-menu-item index="/dashboard" v-if="isAdmin">
-          <el-icon><DataAnalysis /></el-icon>
-          <template #title>仪表盘</template>
-        </el-menu-item>
-        <el-menu-item index="/users" v-if="isAdmin">
-          <el-icon><UserFilled /></el-icon>
-          <template #title>用户管理</template>
-        </el-menu-item>
-        <el-menu-item index="/comments" v-if="isAdmin">
-          <el-icon><ChatDotSquare /></el-icon>
-          <template #title>评论管理</template>
-        </el-menu-item>
-        <el-menu-item index="/logs" v-if="isAdmin">
-          <el-icon><Document /></el-icon>
-          <template #title>操作日志</template>
-        </el-menu-item>
-        <el-menu-item index="/images" v-if="isAdmin">
-          <el-icon><Picture /></el-icon>
-          <template #title>图片管理</template>
-        </el-menu-item>
-        <el-menu-item index="/bookmarks">
-          <el-icon><StarFilled /></el-icon>
-          <template #title>收藏</template>
-        </el-menu-item>
-        <el-menu-item index="/badges">
-          <el-icon><Trophy /></el-icon>
-          <template #title>我的徽章</template>
-        </el-menu-item>
-        <el-menu-item index="/albums">
-          <el-icon><Camera /></el-icon>
-          <template #title>宝宝相册</template>
-        </el-menu-item>
-        <el-menu-item index="/hot">
-          <el-icon><TrendCharts /></el-icon>
-          <template #title>每日热点</template>
-        </el-menu-item>
-        <el-menu-item index="/ai-assistant">
-          <el-icon><ChatDotRound /></el-icon>
-          <template #title>AI 助手</template>
-        </el-menu-item>
-        <el-menu-item index="/about">
-          <el-icon><InfoFilled /></el-icon>
-          <template #title>关于</template>
-        </el-menu-item>
+          <!-- 分组（有子菜单） -->
+          <el-sub-menu v-else :index="item.groupKey">
+            <template #title>
+              <el-icon v-if="item.icon"><component :is="item.icon" /></el-icon>
+              <span>{{ item.title }}</span>
+            </template>
+            <el-menu-item
+              v-for="child in item.children"
+              :key="child.id"
+              :index="child.path"
+            >
+              {{ child.title }}
+            </el-menu-item>
+          </el-sub-menu>
+        </template>
       </el-menu>
     </el-aside>
 
@@ -160,7 +108,7 @@
             <template #dropdown>
               <el-dropdown-menu>
                 <el-dropdown-item icon="User" @click="$router.push('/profile')">个人中心</el-dropdown-item>
-                <el-dropdown-item icon="Setting">设置</el-dropdown-item>
+                <el-dropdown-item icon="Setting" v-if="authStore.isAdmin" @click="$router.push('/admin/menu-settings')">菜单设置</el-dropdown-item>
                 <el-dropdown-item v-if="authStore.isAdmin" icon="UserFilled" @click="$router.push('/users')">
                   用户管理
                 </el-dropdown-item>
@@ -173,9 +121,16 @@
         </div>
       </el-header>
 
+      <!-- 标签页导航 -->
+      <TagViews />
+
       <!-- 内容区域 -->
       <el-main class="layout-main">
-        <router-view />
+        <router-view v-slot="{ Component }">
+          <keep-alive>
+            <component :is="Component" :key="route.path" />
+          </keep-alive>
+        </router-view>
       </el-main>
     </el-container>
   </el-container>
@@ -186,14 +141,28 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useAuthStore } from '@/stores/auth'
+import { useMenuStore } from '@/stores/menu'
 import ReadingProgress from '@/components/ReadingProgress.vue'
+import TagViews from '@/components/TagViews.vue'
 import request from '@/api/request'
 
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
+const menuStore = useMenuStore()
 const isCollapse = ref(false)
 const isAdmin = computed(() => authStore.isAdmin)
+const menuTree = computed(() => menuStore.menuTree)
+
+// 自动展开包含当前路由的分组
+const defaultOpeneds = computed(() => {
+  for (const item of menuTree.value) {
+    if (item.children && item.children.some(c => c.path === route.path)) {
+      return [item.groupKey]
+    }
+  }
+  return []
+})
 const showNotifications = ref(false)
 const notifications = ref([])
 const unreadCount = ref(0)
@@ -240,7 +209,13 @@ function handleLogout() {
   router.push('/blog')
 }
 
-onMounted(fetchNotifications)
+onMounted(() => {
+  fetchNotifications()
+  // 刷新后如果已登录但菜单为空，重新加载
+  if (authStore.isLoggedIn && menuTree.value.length === 0) {
+    menuStore.fetchMenuTree()
+  }
+})
 
 /** 面包屑导航 */
 const crumbConfig = {
@@ -254,11 +229,19 @@ const crumbConfig = {
   '/albums': [{ path: '/albums', title: '宝宝相册' }],
   '/hot': [{ path: '/hot', title: '每日热点' }],
   '/ai-assistant': [{ path: '/ai-assistant', title: 'AI 助手' }],
+  '/api-tester': [{ path: '/api-tester', title: 'API 测试工具' }],
   '/blog': [{ path: '/blog', title: '博客' }],
   '/blog/new': [{ path: '/blog', title: '博客' }, { path: '/blog/new', title: '写文章' }],
   '/users': [{ path: '/users', title: '用户管理' }],
   '/comments': [{ path: '/comments', title: '评论管理' }],
   '/profile': [{ path: '/profile', title: '个人中心' }],
+  '/badges': [{ path: '/badges', title: '我的徽章' }],
+  '/my-posts': [{ path: '/my-posts', title: '我的文章' }],
+  '/dashboard': [{ path: '/dashboard', title: '仪表盘' }],
+  '/logs': [{ path: '/logs', title: '操作日志' }],
+  '/login': [{ path: '/login', title: '登录' }],
+  '/register': [{ path: '/register', title: '注册' }],
+  '/admin/menu-settings': [{ path: '/admin/menu-settings', title: '菜单配置' }],
 }
 
 const breadcrumbs = computed(() => {
@@ -355,9 +338,28 @@ const breadcrumbs = computed(() => {
   background-color: #fff;
 }
 
-.menu-divider {
-  margin: 8px 16px;
-  border-top-color: #f0f0f0;
+/* 分隔线（备用） */
+
+/* 子菜单样式 */
+.sidebar-menu :deep(.el-sub-menu .el-menu-item) {
+  height: 40px;
+  line-height: 40px;
+  margin: 1px 8px;
+  border-radius: 6px;
+  font-size: 13px;
+  padding-left: 48px !important;
+  min-width: auto;
+}
+
+.sidebar-menu :deep(.el-sub-menu .el-menu-item:hover) {
+  background-color: #f0f5ff;
+  color: #409eff;
+}
+
+.sidebar-menu :deep(.el-sub-menu .el-menu-item.is-active) {
+  background-color: #ecf5ff;
+  color: #409eff;
+  font-weight: 500;
 }
 
 .sidebar-menu :deep(.el-sub-menu__title .el-icon) {

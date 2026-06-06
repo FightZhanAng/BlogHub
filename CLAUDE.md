@@ -38,6 +38,8 @@ docker-compose down
 ### Database initialization
 ```bash
 mysql -u root -p < blog-backend/sql/init.sql
+mysql -u root -p blog_db < blog-backend/sql/migration-ai.sql
+mysql -u root -p blog_db < blog-backend/sql/migration-api-tester.sql
 ```
 
 ## Architecture
@@ -99,6 +101,7 @@ Key conventions:
 - MyBatis-Plus: auto-increment IDs, underscore-to-camelCase mapping, SQL logged to stdout in dev
 - HikariCP connection pool (5 min idle, 20 max connections)
 - Single migration script in `blog-backend/sql/init.sql` (contains all tables + seed data)
+- Additional migrations: `migration-ai.sql`, `migration-api-tester.sql`
 - Entities use `@TableField(fill = FieldFill.INSERT)` for auto-filled timestamps via `MyMetaObjectHandler`
 - All tables must have `created_at` + `updated_at` columns; entity classes extend `BaseEntity`
 
@@ -122,8 +125,10 @@ Knife4j (Swagger) API documentation available at `http://localhost:8080/doc.html
 - **Albums**: Baby photo/video albums with waterfall layout and timeline view
 - **Hot Topics**: Aggregated trending from Weibo/Zhihu/Douyin/Bilibili/Toutiao/GitHub (refreshes every 2h)
 - **Admin**: Dashboard with ECharts stats, user/comment/image/log management, CSV export
+- **API Tester**: Web-based API testing tool (like Postman) with proxy mode, request history, environment variables, and collections. Route: `/api-tester`
 - **SEO**: Per-page `<title>` + `<meta description>` set in router guard
 - **RSS/Sitemap**: `/feed.xml` and `/sitemap.xml` served by `FeedController`
+- **API Tester**: Proxy-based API testing tool with collections, history, environment variables. Endpoints: `/api/tester/*`
 
 ### MCP Servers
 

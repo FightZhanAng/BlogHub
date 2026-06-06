@@ -40,3 +40,7 @@ uploads/
 # MySQL helper (项目根的工具脚本依赖)
 node_modules/
 package-lock.json
+
+.superpowers/
+.agents/
+docs/

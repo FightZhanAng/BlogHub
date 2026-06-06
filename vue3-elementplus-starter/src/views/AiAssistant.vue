@@ -182,7 +182,7 @@ import ChatHistory from '@/components/ChatHistory.vue'
 import StreamingText from '@/components/StreamingText.vue'
 
 // 主题切换
-const isDark = ref(localStorage.getItem('ai-theme') !== 'light')
+const isDark = ref(localStorage.getItem('ai-theme') === 'dark')
 function applyTheme() {
   document.documentElement.setAttribute('data-theme', isDark.value ? 'dark' : 'light')
 }
@@ -391,7 +391,7 @@ function scrollToBottom() {
    ============================== */
 .ai-assistant {
   display: flex;
-  height: calc(100vh - 60px);
+  height: calc(100vh - 140px);
   margin: -24px;
   overflow: hidden;
   background: var(--ai-bg);
