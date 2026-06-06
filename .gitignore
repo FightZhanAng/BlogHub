@@ -48,3 +48,8 @@ docs/
 cleanup-direct.bat
 reasonix.toml
 .kilo/
+
+.understand-anything/
+docs/
+scripts/
+CLAUDE.md
