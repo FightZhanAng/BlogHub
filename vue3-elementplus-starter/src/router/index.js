@@ -157,6 +157,18 @@ const routes = [
         component: () => import('@/views/AiAssistant.vue'),
         meta: { title: 'AI 助手', requiresAuth: true },
       },
+      {
+        path: 'api-tester',
+        name: 'ApiTester',
+        component: () => import('@/views/ApiTester.vue'),
+        meta: { title: 'API 测试工具', requiresAuth: true },
+      },
+      {
+        path: 'admin/menu-settings',
+        name: 'MenuSettings',
+        component: () => import('@/views/admin/MenuSettings.vue'),
+        meta: { title: '菜单配置', requiresAuth: true, roles: ['admin'] },
+      },
     ],
   },
 ]

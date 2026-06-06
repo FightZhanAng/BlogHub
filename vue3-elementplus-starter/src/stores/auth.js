@@ -1,6 +1,7 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 import { authApi } from '@/api/authApi'
+import { useMenuStore } from '@/stores/menu'
 
 export const useAuthStore = defineStore('auth', () => {
   const token = ref('')
@@ -20,6 +21,8 @@ export const useAuthStore = defineStore('auth', () => {
     avatar.value = a || ''
     role.value = r
     userId.value = id || ''
+    // 登录后加载菜单
+    useMenuStore().fetchMenuTree()
   }
 
   async function login(user, password) {
@@ -41,6 +44,8 @@ export const useAuthStore = defineStore('auth', () => {
     avatar.value = ''
     role.value = ''
     userId.value = ''
+    // 退出清空菜单
+    useMenuStore().clearMenu()
   }
 
   return { token, username, nickname, avatar, role, userId, isLoggedIn, isAdmin, login, register, logout, saveUser }
