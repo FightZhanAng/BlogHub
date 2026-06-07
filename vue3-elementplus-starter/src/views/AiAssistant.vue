@@ -145,8 +145,8 @@
           <textarea
             v-model="inputMessage"
             class="chat-input"
-            placeholder="输入你的问题... (Ctrl+Enter 发送)"
-            @keydown.enter.ctrl="sendMessage"
+            placeholder="输入你的问题... (Enter 发送，Shift+Enter 换行)"
+            @keydown.enter.exact.prevent="sendMessage"
             rows="1"
             ref="textareaRef"
           ></textarea>
@@ -173,7 +173,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { aiApi } from '@/api/aiApi'
 import { useAiChat } from '@/composables/useAiChat'
@@ -198,6 +198,7 @@ const themeObserver = new MutationObserver(() => {
   isDark.value = theme === 'dark'
 })
 themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
+onUnmounted(() => themeObserver.disconnect())
 
 const {
   isGenerating,
@@ -346,6 +347,7 @@ async function sendMessage() {
   })
 
   inputMessage.value = ''
+  pendingImages.value.forEach(img => { if (img.preview) URL.revokeObjectURL(img.preview) })
   pendingImages.value = []
   scrollToBottom()
 

@@ -14,10 +14,10 @@
     <div v-else class="image-grid">
       <div v-for="img in images" :key="img.path" class="image-card">
         <el-image
-          :src="img.path.startsWith('http') ? img.path : 'http://localhost:8080' + img.path"
+          :src="img.path.startsWith('http') ? img.path : img.path"
           fit="cover"
           class="image-preview"
-          :preview-src-list="[img.path.startsWith('http') ? img.path : 'http://localhost:8080' + img.path]"
+          :preview-src-list="[img.path.startsWith('http') ? img.path : img.path]"
         />
         <div class="image-overlay">
           <div class="image-info">

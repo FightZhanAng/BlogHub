@@ -251,6 +251,14 @@ onMounted(async () => {
   .shortcuts-section {
     grid-template-columns: 1fr;
   }
+  .welcome-section {
+    flex-direction: column;
+    gap: var(--space-lg);
+  }
+  .welcome-stats {
+    width: 100%;
+    justify-content: space-around;
+  }
 }
 
 .shortcut-card {

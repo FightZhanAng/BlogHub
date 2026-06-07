@@ -44,12 +44,12 @@
       <div v-for="photo in photos" :key="photo.id" class="photo-card">
         <!-- 视频 -->
         <div v-if="isVideo(photo)" class="video-thumb" @click="openLightbox(photo)">
-          <video :src="'http://localhost:8080' + photo.path" preload="metadata" muted />
+          <video :src="photo.path" preload="metadata" muted />
           <div class="play-icon"><el-icon :size="36"><VideoPlay /></el-icon></div>
           <span class="video-badge">视频</span>
         </div>
         <!-- 图片 -->
-        <el-image v-else :src="'http://localhost:8080' + photo.path" fit="cover" lazy @click="openLightbox(photo)">
+        <el-image v-else :src="photo.path" fit="cover" lazy @click="openLightbox(photo)">
           <template #error>
             <div class="img-error"><el-icon><Picture /></el-icon></div>
           </template>
@@ -80,10 +80,10 @@
         <div class="timeline-photos">
           <div v-for="photo in group.photos" :key="photo.id" class="timeline-photo">
             <div v-if="isVideo(photo)" class="video-thumb small" @click="openLightbox(photo)">
-              <video :src="'http://localhost:8080' + photo.path" preload="metadata" muted />
+              <video :src="photo.path" preload="metadata" muted />
               <div class="play-icon"><el-icon :size="24"><VideoPlay /></el-icon></div>
             </div>
-            <el-image v-else :src="'http://localhost:8080' + photo.path" fit="cover" lazy @click="openLightbox(photo)">
+            <el-image v-else :src="photo.path" fit="cover" lazy @click="openLightbox(photo)">
               <template #error>
                 <div class="img-error"><el-icon><Picture /></el-icon></div>
               </template>
@@ -234,7 +234,7 @@ watch(viewMode, (mode) => {
 })
 
 function openLightbox(photo) {
-  lightboxRef.value?.open('http://localhost:8080' + photo.path, photo.title || photo.filename || '')
+  lightboxRef.value?.open(photo.path, photo.title || photo.filename || '')
 }
 
 // 上传

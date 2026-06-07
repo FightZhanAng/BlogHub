@@ -58,4 +58,16 @@ export const postApi = {
   addComment(slug, data) {
     return request.post(`/posts/${slug}/comments`, data)
   },
+
+  /** 检查 slug 是否可用 */
+  checkSlug(slug, excludeId) {
+    const params = { slug }
+    if (excludeId) params.excludeId = excludeId
+    return request.get('/posts/slug/check', { params })
+  },
+
+  /** 获取用户的所有 slug 列表 */
+  mySlugs() {
+    return request.get('/posts/my-slugs')
+  },
 }

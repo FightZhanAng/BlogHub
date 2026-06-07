@@ -2,7 +2,7 @@
   <div class="user-profile">
     <el-card shadow="never" class="profile-card">
       <div class="profile-header">
-        <el-avatar :size="64" :src="user?.avatar ? (user.avatar.startsWith('http') ? user.avatar : 'http://localhost:8080' + user.avatar) : undefined">
+        <el-avatar :size="64" :src="user?.avatar ? (user.avatar.startsWith('http') ? user.avatar : user.avatar) : undefined">
           <template #error><el-icon :size="32"><UserFilled /></el-icon></template>
         </el-avatar>
         <div class="profile-info">

@@ -145,7 +145,7 @@ async function fetchUserInfo() {
 }
 
 const avatarInput = ref(null)
-const BASE = 'http://localhost:8080'
+const BASE = ''
 
 const avatarSrc = computed(() => {
   const a = userInfo.value?.avatar

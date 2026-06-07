@@ -74,6 +74,30 @@ public class PostController {
         return Result.success(postService.getPostDetail(slug));
     }
 
+    @Operation(summary = "获取文章（编辑用，允许草稿）")
+    @GetMapping("/{slug}/edit")
+    public Result<PostResponse> edit(@PathVariable String slug) {
+        Long userId = getCurrentUserId();
+        Post post = postService.getBySlugForEdit(slug, userId);
+        return Result.success(PostResponse.from(post));
+    }
+
+    @Operation(summary = "检查 slug 是否可用")
+    @GetMapping("/slug/check")
+    public Result<Boolean> checkSlug(@RequestParam String slug,
+                                     @RequestParam(required = false) Long excludeId) {
+        Long userId = getCurrentUserId();
+        boolean exists = postService.isSlugExists(slug, userId, excludeId);
+        return Result.success(!exists);
+    }
+
+    @Operation(summary = "获取用户的所有 slug 列表")
+    @GetMapping("/my-slugs")
+    public Result<java.util.List<String>> mySlugs() {
+        Long userId = getCurrentUserId();
+        return Result.success(postService.getUserSlugs(userId));
+    }
+
     @Operation(summary = "导出 Markdown")
     @GetMapping("/{slug}/export")
     public void export(@PathVariable String slug, javax.servlet.http.HttpServletResponse response) {

@@ -17,7 +17,7 @@
         <div class="album-cover">
           <el-image
             v-if="album.coverImage"
-            :src="'http://localhost:8080' + album.coverImage"
+            :src="album.coverImage"
             fit="cover"
             lazy
           >
