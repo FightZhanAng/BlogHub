@@ -52,31 +52,36 @@ INSERT INTO menu_item (id, group_id, title, path, icon, sort_order, enabled, adm
 
 -- 博客组
 INSERT INTO menu_item (id, group_id, title, path, icon, sort_order, enabled, admin_only) VALUES
-(2,  1, '博客列表', '/blog',     NULL, 1, 1, 0),
-(3,  1, '我的文章', '/my-posts', NULL, 2, 1, 0),
-(4,  1, '写文章',   '/blog/new', NULL, 3, 1, 0),
-(5,  1, '标签云',   '/tags',     NULL, 4, 1, 0),
-(6,  1, '文章归档', '/archive',  NULL, 5, 1, 0);
+INSERT INTO menu_item (id, group_id, title, path, icon, sort_order, enabled, admin_only) VALUES
+(2,  1, '博客列表', '/blog',     'Reading',     1, 1, 0),
+(3,  1, '我的文章', '/my-posts', 'Document',    2, 1, 0),
+(4,  1, '写文章',   '/blog/new', 'EditPen',     3, 1, 0),
+(5,  1, '标签云',   '/tags',     'CollectionTag', 4, 1, 0),
+(6,  1, '文章归档', '/archive',  'Files',       5, 1, 0);
 
 -- 个人组
 INSERT INTO menu_item (id, group_id, title, path, icon, sort_order, enabled, admin_only) VALUES
-(7,  2, '收藏',     '/bookmarks', NULL, 1, 1, 0),
-(8,  2, '我的徽章', '/badges',    NULL, 2, 1, 0);
+INSERT INTO menu_item (id, group_id, title, path, icon, sort_order, enabled, admin_only) VALUES
+(7,  2, '收藏',     '/bookmarks', 'Star',       1, 1, 0),
+(8,  2, '我的徽章', '/badges',    'Medal',      2, 1, 0);
 
 -- 发现组
 INSERT INTO menu_item (id, group_id, title, path, icon, sort_order, enabled, admin_only) VALUES
-(9,  3, '每日热点', '/hot',    NULL, 1, 1, 0),
-(10, 3, '宝宝相册', '/albums', NULL, 2, 1, 0);
+INSERT INTO menu_item (id, group_id, title, path, icon, sort_order, enabled, admin_only) VALUES
+(9,  3, '每日热点', '/hot',    'Promotion',   1, 1, 0),
+(10, 3, '宝宝相册', '/albums', 'Camera',      2, 1, 0);
 
 -- 工具组
 INSERT INTO menu_item (id, group_id, title, path, icon, sort_order, enabled, admin_only) VALUES
-(11, 4, 'AI 助手', '/ai-assistant', NULL, 1, 1, 0),
-(12, 4, 'API 测试', '/api-tester',  NULL, 2, 1, 0);
+INSERT INTO menu_item (id, group_id, title, path, icon, sort_order, enabled, admin_only) VALUES
+(11, 4, 'AI 助手', '/ai-assistant', 'ChatDotRound', 1, 1, 0),
+(12, 4, 'API 测试', '/api-tester',  'Monitor',      2, 1, 0);
 
 -- 管理后台组
 INSERT INTO menu_item (id, group_id, title, path, icon, sort_order, enabled, admin_only) VALUES
-(13, 5, '仪表盘',   '/dashboard', NULL, 1, 1, 1),
-(14, 5, '用户管理', '/users',     NULL, 2, 1, 1),
-(15, 5, '评论管理', '/comments',  NULL, 3, 1, 1),
-(16, 5, '图片管理', '/images',    NULL, 4, 1, 1),
-(17, 5, '操作日志', '/logs',      NULL, 5, 1, 1);
+INSERT INTO menu_item (id, group_id, title, path, icon, sort_order, enabled, admin_only) VALUES
+(13, 5, '仪表盘',   '/dashboard', 'DataLine',     1, 1, 1),
+(14, 5, '用户管理', '/users',     'UserFilled',   2, 1, 1),
+(15, 5, '评论管理', '/comments',  'Comment',      3, 1, 1),
+(16, 5, '图片管理', '/images',    'Picture',      4, 1, 1),
+(17, 5, '操作日志', '/logs',      'Operation',    5, 1, 1);
