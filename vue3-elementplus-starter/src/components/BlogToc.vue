@@ -86,7 +86,7 @@ onUnmounted(() => {
 .toc-title {
   margin: 0 0 12px 0;
   font-size: 14px;
-  color: #303133;
+  color: var(--color-text);
 }
 
 .toc-list {
@@ -103,20 +103,20 @@ onUnmounted(() => {
   display: block;
   padding: 4px 8px;
   font-size: 13px;
-  color: #606266;
+  color: var(--color-text-secondary);
   text-decoration: none;
   border-radius: 4px;
   transition: all 0.2s;
 }
 
 .toc-item a:hover {
-  color: #409eff;
-  background: #ecf5ff;
+  color: var(--color-accent);
+  background: var(--color-accent-light);
 }
 
 .toc-item.is-active a {
-  color: #409eff;
+  color: var(--color-accent);
   font-weight: 500;
-  background: #ecf5ff;
+  background: var(--color-accent-light);
 }
 </style>

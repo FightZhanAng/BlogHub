@@ -80,7 +80,7 @@ async function deleteEnv(id) {
 .env-row { display: flex; gap: 6px; align-items: center; }
 .env-name { flex: 1; }
 .env-value { flex: 2; }
-.new-env { margin-top: 8px; padding-top: 8px; border-top: 1px solid #eee; }
-.env-hint { margin-top: 12px; color: #999; font-size: 12px; }
-.env-hint code { background: #f5f5f5; padding: 2px 6px; border-radius: 3px; }
+.new-env { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--color-border-light); }
+.env-hint { margin-top: 12px; color: var(--color-text-tertiary); font-size: 12px; }
+.env-hint code { background: var(--color-bg-warm); padding: 2px 6px; border-radius: 3px; }
 </style>

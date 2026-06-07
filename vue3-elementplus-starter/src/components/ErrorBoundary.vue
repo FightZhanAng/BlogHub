@@ -56,12 +56,12 @@ function goHome() {
 
 .error-content h3 {
   font-size: 18px;
-  color: #303133;
+  color: var(--color-text);
   margin-bottom: 8px;
 }
 
 .error-message {
-  color: #909399;
+  color: var(--color-text-tertiary);
   font-size: 14px;
   margin-bottom: 24px;
   word-break: break-all;
@@ -84,7 +84,7 @@ function goHome() {
 }
 
 .btn-retry {
-  background: #409eff;
+  background: var(--color-accent);
   color: white;
 }
 
@@ -93,11 +93,11 @@ function goHome() {
 }
 
 .btn-home {
-  background: #f0f2f5;
-  color: #606266;
+  background: var(--color-bg-warm);
+  color: var(--color-text-secondary);
 }
 
 .btn-home:hover {
-  background: #e4e7ed;
+  background: var(--color-border);
 }
 </style>

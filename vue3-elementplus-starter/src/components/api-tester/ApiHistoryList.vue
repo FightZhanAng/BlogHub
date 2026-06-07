@@ -47,16 +47,16 @@ function statusClass(code) {
 <style scoped>
 .history-header { display: flex; justify-content: space-between; align-items: center; padding: 8px; font-weight: 600; }
 .history-item { display: flex; align-items: center; gap: 6px; padding: 6px 8px; cursor: pointer; font-size: 12px; }
-.history-item:hover { background: #f5f7fa; }
+.history-item:hover { background: var(--color-bg-warm); }
 .hist-method { font-size: 10px; font-weight: 600; padding: 1px 4px; border-radius: 3px; }
 .hist-method.get { color: #67c23a; }
-.hist-method.post { color: #409eff; }
+.hist-method.post { color: var(--color-accent); }
 .hist-method.put { color: #e6a23c; }
 .hist-method.delete { color: #f56c6c; }
-.hist-url { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #666; }
+.hist-url { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--color-text-secondary); }
 .hist-status { font-size: 11px; }
 .status-ok { color: #67c23a; }
 .status-warn { color: #e6a23c; }
 .status-error { color: #f56c6c; }
-.empty-hint { padding: 8px; color: #999; font-size: 12px; text-align: center; }
+.empty-hint { padding: 8px; color: var(--color-text-tertiary); font-size: 12px; text-align: center; }
 </style>

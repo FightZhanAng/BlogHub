@@ -179,7 +179,7 @@ onMounted(fetchAlbums)
 .page-header h1 {
   font-size: 22px;
   font-weight: 600;
-  color: #303133;
+  color: var(--color-text);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -192,7 +192,7 @@ onMounted(fetchAlbums)
 }
 
 .album-card {
-  background: #fff;
+  background: var(--color-card);
   border-radius: 12px;
   overflow: hidden;
   cursor: pointer;
@@ -222,8 +222,8 @@ onMounted(fetchAlbums)
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #f5f7fa 0%, #e4e7ed 100%);
-  color: #c0c4cc;
+  background: linear-gradient(135deg, var(--color-bg-warm) 0%, var(--color-border) 100%);
+  color: var(--color-text-placeholder);
 }
 
 .album-count {
@@ -244,7 +244,7 @@ onMounted(fetchAlbums)
 .album-info h3 {
   font-size: 16px;
   font-weight: 600;
-  color: #303133;
+  color: var(--color-text);
   margin: 0 0 4px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -253,13 +253,13 @@ onMounted(fetchAlbums)
 
 .baby-name {
   font-size: 13px;
-  color: #409eff;
+  color: var(--color-accent);
   margin: 0 0 4px;
 }
 
 .album-date {
   font-size: 12px;
-  color: #909399;
+  color: var(--color-text-tertiary);
   margin: 0;
 }
 

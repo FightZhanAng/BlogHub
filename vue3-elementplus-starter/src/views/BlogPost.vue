@@ -23,9 +23,6 @@
                   {{ post.tags[0] }}
                 </span>
                 <span class="meta-reading-time">{{ readingTime }}</span>
-                <button v-if="hasCodeBlock" class="code-theme-btn" @click="toggleCodeTheme" :title="codeTheme === 'dark' ? '切换亮色代码' : '切换暗色代码'">
-                  <i :class="codeTheme === 'dark' ? 'bi bi-sun' : 'bi bi-moon'"></i>
-                </button>
                 <a class="export-btn" :href="`${API_BASE}/posts/${post.slug}/export`" title="下载 Markdown" download><i class="bi bi-download"></i></a>
               </div>
               <h1 class="post-title">{{ post.title }}</h1>
@@ -228,13 +225,15 @@ const readingTime = computed(() => {
   return `📝 约 ${chars.toLocaleString()} 字 · 阅读 ${minutes} 分钟`
 })
 
-const codeTheme = ref(localStorage.getItem('code-theme') || 'dark')
+const codeTheme = ref(document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light')
 const hasCodeBlock = computed(() => post.value?.html?.includes('<pre') || false)
 
-function toggleCodeTheme() {
-  codeTheme.value = codeTheme.value === 'dark' ? 'light' : 'dark'
-  localStorage.setItem('code-theme', codeTheme.value)
-}
+// 监听全局主题变化，同步代码块主题
+const observer = new MutationObserver(() => {
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
+  codeTheme.value = isDark ? 'dark' : 'light'
+})
+observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
 
 const isFollowing = ref(false)
 
@@ -345,16 +344,15 @@ function goToRelated(rp) {
 
 /* 侧边栏 */
 .post-sidebar {
-  display: none;
   position: sticky;
   top: 88px;
   flex-shrink: 0;
   width: 48px;
 }
 
-@media (min-width: 1200px) {
+@media (max-width: 768px) {
   .post-sidebar {
-    display: block;
+    display: none;
   }
 }
 
@@ -382,8 +380,8 @@ function goToRelated(rp) {
 /* ===== 文章卡片 ===== */
 .post-card {
   border-radius: 12px;
-  border: 1px solid #e8eaed;
-  background: #fff;
+  border: 1px solid var(--color-border);
+  background: var(--color-card);
 }
 
 .post-card :deep(.el-card__body) {
@@ -413,44 +411,21 @@ function goToRelated(rp) {
   padding: 2px 10px;
   font-size: 12px;
   font-weight: 500;
-  color: #409eff;
-  background: #ecf5ff;
+  color: var(--color-accent);
+  background: var(--color-accent-light);
   border-radius: 4px;
 }
 
 .meta-reading-time {
   font-size: 12px;
-  color: #c0c4cc;
-}
-
-.code-theme-btn {
-  background: none;
-  border: 1px solid #e4e7ed;
-  border-radius: 50%;
-  width: 24px;
-  height: 24px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  color: #909399;
-  font-size: 12px;
-  transition: all 0.2s;
-  padding: 0;
-  line-height: 1;
-}
-
-.code-theme-btn:hover {
-  border-color: #409eff;
-  color: #409eff;
-  background: #ecf5ff;
+  color: var(--color-text-placeholder);
 }
 
 .post-title {
   margin: 0 0 20px 0;
   font-size: 30px;
   font-weight: 700;
-  color: #1a1a1a;
+  color: var(--color-text);
   line-height: 1.35;
   letter-spacing: -0.02em;
 }
@@ -476,18 +451,18 @@ function goToRelated(rp) {
 .author-name {
   font-size: 14px;
   font-weight: 500;
-  color: #303133;
+  color: var(--color-text);
 }
 
 .author-date {
   font-size: 12px;
-  color: #c0c4cc;
+  color: var(--color-text-placeholder);
 }
 
 .meta-views {
   margin-left: auto;
   font-size: 13px;
-  color: #c0c4cc;
+  color: var(--color-text-placeholder);
   display: flex;
   align-items: center;
   gap: 4px;
@@ -496,59 +471,59 @@ function goToRelated(rp) {
 /* ===== Banner 分隔线 ===== */
 .post-banner {
   height: 1px;
-  background: linear-gradient(to right, #e8eaed, transparent);
+  background: linear-gradient(to right, var(--color-border), transparent);
   margin: 28px 0 32px;
 }
 
 /* ===== Markdown 正文 ===== */
-.markdown-body {
+:deep(.markdown-body) {
   font-size: 16px;
   line-height: 1.8;
-  color: #333;
+  color: var(--color-text);
 }
 
 @media (max-width: 768px) {
-  .markdown-body {
+  :deep(.markdown-body) {
     font-size: 15px;
   }
 }
 
-.markdown-body h1,
-.markdown-body h2,
-.markdown-body h3,
-.markdown-body h4 {
+:deep(.markdown-body h1),
+:deep(.markdown-body h2),
+:deep(.markdown-body h3),
+:deep(.markdown-body h4) {
   margin-top: 36px;
   margin-bottom: 14px;
   font-weight: 600;
-  color: #1a1a1a;
+  color: var(--color-text);
 }
 
-.markdown-body h1 {
+:deep(.markdown-body h1) {
   font-size: 26px;
   padding-bottom: 10px;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--color-border-light);
 }
 
-.markdown-body h2 {
+:deep(.markdown-body h2) {
   font-size: 22px;
   padding-bottom: 8px;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--color-border-light);
 }
 
-.markdown-body h3 {
+:deep(.markdown-body h3) {
   font-size: 18px;
 }
 
-.markdown-body h4 {
+:deep(.markdown-body h4) {
   font-size: 16px;
 }
 
-.markdown-body p {
+:deep(.markdown-body p) {
   margin: 0 0 20px 0;
 }
 
 /* 代码 — 暗色（默认） */
-.markdown-body pre {
+:deep(.markdown-body pre) {
   --code-bg: #1e1e2e;
   --code-fg: #cdd6f4;
   padding: 20px 24px;
@@ -557,20 +532,82 @@ function goToRelated(rp) {
   font-size: 14px;
   line-height: 1.65;
   margin: 0 0 20px 0;
+  background: var(--code-bg);
+  color: var(--code-fg);
 }
 
-:deep(.markdown-body.code-light) pre {
+:deep(.markdown-body.code-light pre) {
   --code-bg: #f8f9fa;
   --code-fg: #333;
 }
 
-.markdown-body pre {
-  background: var(--code-bg, #1e1e2e);
-  color: var(--code-fg, #cdd6f4);
+/* pre 在 .code-block 内时去掉独立样式，由 .code-block 统一控制 */
+:deep(.markdown-body .code-block pre) {
+  margin: 0;
+  border-radius: 0;
 }
 
-.markdown-body code {
-  background: #f3f4f6;
+:deep(.markdown-body .code-block) {
+  margin: 0 0 20px 0;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+}
+
+:deep(.markdown-body .code-block.collapsed pre) {
+  display: none;
+}
+
+:deep(.markdown-body .code-header) {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 16px;
+  background: var(--color-bg-warm);
+  border-bottom: 1px solid var(--color-border);
+  font-size: 12px;
+}
+
+:deep(.markdown-body .code-lang) {
+  color: var(--color-text-tertiary);
+  font-family: 'JetBrains Mono', monospace;
+}
+
+:deep(.markdown-body .code-actions) {
+  display: flex;
+  gap: 6px;
+}
+
+:deep(.markdown-body .code-copy-btn),
+:deep(.markdown-body .code-collapse-btn) {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  color: var(--color-text-tertiary);
+  cursor: pointer;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-family: inherit;
+  transition: all 0.2s;
+}
+
+:deep(.markdown-body .code-copy-btn:hover),
+:deep(.markdown-body .code-collapse-btn:hover) {
+  color: var(--color-text);
+  background: var(--color-accent-light);
+}
+
+:deep(.markdown-body .code-line-count) {
+  font-size: 11px;
+  color: var(--color-text-tertiary);
+  margin-left: 8px;
+}
+
+:deep(.markdown-body code) {
+  background: var(--color-bg-warm);
   color: #d63384;
   padding: 2px 8px;
   border-radius: 4px;
@@ -578,104 +615,104 @@ function goToRelated(rp) {
   font-family: 'JetBrains Mono', 'Fira Code', 'Monaco', monospace;
 }
 
-.markdown-body pre code {
+:deep(.markdown-body pre code) {
   background: none;
   color: inherit;
   padding: 0;
   font-size: inherit;
 }
 
-.markdown-body.code-light pre {
+:deep(.markdown-body.code-light pre) {
   box-shadow: inset 0 1px 3px rgba(0,0,0,0.08);
-  border: 1px solid #e4e7ed;
+  border: 1px solid var(--color-border);
 }
 
-.markdown-body.code-light code {
-  background: #e8eaed;
+:deep(.markdown-body.code-light code) {
+  background: var(--color-border-light);
   color: #d63384;
 }
 
 /* 引用 */
-.markdown-body blockquote {
+:deep(.markdown-body blockquote) {
   margin: 20px 0;
   padding: 4px 20px;
-  border-left: 4px solid #409eff;
-  color: #606266;
+  border-left: 4px solid var(--color-accent);
+  color: var(--color-text-secondary);
 }
 
-.markdown-body blockquote p {
+:deep(.markdown-body blockquote p) {
   margin-bottom: 8px;
 }
 
-.markdown-body blockquote p:last-child {
+:deep(.markdown-body blockquote p:last-child) {
   margin-bottom: 0;
 }
 
 /* 列表 */
-.markdown-body ul,
-.markdown-body ol {
+:deep(.markdown-body ul),
+:deep(.markdown-body ol) {
   padding-left: 24px;
   margin: 0 0 20px 0;
 }
 
-.markdown-body li {
+:deep(.markdown-body li) {
   margin-bottom: 6px;
 }
 
-.markdown-body ul ul,
-.markdown-body ol ol {
+:deep(.markdown-body ul ul),
+:deep(.markdown-body ol ol) {
   margin-bottom: 0;
 }
 
 /* 图片 */
-.markdown-body img {
+:deep(.markdown-body img) {
   max-width: 100%;
   border-radius: 10px;
   margin: 8px 0;
 }
 
 /* 链接 */
-.markdown-body a {
-  color: #409eff;
+:deep(.markdown-body a) {
+  color: var(--color-accent);
   text-decoration: none;
   border-bottom: 1px solid transparent;
   transition: border-color 0.2s;
 }
 
-.markdown-body a:hover {
-  border-bottom-color: #409eff;
+:deep(.markdown-body a:hover) {
+  border-bottom-color: var(--color-accent);
 }
 
 /* 分割线 */
-.markdown-body hr {
+:deep(.markdown-body hr) {
   border: none;
   height: 1px;
-  background: #f0f0f0;
+  background: var(--color-border-light);
   margin: 28px 0;
 }
 
 /* 表格 */
-.markdown-body table {
+:deep(.markdown-body table) {
   width: 100%;
   border-collapse: collapse;
   margin: 0 0 20px 0;
   font-size: 14px;
 }
 
-.markdown-body th,
-.markdown-body td {
+:deep(.markdown-body th),
+:deep(.markdown-body td) {
   padding: 10px 16px;
-  border: 1px solid #e4e7ed;
+  border: 1px solid var(--color-border);
   text-align: left;
 }
 
-.markdown-body th {
-  background: #f8f9fa;
+:deep(.markdown-body th) {
+  background: var(--color-bg-warm);
   font-weight: 600;
 }
 
-.markdown-body tr:nth-child(even) td {
-  background: #fafbfc;
+:deep(.markdown-body tr:nth-child(even) td) {
+  background: var(--color-bg-warm);
 }
 
 /* ===== 标签 ===== */
@@ -685,13 +722,13 @@ function goToRelated(rp) {
   flex-wrap: wrap;
   margin-top: 32px;
   padding-top: 24px;
-  border-top: 1px solid #f0f0f0;
+  border-top: 1px solid var(--color-border-light);
 }
 
 .post-tags :deep(.el-tag) {
   border: none;
-  background: #f5f7fa;
-  color: #606266;
+  background: var(--color-bg-warm);
+  color: var(--color-text-secondary);
   font-size: 12px;
   padding: 0 12px;
   height: 26px;
@@ -705,20 +742,20 @@ function goToRelated(rp) {
   flex-wrap: wrap;
   margin-top: 32px;
   padding-top: 24px;
-  border-top: 1px solid #f0f0f0;
+  border-top: 1px solid var(--color-border-light);
 }
 
 /* ===== 推荐阅读 ===== */
 .related-posts {
   margin-top: 28px;
   padding-top: 24px;
-  border-top: 1px solid #f0f0f0;
+  border-top: 1px solid var(--color-border-light);
 }
 .related-title {
   font-size: 16px;
   font-weight: 600;
   margin: 0 0 18px;
-  color: #303133;
+  color: var(--color-text);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -729,8 +766,8 @@ function goToRelated(rp) {
   gap: 14px;
 }
 .related-card {
-  background: #f8f9fa;
-  border: 1px solid #eef0f2;
+  background: var(--color-bg-warm);
+  border: 1px solid var(--color-border);
   border-radius: 10px;
   padding: 18px 20px;
   cursor: pointer;
@@ -753,8 +790,8 @@ function goToRelated(rp) {
   transform: scale(1.05);
 }
 .related-card:hover {
-  background: #fff;
-  border-color: #d0d5dd;
+  background: var(--color-card);
+  border-color: var(--color-border);
   box-shadow: 0 4px 16px rgba(0,0,0,0.06);
   transform: translateY(-2px);
 }
@@ -764,7 +801,7 @@ function goToRelated(rp) {
 .related-name {
   font-size: 14px;
   font-weight: 500;
-  color: #1a1a1a;
+  color: var(--color-text);
   line-height: 1.5;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -773,11 +810,11 @@ function goToRelated(rp) {
   margin-bottom: 8px;
 }
 .related-card:hover .related-name {
-  color: #409eff;
+  color: var(--color-accent);
 }
 .related-meta {
   font-size: 12px;
-  color: #b0b4b8;
+  color: var(--color-text-placeholder);
   display: flex;
   align-items: center;
   gap: 4px;
@@ -787,13 +824,13 @@ function goToRelated(rp) {
 .trend-section {
   margin-top: 24px;
   padding-top: 24px;
-  border-top: 1px solid #f0f0f0;
+  border-top: 1px solid var(--color-border-light);
 }
 .trend-title {
   font-size: 15px;
   font-weight: 600;
   margin: 0 0 16px;
-  color: #303133;
+  color: var(--color-text);
 }
 .export-btn {
   display: inline-flex;
@@ -801,18 +838,18 @@ function goToRelated(rp) {
   justify-content: center;
   width: 30px;
   height: 30px;
-  border: 1px solid #e4e7ed;
+  border: 1px solid var(--color-border);
   border-radius: 50%;
-  color: #909399;
+  color: var(--color-text-tertiary);
   text-decoration: none;
   font-size: 14px;
   vertical-align: middle;
   margin-left: 6px;
 }
 .export-btn:hover {
-  border-color: #409eff;
-  color: #409eff;
-  background: #ecf5ff;
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+  background: var(--color-accent-light);
 }
 
 /* ===== 底部导航 ===== */
@@ -832,7 +869,7 @@ function goToRelated(rp) {
   word-break: break-word;
   font-size: 13px;
   line-height: 1.6;
-  background: #f5f7fa;
+  background: var(--color-bg-warm);
   padding: 16px;
   border-radius: 8px;
   margin: 8px 0 0;

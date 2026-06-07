@@ -81,10 +81,21 @@ function isActive(tag) {
   return tag.path === route.path
 }
 
+const MAX_TAGS = 8
+
 function addView(to) {
   const title = getTitle(to)
   const exists = visitedViews.value.some(v => v.path === to.path)
   if (!exists) {
+    // 保留 affix 标签，限制非 affix 标签最多 8 个
+    const affixCount = visitedViews.value.filter(v => v.affix).length
+    const maxNonAffix = MAX_TAGS - affixCount
+    const nonAffix = visitedViews.value.filter(v => !v.affix)
+    if (nonAffix.length >= maxNonAffix) {
+      // 移除最早的非 affix 标签
+      nonAffix.shift()
+      visitedViews.value = [...visitedViews.value.filter(v => v.affix), ...nonAffix]
+    }
     visitedViews.value.push({ path: to.path, title })
   }
 }
@@ -193,9 +204,9 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .tag-views {
-  background: #fff;
-  border-bottom: 1px solid #e8eaed;
-  padding: 0 12px;
+  background: var(--color-card);
+  border-bottom: 1px solid var(--color-border-light);
+  padding: 0 16px;
   height: 36px;
   display: flex;
   align-items: center;
@@ -221,35 +232,35 @@ onBeforeUnmount(() => {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  height: 26px;
+  height: 24px;
   padding: 0 10px;
-  border: 1px solid #e8eaed;
-  border-radius: 4px;
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-sm);
   font-size: 12px;
-  color: #606266;
-  background: #fff;
+  color: var(--color-text-tertiary);
+  background: var(--color-card);
   cursor: pointer;
   white-space: nowrap;
   flex-shrink: 0;
-  transition: all 0.2s;
+  transition: all var(--duration) var(--ease);
   user-select: none;
 }
 
 .tag-item:hover {
-  color: #409eff;
-  border-color: #c6e2ff;
-  background: #ecf5ff;
+  color: var(--color-text);
+  border-color: var(--color-border);
+  background: var(--color-bg-warm);
 }
 
 .tag-item.active {
-  color: #fff;
-  background: #409eff;
-  border-color: #409eff;
+  color: var(--color-accent-hover);
+  background: var(--color-accent-light);
+  border-color: var(--color-accent);
 }
 
 .tag-item.active .tag-close:hover {
-  background: rgba(255, 255, 255, 0.3);
-  color: #fff;
+  background: rgba(201, 169, 110, 0.3);
+  color: var(--color-accent-hover);
 }
 
 .tag-close {
@@ -259,13 +270,13 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s;
-  color: #c0c4cc;
+  transition: all var(--duration) var(--ease);
+  color: var(--color-text-placeholder);
 }
 
 .tag-close:hover {
-  background: #c0c4cc;
-  color: #fff;
+  background: var(--color-text-placeholder);
+  color: var(--color-card);
 }
 
 .context-menu {
@@ -274,10 +285,10 @@ onBeforeUnmount(() => {
   list-style: none;
   padding: 4px 0;
   margin: 0;
-  background: #fff;
-  border: 1px solid #e8eaed;
-  border-radius: 6px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  background: var(--color-card);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
   font-size: 13px;
   min-width: 120px;
 }
@@ -285,27 +296,27 @@ onBeforeUnmount(() => {
 .context-menu li {
   padding: 6px 16px;
   cursor: pointer;
-  color: #606266;
-  transition: all 0.15s;
+  color: var(--color-text-secondary);
+  transition: all var(--duration) var(--ease);
 }
 
 .context-menu li:hover {
-  background: #ecf5ff;
-  color: #409eff;
+  background: var(--color-accent-light);
+  color: var(--color-accent-hover);
 }
 
 .tag-actions {
   cursor: pointer;
-  color: #909399;
+  color: var(--color-text-placeholder);
   padding: 4px;
-  border-radius: 4px;
+  border-radius: var(--radius);
   margin-left: 8px;
   flex-shrink: 0;
-  transition: all 0.2s;
+  transition: all var(--duration) var(--ease);
 }
 
 .tag-actions:hover {
-  color: #409eff;
-  background: #ecf5ff;
+  color: var(--color-accent);
+  background: var(--color-accent-light);
 }
 </style>

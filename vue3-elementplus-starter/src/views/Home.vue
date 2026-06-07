@@ -1,105 +1,105 @@
 <template>
   <div class="home">
-    <!-- 欢迎卡片 -->
-    <el-card class="welcome-card" shadow="never">
-      <div class="welcome-content">
-        <div class="welcome-text">
-          <h1>
-            <el-icon :size="28" color="#409eff" style="vertical-align:middle;margin-right:8px"><UserFilled /></el-icon>
-            <span style="vertical-align:middle">欢迎回来</span>
-          </h1>
-          <p class="subtitle">管理你的博客，书写你的想法</p>
-          <el-space>
-            <el-button type="primary" icon="EditPen" @click="$router.push('/blog/new')">
-              写篇文章
-            </el-button>
-            <el-button icon="Notebook" @click="$router.push('/blog')">
-              浏览博客
-            </el-button>
-          </el-space>
-        </div>
-        <div class="welcome-stats">
-          <el-statistic title="文章总数" :value="stats.postCount" />
-          <el-statistic title="阅读量" :value="stats.totalViews" />
-          <el-statistic title="评论" :value="stats.commentCount" />
+    <!-- 欢迎区域 + 统计 -->
+    <div class="welcome-section">
+      <div class="welcome-left">
+        <div class="welcome-overline">Dashboard</div>
+        <h1 class="welcome-title">欢迎回来</h1>
+        <div class="editorial-divider"></div>
+        <p class="welcome-subtitle">管理你的博客，书写你的想法</p>
+        <div class="welcome-actions">
+          <el-button type="primary" @click="$router.push('/blog/new')">
+            写篇文章
+          </el-button>
+          <el-button @click="$router.push('/blog')">
+            浏览博客
+          </el-button>
         </div>
       </div>
-    </el-card>
+      <div class="welcome-stats">
+        <div class="stat-item">
+          <div class="stat-value">{{ formatNumber(stats.postCount) }}</div>
+          <div class="stat-label">文章</div>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <div class="stat-value">{{ formatNumber(stats.totalViews) }}</div>
+          <div class="stat-label">阅读量</div>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <div class="stat-value">{{ formatNumber(stats.commentCount) }}</div>
+          <div class="stat-label">评论</div>
+        </div>
+      </div>
+    </div>
 
     <!-- 快捷入口 -->
-    <el-row :gutter="20">
-      <el-col :xs="24" :sm="8" v-for="item in shortcuts" :key="item.title">
-        <el-card shadow="never" class="shortcut-card" @click="$router.push(item.path)">
-          <div class="shortcut-inner">
-            <div class="shortcut-icon" :style="{ background: item.bg }">
-              <el-icon :size="24" color="#fff">
-                <component :is="item.icon" />
-              </el-icon>
-            </div>
-            <div class="shortcut-info">
-              <h3>{{ item.title }}</h3>
-              <p>{{ item.desc }}</p>
-            </div>
-          </div>
-        </el-card>
-      </el-col>
-    </el-row>
+    <div class="shortcuts-section">
+      <div v-for="item in shortcuts" :key="item.title" class="shortcut-card" @click="$router.push(item.path)">
+        <div class="shortcut-icon">
+          <el-icon :size="20">
+            <component :is="item.icon" />
+          </el-icon>
+        </div>
+        <div class="shortcut-info">
+          <h3>{{ item.title }}</h3>
+          <p>{{ item.desc }}</p>
+        </div>
+      </div>
+    </div>
 
     <!-- 最近文章 + 排行榜 -->
-    <el-row :gutter="20">
-      <el-col :xs="24" :md="14">
-        <el-card shadow="never" class="recent-card">
-          <template #header>
-            <div class="card-header">
-              <span><el-icon style="vertical-align:middle;margin-right:4px"><Notebook /></el-icon> 最近文章</span>
-              <el-link type="primary" @click="$router.push('/blog')">查看全部</el-link>
+    <div class="content-grid">
+      <!-- 最近文章 -->
+      <div class="content-section">
+        <div class="section-header">
+          <div class="section-overline">Latest</div>
+          <h2 class="section-title">最近文章</h2>
+          <el-button text size="small" @click="$router.push('/blog')">查看全部 →</el-button>
+        </div>
+        <div v-if="recentPosts.length" class="post-list">
+          <div
+            v-for="(post, i) in recentPosts"
+            :key="post.slug"
+            class="post-item"
+            @click="$router.push(`/blog/${post.slug}`)"
+          >
+            <div class="post-title">
+              <span v-if="post.isPinned" class="pin-badge">置顶</span>
+              {{ post.title }}
             </div>
-          </template>
-          <div v-if="recentPosts.length">
-            <div
-              v-for="(post, i) in recentPosts"
-              :key="post.slug"
-              class="recent-item"
-              :class="{ 'no-border': i === recentPosts.length - 1 }"
-              @click="$router.push(`/blog/${post.slug}`)"
-            >
-              <div class="recent-title">
-                <el-tag v-if="post.isPinned" size="small" type="warning" effect="plain" style="margin-right:4px;vertical-align:middle">置顶</el-tag>
-                {{ post.title }}
-              </div>
-              <div class="recent-meta">
-                <span>{{ post.date }}</span>
-                <span>·</span>
-                <span>{{ post.tags.join(', ') }}</span>
-              </div>
+            <div class="post-meta">
+              <span>{{ post.date }}</span>
+              <span class="meta-dot">·</span>
+              <span>{{ post.tags.join(', ') }}</span>
             </div>
           </div>
-          <el-empty v-else description="还没有文章" :image-size="60" />
-        </el-card>
-      </el-col>
-      <el-col :xs="24" :md="10">
-        <el-card shadow="never" class="ranking-card">
-          <template #header>
-            <div class="card-header">
-              <span><el-icon style="vertical-align:middle;margin-right:4px" color="#e6a23c"><TrendCharts /></el-icon> 点赞排行榜</span>
-            </div>
-          </template>
-          <div v-if="ranking.length">
-            <div
-              v-for="(post, i) in ranking"
-              :key="post.slug"
-              class="ranking-item"
-              @click="$router.push(`/blog/${post.slug}`)"
-            >
-              <span class="ranking-num" :class="i < 3 ? 'top' : ''">{{ i + 1 }}</span>
-              <span class="ranking-title">{{ post.title }}</span>
-              <span class="ranking-likes">{{ post.likes }} 赞</span>
-            </div>
+        </div>
+        <div v-else class="empty-state">还没有文章</div>
+      </div>
+
+      <!-- 排行榜 -->
+      <div class="content-section">
+        <div class="section-header">
+          <div class="section-overline">Popular</div>
+          <h2 class="section-title">点赞排行榜</h2>
+        </div>
+        <div v-if="ranking.length" class="ranking-list">
+          <div
+            v-for="(post, i) in ranking"
+            :key="post.slug"
+            class="ranking-item"
+            @click="$router.push(`/blog/${post.slug}`)"
+          >
+            <span class="ranking-num" :class="{ top: i < 3 }">{{ String(i + 1).padStart(2, '0') }}</span>
+            <span class="ranking-title">{{ post.title }}</span>
+            <span class="ranking-likes">{{ post.likes }}</span>
           </div>
-          <el-empty v-else description="暂无数据" :image-size="60" />
-        </el-card>
-      </el-col>
-    </el-row>
+        </div>
+        <div v-else class="empty-state">暂无数据</div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -123,191 +123,302 @@ const recentPosts = computed(() => {
 })
 
 const shortcuts = [
-  { icon: 'Notebook', title: '博客管理', desc: '查看和管理所有文章', path: '/blog', bg: 'linear-gradient(135deg, #409eff, #337ecc)' },
-  { icon: 'EditPen', title: '写文章', desc: '创建一篇新博客文章', path: '/blog/new', bg: 'linear-gradient(135deg, #67c23a, #529b2e)' },
-  { icon: 'StarFilled', title: '我的收藏', desc: '浏览你收藏的文章', path: '/bookmarks', bg: 'linear-gradient(135deg, #e6a23c, #cf9236)' },
+  { icon: 'Notebook', title: '博客管理', desc: '查看和管理所有文章', path: '/blog' },
+  { icon: 'EditPen', title: '写文章', desc: '创建一篇新博客文章', path: '/blog/new' },
+  { icon: 'StarFilled', title: '我的收藏', desc: '浏览你收藏的文章', path: '/bookmarks' },
 ]
 
+function formatNumber(n) {
+  if (n == null) return '0'
+  return n.toLocaleString('zh-CN')
+}
+
 onMounted(async () => {
-  fetchPosts()
-  try {
-    const res = await request.get('/comments/stats')
-    totalComments.value = res.totalComments || 0
-  } catch {}
-  try {
-    const res = await request.get('/posts/ranking/likes', { params: { limit: 10 } })
-    ranking.value = Array.isArray(res) ? res : []
-  } catch {}
+  const [, statsRes, rankRes] = await Promise.allSettled([
+    fetchPosts(),
+    request.get('/comments/stats'),
+    request.get('/posts/ranking/likes', { params: { limit: 10 } }),
+  ])
+  if (statsRes.status === 'fulfilled') totalComments.value = statsRes.value?.totalComments || 0
+  if (rankRes.status === 'fulfilled') ranking.value = Array.isArray(rankRes.value) ? rankRes.value : []
 })
 </script>
 
 <style scoped>
 .home {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  max-width: 960px;
+  max-width: 720px;
   margin: 0 auto;
+  padding: 0 var(--space-md);
 }
 
-.welcome-card {
-  border-radius: 12px;
-  border: 1px solid #e8eaed;
-}
-
-.welcome-content {
+/* ========== 欢迎区域 ========== */
+.welcome-section {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 40px;
+  margin-bottom: var(--space-xl);
+  padding-bottom: var(--space-lg);
+  border-bottom: 1px solid var(--color-border-light);
+  gap: var(--space-xl);
 }
 
-.welcome-text h1 {
-  margin: 0 0 4px 0;
-  font-size: 22px;
-  color: #303133;
+.welcome-left {
+  flex: 1;
 }
 
-.subtitle {
-  color: #909399;
-  margin: 0 0 20px 0;
-  font-size: 14px;
+.welcome-overline {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+  margin-bottom: var(--space-sm);
 }
 
+.welcome-title {
+  font-family: var(--font-display);
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0 0 var(--space-md) 0;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.editorial-divider {
+  width: 40px;
+  height: 2px;
+  background: var(--color-accent);
+  margin-bottom: var(--space-md);
+}
+
+.welcome-subtitle {
+  font-size: 15px;
+  color: var(--color-text-secondary);
+  margin: 0 0 var(--space-lg) 0;
+  line-height: 1.6;
+}
+
+.welcome-actions {
+  display: flex;
+  gap: var(--space-sm);
+}
+
+/* ========== 统计数据 ========== */
 .welcome-stats {
   display: flex;
-  gap: 40px;
+  align-items: center;
+  gap: var(--space-lg);
   flex-shrink: 0;
 }
 
-/* 快捷入口 */
+.stat-item {
+  text-align: center;
+  min-width: 60px;
+}
+
+.stat-value {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--color-text);
+  letter-spacing: -0.02em;
+  line-height: 1;
+  margin-bottom: var(--space-xs);
+}
+
+.stat-label {
+  font-size: 12px;
+  color: var(--color-text-tertiary);
+  letter-spacing: 0.02em;
+}
+
+.stat-divider {
+  width: 1px;
+  height: 32px;
+  background: var(--color-border-light);
+}
+
+/* ========== 快捷入口 ========== */
+.shortcuts-section {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-md);
+  margin-bottom: var(--space-2xl);
+}
+
+@media (max-width: 768px) {
+  .shortcuts-section {
+    grid-template-columns: 1fr;
+  }
+}
+
 .shortcut-card {
-  border-radius: 12px;
-  border: 1px solid #e8eaed;
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-lg);
+  background: var(--color-card);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-lg);
   cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: all var(--duration) var(--ease);
 }
 
 .shortcut-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
-}
-
-.shortcut-inner {
-  display: flex;
-  align-items: center;
-  gap: 16px;
+  border-color: var(--color-border);
+  box-shadow: var(--shadow-sm);
 }
 
 .shortcut-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius);
+  background: var(--color-bg-warm);
   display: flex;
   align-items: center;
   justify-content: center;
+  color: var(--color-text-secondary);
   flex-shrink: 0;
 }
 
+.shortcut-card:hover .shortcut-icon {
+  background: var(--color-accent-light);
+  color: var(--color-accent);
+}
+
 .shortcut-info h3 {
-  margin: 0 0 4px 0;
-  font-size: 15px;
-  color: #303133;
+  margin: 0 0 2px 0;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
 }
 
 .shortcut-info p {
   margin: 0;
   font-size: 12px;
-  color: #909399;
+  color: var(--color-text-tertiary);
+}
+
+/* ========== 内容区域 ========== */
+.content-grid {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: var(--space-2xl);
+}
+
+@media (max-width: 768px) {
+  .content-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.content-section {
+  min-width: 0;
+}
+
+.section-header {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-lg);
+}
+
+.section-overline {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+}
+
+.section-title {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0;
+  flex: 1;
 }
 
 /* 最近文章 */
-.recent-card {
-  border-radius: 12px;
-  border: 1px solid #e8eaed;
-}
-
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.recent-item {
-  padding: 14px 0;
-  border-bottom: 1px solid #f0f0f0;
+.post-item {
+  padding: var(--space-md) 0;
+  border-bottom: 1px solid var(--color-border-light);
   cursor: pointer;
-  transition: padding-left 0.2s;
+  transition: padding-left var(--duration) var(--ease);
 }
 
-.recent-item:hover {
-  padding-left: 8px;
+.post-item:hover {
+  padding-left: var(--space-sm);
 }
 
-.recent-item.no-border {
+.post-item:last-child {
   border-bottom: none;
 }
 
-.recent-title {
+.post-title {
   font-size: 14px;
-  color: #303133;
   font-weight: 500;
-  margin-bottom: 4px;
+  color: var(--color-text);
+  margin-bottom: var(--space-xs);
+  line-height: 1.4;
 }
 
-.recent-meta {
+.pin-badge {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--color-accent);
+  border: 1px solid var(--color-accent);
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+.post-meta {
   font-size: 12px;
-  color: #c0c4cc;
+  color: var(--color-text-tertiary);
   display: flex;
-  gap: 6px;
+  gap: var(--space-xs);
+}
+
+.meta-dot {
+  color: var(--color-border);
 }
 
 /* 排行榜 */
-.ranking-card {
-  border-radius: 12px;
-  border: 1px solid #e8eaed;
-}
-
 .ranking-item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 10px 0;
+  gap: var(--space-md);
+  padding: var(--space-sm) 0;
   cursor: pointer;
-  border-bottom: 1px solid #f0f0f0;
-  transition: padding-left 0.2s;
+  transition: padding-left var(--duration) var(--ease);
 }
 
 .ranking-item:hover {
-  padding-left: 6px;
-}
-
-.ranking-item:last-child {
-  border-bottom: none;
+  padding-left: var(--space-xs);
 }
 
 .ranking-num {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-placeholder);
   width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 13px;
-  font-weight: 700;
-  color: #909399;
   flex-shrink: 0;
 }
 
 .ranking-num.top {
-  background: linear-gradient(135deg, #f56c6c, #e6a23c);
-  color: #fff;
+  color: var(--color-accent);
 }
 
 .ranking-title {
   flex: 1;
-  font-size: 14px;
-  color: #303133;
+  font-size: 13px;
+  color: var(--color-text);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -315,7 +426,14 @@ onMounted(async () => {
 
 .ranking-likes {
   font-size: 12px;
-  color: #c0c4cc;
+  color: var(--color-text-tertiary);
   flex-shrink: 0;
+}
+
+.empty-state {
+  padding: var(--space-xl) 0;
+  text-align: center;
+  color: var(--color-text-placeholder);
+  font-size: 13px;
 }
 </style>

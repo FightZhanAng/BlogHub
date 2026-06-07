@@ -363,19 +363,19 @@ onMounted(fetchAlbum)
 .album-meta h1 {
   font-size: 22px;
   font-weight: 600;
-  color: #303133;
+  color: var(--color-text);
   margin: 0;
 }
 
 .baby-info {
   font-size: 14px;
-  color: #409eff;
+  color: var(--color-accent);
   margin: 4px 0 0;
 }
 
 .photo-count {
   font-size: 13px;
-  color: #909399;
+  color: var(--color-text-tertiary);
   margin: 2px 0 0;
 }
 
@@ -387,10 +387,10 @@ onMounted(fetchAlbum)
 
 .album-desc {
   font-size: 14px;
-  color: #606266;
+  color: var(--color-text-secondary);
   margin: 0 0 20px;
   padding: 12px 16px;
-  background: #f5f7fa;
+  background: var(--color-bg-warm);
   border-radius: 8px;
 }
 
@@ -413,7 +413,7 @@ onMounted(fetchAlbum)
   border-radius: 10px;
   overflow: hidden;
   cursor: pointer;
-  background: #fff;
+  background: var(--color-card);
   box-shadow: 0 2px 8px rgba(0,0,0,0.06);
   transition: transform 0.2s, box-shadow 0.2s;
   position: relative;
@@ -463,7 +463,7 @@ onMounted(fetchAlbum)
 .photo-title {
   padding: 8px 12px;
   font-size: 13px;
-  color: #303133;
+  color: var(--color-text);
 }
 
 .img-error {
@@ -472,8 +472,8 @@ onMounted(fetchAlbum)
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f5f7fa;
-  color: #c0c4cc;
+  background: var(--color-bg-warm);
+  color: var(--color-text-placeholder);
 }
 
 /* ========== 视频缩略图 ========== */
@@ -543,7 +543,7 @@ onMounted(fetchAlbum)
   top: 0;
   bottom: 0;
   width: 2px;
-  background: #e4e7ed;
+  background: var(--color-border);
 }
 
 .timeline-group {
@@ -559,9 +559,9 @@ onMounted(fetchAlbum)
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: #409eff;
-  border: 2px solid #fff;
-  box-shadow: 0 0 0 2px #409eff;
+  background: var(--color-accent);
+  border: 2px solid var(--color-card);
+  box-shadow: 0 0 0 2px var(--color-accent);
 }
 
 .timeline-label {
@@ -574,12 +574,12 @@ onMounted(fetchAlbum)
 .month-age {
   font-size: 18px;
   font-weight: 600;
-  color: #303133;
+  color: var(--color-text);
 }
 
 .date-range {
   font-size: 13px;
-  color: #909399;
+  color: var(--color-text-tertiary);
 }
 
 .timeline-photos {
@@ -613,28 +613,28 @@ onMounted(fetchAlbum)
 
 /* ========== 上传 ========== */
 .upload-area {
-  border: 2px dashed #dcdfe6;
+  border: 2px dashed var(--color-border);
   border-radius: 12px;
   padding: 40px;
   text-align: center;
-  color: #909399;
+  color: var(--color-text-tertiary);
   transition: all 0.2s;
   cursor: pointer;
 }
 
 .upload-area.dragover {
-  border-color: #409eff;
-  background: #ecf5ff;
+  border-color: var(--color-accent);
+  background: var(--color-accent-light);
 }
 
 .upload-link {
-  color: #409eff;
+  color: var(--color-accent);
   cursor: pointer;
 }
 
 .upload-hint {
   font-size: 12px;
-  color: #c0c4cc;
+  color: var(--color-text-placeholder);
   margin-top: 4px;
 }
 
@@ -649,12 +649,12 @@ onMounted(fetchAlbum)
   align-items: center;
   gap: 8px;
   padding: 8px 0;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--color-border-light);
   font-size: 13px;
 }
 
 .file-icon.video { color: #e6a23c; }
-.file-icon.image { color: #409eff; }
+.file-icon.image { color: var(--color-accent); }
 
 .file-name {
   flex: 1;
@@ -664,7 +664,7 @@ onMounted(fetchAlbum)
 }
 
 .file-size {
-  color: #909399;
+  color: var(--color-text-tertiary);
   flex-shrink: 0;
 }
 </style>

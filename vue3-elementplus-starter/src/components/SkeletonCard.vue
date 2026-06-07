@@ -16,10 +16,10 @@
 <style scoped>
 .skeleton-card {
   border-radius: 12px;
-  border: 1px solid #e8eaed;
+  border: 1px solid var(--color-border);
   padding: 20px;
   display: block;
-  background: #fff;
+  background: var(--color-card);
 }
 
 .skeleton-card-body {

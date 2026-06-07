@@ -233,13 +233,13 @@ fetchComments()
 .blog-comments {
   margin-top: 40px;
   padding-top: 24px;
-  border-top: 1px solid #f0f0f0;
+  border-top: 1px solid var(--color-border-light);
 }
 
 .comments-title {
   font-size: 18px;
   margin: 0 0 16px;
-  color: #303133;
+  color: var(--color-text);
   font-weight: 600;
 }
 
@@ -254,13 +254,13 @@ fetchComments()
 
 .nickname-input :deep(.el-input__wrapper) {
   border-radius: 20px;
-  background: #f5f7fa;
+  background: var(--color-bg-warm);
   box-shadow: none;
 }
 
 .content-input :deep(.el-input__wrapper) {
   border-radius: 12px;
-  background: #f5f7fa;
+  background: var(--color-bg-warm);
   box-shadow: none;
 }
 
@@ -279,7 +279,7 @@ fetchComments()
   display: flex;
   gap: 12px;
   padding: 14px 0;
-  border-bottom: 1px solid #f5f5f5;
+  border-bottom: 1px solid var(--color-border-light);
 }
 
 .item-avatar {
@@ -313,13 +313,13 @@ fetchComments()
 
 .item-nickname {
   font-size: 13px;
-  color: #909399;
+  color: var(--color-text-tertiary);
   margin-bottom: 2px;
 }
 
 .item-text {
   font-size: 15px;
-  color: #303133;
+  color: var(--color-text);
   line-height: 1.5;
   word-break: break-word;
   margin-bottom: 4px;
@@ -327,7 +327,7 @@ fetchComments()
 
 .item-meta {
   font-size: 12px;
-  color: #c0c4cc;
+  color: var(--color-text-placeholder);
   margin-bottom: 6px;
 }
 
@@ -348,13 +348,13 @@ fetchComments()
   border: none;
   border-radius: 4px;
   background: transparent;
-  color: #909399;
+  color: var(--color-text-tertiary);
   font-size: 13px;
   cursor: pointer;
   transition: color 0.15s;
 }
 
-.act-btn:hover { color: #409eff; }
+.act-btn:hover { color: var(--color-accent); }
 
 /* ===== 回复编辑器 ===== */
 .reply-editor {
@@ -373,13 +373,13 @@ fetchComments()
 
 .reply-input :deep(.el-input__wrapper) {
   border-radius: 18px;
-  background: #f0f2f5;
+  background: var(--color-bg-warm);
   box-shadow: none;
 }
 
 /* ===== 二级回复区（灰色背景） ===== */
 .reply-box {
-  background: #f7f8fa;
+  background: var(--color-bg-warm);
   border-radius: 8px;
   padding: 8px 12px;
   margin-top: 8px;
@@ -392,7 +392,7 @@ fetchComments()
 }
 
 .reply-row + .reply-row {
-  border-top: 1px solid #eee;
+  border-top: 1px solid var(--color-border-light);
 }
 
 .reply-avatar-wrap {
@@ -434,24 +434,24 @@ fetchComments()
 
 .reply-name {
   font-size: 13px;
-  color: #909399;
+  color: var(--color-text-tertiary);
   font-weight: 500;
 }
 
 .reply-sep {
   font-size: 12px;
-  color: #c0c4cc;
+  color: var(--color-text-placeholder);
 }
 
 .reply-target {
   font-size: 13px;
-  color: #909399;
+  color: var(--color-text-tertiary);
   font-weight: 500;
 }
 
 .reply-text {
   font-size: 14px;
-  color: #303133;
+  color: var(--color-text);
   line-height: 1.5;
   word-break: break-word;
   margin-bottom: 4px;
@@ -462,13 +462,13 @@ fetchComments()
   align-items: center;
   gap: 12px;
   font-size: 12px;
-  color: #c0c4cc;
+  color: var(--color-text-placeholder);
 }
 
 .reply-act {
   border: none;
   background: none;
-  color: #c0c4cc;
+  color: var(--color-text-placeholder);
   font-size: 12px;
   cursor: pointer;
   padding: 0;
@@ -478,26 +478,26 @@ fetchComments()
   transition: color 0.15s;
 }
 
-.reply-act:hover { color: #409eff; }
+.reply-act:hover { color: var(--color-accent); }
 
 /* 加载更多 */
 .load-more {
   text-align: center;
   padding: 8px 0 2px;
-  border-top: 1px solid #eee;
+  border-top: 1px solid var(--color-border-light);
   margin-top: 4px;
 }
 
 .load-more-btn {
   background: none;
   border: none;
-  color: #909399;
+  color: var(--color-text-tertiary);
   font-size: 13px;
   cursor: pointer;
   padding: 4px 12px;
   transition: color 0.15s;
 }
 
-.load-more-btn:hover { color: #409eff; }
+.load-more-btn:hover { color: var(--color-accent); }
 .load-more-btn:disabled { opacity: 0.5; cursor: default; }
 </style>
