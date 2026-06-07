@@ -38,7 +38,8 @@
               :key="child.id"
               :index="child.path"
             >
-              {{ child.title }}
+              <el-icon v-if="child.icon"><component :is="child.icon" /></el-icon>
+              <template #title>{{ child.title }}</template>
             </el-menu-item>
           </el-sub-menu>
         </template>
@@ -287,7 +288,7 @@ const breadcrumbs = computed(() => {
 .logo-icon {
   width: 32px;
   height: 32px;
-  background: linear-gradient(135deg, #409eff, #337ecc);
+  background: var(--blog-primary);
   color: #fff;
   border-radius: 8px;
   display: flex;
@@ -324,13 +325,13 @@ const breadcrumbs = computed(() => {
 
 .sidebar-menu :deep(.el-menu-item:hover),
 .sidebar-menu :deep(.el-sub-menu__title:hover) {
-  background-color: #f0f5ff;
-  color: #409eff;
+  background-color: #f0fdf4;
+  color: #22c55e;
 }
 
 .sidebar-menu :deep(.el-menu-item.is-active) {
-  background-color: #ecf5ff;
-  color: #409eff;
+  background-color: #dcfce7;
+  color: #16a34a;
   font-weight: 500;
 }
 
@@ -352,13 +353,13 @@ const breadcrumbs = computed(() => {
 }
 
 .sidebar-menu :deep(.el-sub-menu .el-menu-item:hover) {
-  background-color: #f0f5ff;
-  color: #409eff;
+  background-color: #f0fdf4;
+  color: #22c55e;
 }
 
 .sidebar-menu :deep(.el-sub-menu .el-menu-item.is-active) {
-  background-color: #ecf5ff;
-  color: #409eff;
+  background-color: #dcfce7;
+  color: #16a34a;
   font-weight: 500;
 }
 
@@ -392,8 +393,8 @@ const breadcrumbs = computed(() => {
 }
 
 .collapse-btn:hover {
-  background: #f0f5ff;
-  color: #409eff;
+  background: #f0fdf4;
+  color: #22c55e;
 }
 
 .header-breadcrumb :deep(.el-breadcrumb__inner) {
@@ -478,9 +479,9 @@ const breadcrumbs = computed(() => {
 }
 
 .header-action-btn:hover {
-  background: #ecf5ff;
-  border-color: #409eff;
-  color: #409eff;
+  background: #f0fdf4;
+  border-color: #22c55e;
+  color: #22c55e;
 }
 
 .user-info {

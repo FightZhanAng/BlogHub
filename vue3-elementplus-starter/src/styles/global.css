@@ -1,5 +1,5 @@
 /* ==============================
-   AI 助手暗色主题设计系统
+   BlogHub 全局设计系统
    ============================== */
 
 /* ========== 全局样式重置 ========== */
@@ -16,8 +16,8 @@ html {
 
 /* ========== 滚动条美化 ========== */
 ::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
@@ -25,21 +25,67 @@ html {
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: var(--ai-scroll-thumb);
+  background-color: #d4d4d4;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background-color: var(--ai-scroll-thumb-hover);
+  background-color: #a3a3a3;
 }
 
-/* ========== Element Plus 自定义覆盖 ========== */
+/* ========== 全局设计变量 ========== */
+:root {
+  --blog-primary: #22c55e;
+  --blog-primary-hover: #16a34a;
+  --blog-primary-light: #f0fdf4;
+  --blog-text: #171717;
+  --blog-text-secondary: #737373;
+  --blog-text-placeholder: #a3a3a3;
+  --blog-border: #e5e5e5;
+  --blog-bg: #fafafa;
+  --blog-card: #ffffff;
+  --blog-radius: 6px;
+  --blog-font: "Inter", "Helvetica Neue", "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+
+/* ========== Element Plus 主色覆盖 ========== */
+:root {
+  --el-color-primary: #22c55e;
+  --el-color-primary-light-3: #6ee7b7;
+  --el-color-primary-light-5: #86efac;
+  --el-color-primary-light-7: #bbf7d0;
+  --el-color-primary-light-8: #dcfce7;
+  --el-color-primary-light-9: #f0fdf4;
+  --el-color-primary-dark-2: #16a34a;
+  --el-border-radius-base: 6px;
+}
+
+/* ========== 基础样式 ========== */
+body {
+  font-family: var(--blog-font);
+  color: var(--blog-text);
+  background: var(--blog-bg);
+}
+
 .el-card {
-  border-radius: 12px;
+  border-radius: 8px;
+  border: 1px solid var(--blog-border);
+  box-shadow: none;
 }
 
 .el-menu {
   border-right: none;
+}
+
+.el-button--primary {
+  background-color: var(--blog-primary);
+  border-color: var(--blog-primary);
+}
+
+.el-button--primary:hover,
+.el-button--primary:focus {
+  background-color: var(--blog-primary-hover);
+  border-color: var(--blog-primary-hover);
 }
 
 /* ========== AI 助手设计变量 ========== */
