@@ -255,72 +255,112 @@ html {
   color: var(--color-accent) !important;
 }
 
-[data-theme="dark"] .el-popper.is-light {
-  background: var(--color-card) !important;
-  border-color: var(--color-border) !important;
-}
-
-[data-theme="dark"] .el-popper.is-light .el-popper__arrow::before {
-  background: var(--color-card) !important;
-  border-color: var(--color-border) !important;
-}
-
-/* 暗色主题 tooltip — 覆盖内联样式 */
+/* 暗色主题 tooltip/popover 统一覆盖 */
 [data-theme="dark"] .el-tooltip__popper,
 [data-theme="dark"] [role="tooltip"],
-html.dark .el-tooltip__popper,
-html.dark [role="tooltip"] {
+[data-theme="dark"] .el-popper.is-light {
   background: var(--color-card) !important;
   color: var(--color-text) !important;
   border: 1px solid var(--color-border) !important;
 }
 
 [data-theme="dark"] .el-popper__arrow::before,
-html.dark .el-popper__arrow::before {
+[data-theme="dark"] .el-popper__arrow::after {
   background: var(--color-card) !important;
   border-color: var(--color-border) !important;
 }
 
-/* 全局 tooltip 暗色覆盖 */
-html[data-theme="dark"] .el-tooltip__popper.is-dark,
-html[data-theme="dark"] .el-tooltip__popper.is-light {
-  background: #1c1c1f !important;
-  color: #e8e6e3 !important;
-  border-color: #2a2a2d !important;
+/* 暗色主题日期/时间选择器 */
+[data-theme="dark"] .el-date-editor,
+[data-theme="dark"] .el-time-editor {
+  --el-input-bg-color: var(--color-card);
+  --el-input-border-color: var(--color-border);
+  --el-input-text-color: var(--color-text);
 }
 
-/* Element Plus tooltip 内联样式覆盖 */
-[data-theme="dark"] div[class*="el-tooltip"] {
-  background: #1c1c1f !important;
-  color: #e8e6e3 !important;
+[data-theme="dark"] .el-date-editor .el-input__wrapper,
+[data-theme="dark"] .el-time-editor .el-input__wrapper {
+  background: var(--color-card) !important;
+  box-shadow: 0 0 0 1px var(--color-border) inset !important;
 }
 
-/* 全局暗色弹出层兜底 */
-[data-theme="dark"] .el-popper.is-light {
+[data-theme="dark"] .el-date-editor .el-input__inner,
+[data-theme="dark"] .el-time-editor .el-input__inner {
+  color: var(--color-text) !important;
+  background: transparent !important;
+}
+
+[data-theme="dark"] .el-date-picker,
+[data-theme="dark"] .el-time-panel {
   background: var(--color-card) !important;
   border-color: var(--color-border) !important;
   color: var(--color-text) !important;
 }
 
-[data-theme="dark"] .el-popper.is-light .el-popper__arrow::before {
+[data-theme="dark"] .el-date-picker__header-label,
+[data-theme="dark"] .el-date-picker__header .el-icon,
+[data-theme="dark"] .el-time-panel__content .el-time-spinner__item {
+  color: var(--color-text) !important;
+}
+
+[data-theme="dark"] .el-date-table td.today .el-date-table-cell__text {
+  color: var(--color-accent) !important;
+}
+
+[data-theme="dark"] .el-date-table td.current .el-date-table-cell__text {
+  background: var(--color-accent) !important;
+  color: #fff !important;
+}
+
+[data-theme="dark"] .el-time-spinner__item:hover:not(.is-disabled):not(.is-active) {
+  background: var(--color-bg-warm) !important;
+}
+
+[data-theme="dark"] .el-time-panel__footer,
+[data-theme="dark"] .el-picker-panel__footer {
+  border-top-color: var(--color-border) !important;
+  background: var(--color-card) !important;
+}
+
+[data-theme="dark"] .el-picker-panel__footer .el-button--default {
   background: var(--color-card) !important;
   border-color: var(--color-border) !important;
+  color: var(--color-text) !important;
 }
 
-/* 暗色主题所有弹出层箭头 */
-[data-theme="dark"] .el-popper__arrow::after {
-  border-color: var(--color-card) !important;
+[data-theme="dark"] .el-picker-panel__footer .el-button--primary {
+  background: var(--color-accent) !important;
+  border-color: var(--color-accent) !important;
+  color: #fff !important;
 }
 
-[data-theme="dark"] .el-popper[role="tooltip"] {
-  background: #1c1c1f !important;
-  color: #e8e6e3 !important;
-  border: 1px solid #2a2a2d !important;
+[data-theme="dark"] .el-picker-panel {
+  background: var(--color-card) !important;
+  border-color: var(--color-border) !important;
+  color: var(--color-text) !important;
 }
 
-[data-theme="dark"] .el-popper[role="tooltip"] .el-popper__arrow::before {
-  background: #1c1c1f !important;
-  border-color: #2a2a2d !important;
+[data-theme="dark"] .el-picker-panel__body {
+  color: var(--color-text) !important;
+}
+
+[data-theme="dark"] .el-date-table th {
+  color: var(--color-text-tertiary) !important;
+  border-bottom-color: var(--color-border) !important;
+}
+
+[data-theme="dark"] .el-date-table td {
+  color: var(--color-text) !important;
+}
+
+[data-theme="dark"] .el-date-table td.available:hover .el-date-table-cell__text {
+  background: var(--color-bg-warm) !important;
+  color: var(--color-text) !important;
+}
+
+[data-theme="dark"] .el-time-panel__content::after,
+[data-theme="dark"] .el-time-panel__content::before {
+  border-color: var(--color-border) !important;
 }
 
 [data-theme="dark"] ::selection {

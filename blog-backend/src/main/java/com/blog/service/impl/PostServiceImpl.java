@@ -88,7 +88,53 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
         if (post == null) {
             throw new ResourceNotFoundException("文章", "slug", slug);
         }
+        // 草稿文章只允许作者本人访问
+        if (post.getStatus() == 0) {
+            throw new ResourceNotFoundException("文章", "slug", slug);
+        }
         return post;
+    }
+
+    @Override
+    public Post getBySlugForEdit(String slug, Long userId) {
+        log.debug("查询文章(编辑): slug={}, userId={}", slug, userId);
+        Post post = baseMapper.selectOne(
+                new LambdaQueryWrapper<Post>().eq(Post::getSlug, slug));
+        if (post == null) {
+            throw new ResourceNotFoundException("文章", "slug", slug);
+        }
+        // 草稿文章只允许作者本人访问
+        if (post.getStatus() == 0) {
+            boolean isOwner = userId != null && post.getAuthorId() != null && userId.equals(post.getAuthorId());
+            if (!isOwner) {
+                throw new ResourceNotFoundException("文章", "slug", slug);
+            }
+        }
+        return post;
+    }
+
+    @Override
+    public boolean isSlugExists(String slug, Long userId, Long excludeId) {
+        LambdaQueryWrapper<Post> wrapper = new LambdaQueryWrapper<Post>()
+                .eq(Post::getSlug, slug)
+                .eq(Post::getAuthorId, userId);
+        if (excludeId != null) {
+            wrapper.ne(Post::getId, excludeId);
+        }
+        return baseMapper.selectCount(wrapper) > 0;
+    }
+
+    @Override
+    public java.util.List<String> getUserSlugs(Long userId) {
+        return baseMapper.selectList(
+                new LambdaQueryWrapper<Post>()
+                        .eq(Post::getAuthorId, userId)
+                        .select(Post::getSlug)
+        ).stream()
+                .map(Post::getSlug)
+                .filter(s -> s != null && !s.isEmpty())
+                .distinct()
+                .collect(java.util.stream.Collectors.toList());
     }
 
     @Override
@@ -142,29 +188,72 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
     @Transactional(rollbackFor = Exception.class)
     public PostResponse createPost(CreatePostRequest request, Long userId) {
         log.info("创建文章: title={}, authorId={}", request.getTitle(), userId);
+
+        // 检查 slug 是否被其他用户占用
+        Post slugOwner = baseMapper.selectOne(
+                new LambdaQueryWrapper<Post>()
+                        .eq(Post::getSlug, request.getSlug())
+                        .select(Post::getAuthorId)
+                        .last("LIMIT 1")
+        );
+        if (slugOwner != null && slugOwner.getAuthorId() != null && !slugOwner.getAuthorId().equals(userId)) {
+            throw new BusinessException(400, "该 URL 标识已被其他用户占用，请更换");
+        }
+
+        // 检查是否已存在同 slug 的文章（同作者），存在则更新而非新建
+        Post existing = baseMapper.selectOne(
+                new LambdaQueryWrapper<Post>()
+                        .eq(Post::getSlug, request.getSlug())
+                        .eq(Post::getAuthorId, userId));
+        if (existing != null) {
+            // 更新已有草稿
+            existing.setTitle(request.getTitle());
+            existing.setDescription(request.getDescription());
+            existing.setContent(request.getContent());
+            existing.setTags(request.getTags());
+            int newStatus = request.getStatus() != null ? request.getStatus() : 1;
+            existing.setStatus(newStatus);
+            existing.setAuthorName(request.getAuthorName());
+            existing.setCoverImage(request.getCoverImage());
+            existing.setSeriesId(request.getSeriesId());
+            // 发布时清除定时发布时间
+            if (newStatus != 2) {
+                existing.setScheduledAt(null);
+            } else if (request.getScheduledAt() != null && !request.getScheduledAt().isEmpty()) {
+                existing.setScheduledAt(java.time.LocalDateTime.parse(request.getScheduledAt()));
+            }
+            baseMapper.updateById(existing);
+            saveVersion(existing, getNextVersion(existing.getId()));
+            tagService.updatePostTags(existing.getId(), request.getTags());
+            linkPostImages(existing.getId(), request.getContent(), request.getCoverImage());
+            log.info("文章更新成功: id={}, slug={}", existing.getId(), existing.getSlug());
+            return PostResponse.from(existing);
+        }
+
+        // 新建文章
         Post post = new Post();
         post.setSlug(request.getSlug());
         post.setTitle(request.getTitle());
         post.setDescription(request.getDescription());
         post.setContent(request.getContent());
         post.setTags(request.getTags());
-        post.setStatus(request.getStatus() != null ? request.getStatus() : 1);
+        int newStatus = request.getStatus() != null ? request.getStatus() : 1;
+        post.setStatus(newStatus);
         post.setAuthorName(request.getAuthorName());
         post.setAuthorId(userId);
         post.setViews(0);
         post.setLikes(0);
         post.setCoverImage(request.getCoverImage());
         post.setSeriesId(request.getSeriesId());
-        if (request.getScheduledAt() != null && !request.getScheduledAt().isEmpty()) {
-            post.setScheduledAt(java.time.LocalDateTime.parse(request.getScheduledAt()));
-        } else {
+        // 非定时发布时清除定时发布时间
+        if (newStatus != 2) {
             post.setScheduledAt(null);
+        } else if (request.getScheduledAt() != null && !request.getScheduledAt().isEmpty()) {
+            post.setScheduledAt(java.time.LocalDateTime.parse(request.getScheduledAt()));
         }
         baseMapper.insert(post);
         saveVersion(post, 1);
-        // 处理标签关联
         tagService.updatePostTags(post.getId(), request.getTags());
-        // 关联图片
         linkPostImages(post.getId(), request.getContent(), request.getCoverImage());
         log.info("文章创建成功: id={}, slug={}", post.getId(), post.getSlug());
 
@@ -197,11 +286,18 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
         if (request.getDescription() != null) post.setDescription(request.getDescription());
         if (request.getContent() != null) post.setContent(request.getContent());
         if (request.getTags() != null) post.setTags(request.getTags());
-        if (request.getStatus() != null) post.setStatus(request.getStatus());
+        if (request.getStatus() != null) {
+            post.setStatus(request.getStatus());
+            // 非定时发布时清除定时发布时间
+            if (request.getStatus() != 2) {
+                post.setScheduledAt(null);
+            }
+        }
         if (request.getAuthorName() != null) post.setAuthorName(request.getAuthorName());
         if (request.getCoverImage() != null) post.setCoverImage(request.getCoverImage());
         if (request.getSeriesId() != null) post.setSeriesId(request.getSeriesId());
-        if (request.getScheduledAt() != null && !request.getScheduledAt().isEmpty()) {
+        if (post.getStatus() != null && post.getStatus() == 2
+                && request.getScheduledAt() != null && !request.getScheduledAt().isEmpty()) {
             post.setScheduledAt(java.time.LocalDateTime.parse(request.getScheduledAt()));
         }
         baseMapper.updateById(post);

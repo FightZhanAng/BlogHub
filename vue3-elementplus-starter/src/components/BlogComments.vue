@@ -20,7 +20,7 @@
       <div v-for="comment in rootCommentsSorted" :key="comment.id" class="comment-item">
         <!-- 左侧头像 -->
         <div class="item-avatar">
-          <img v-if="comment.avatar" :src="'http://localhost:8080' + comment.avatar" class="avatar-img" />
+          <img v-if="comment.avatar" :src="comment.avatar" class="avatar-img" />
           <div v-else class="avatar-placeholder">{{ comment.nickname[0] }}</div>
         </div>
         <!-- 右侧内容 -->
@@ -60,7 +60,7 @@
           <div class="reply-box" v-if="expandedSet.has(comment.id) && (repliesMap[comment.id] || []).length">
             <div v-for="reply in (repliesMap[comment.id] || [])" :key="reply.id" class="reply-row">
               <div class="reply-avatar-wrap">
-                <img v-if="reply.avatar" :src="'http://localhost:8080' + reply.avatar" class="reply-avatar-img" />
+                <img v-if="reply.avatar" :src="reply.avatar" class="reply-avatar-img" />
                 <div v-else class="reply-avatar-ph">{{ reply.nickname[0] }}</div>
               </div>
               <div class="reply-content-wrap">

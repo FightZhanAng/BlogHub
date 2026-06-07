@@ -55,7 +55,7 @@ const statCards = computed(() => [
 function download(url) {
   const token = localStorage.getItem('blog_token')
   if (!token) { ElMessage.warning('请先登录'); return }
-  fetch('http://localhost:8080' + url, {
+  fetch(url, {
     headers: { 'Authorization': `Bearer ${token}` }
   }).then(res => {
     if (!res.ok) throw new Error('导出失败')

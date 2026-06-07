@@ -19,7 +19,14 @@
         </el-col>
         <el-col :xs="24" :md="8">
           <el-form-item label="URL 标识" prop="slug">
-            <el-input v-model="form.slug" placeholder="hello-world" maxlength="128" />
+            <el-autocomplete
+              v-model="form.slug"
+              :fetch-suggestions="querySlugs"
+              placeholder="hello-world"
+              maxlength="128"
+              clearable
+              @select="handleSlugSelect"
+            />
           </el-form-item>
         </el-col>
       </el-row>
@@ -114,6 +121,7 @@
 
       <div class="form-actions">
         <el-button size="large" @click="$router.push('/blog')">取消</el-button>
+        <el-button size="large" type="danger" plain @click="clearForm">清空内容</el-button>
         <div class="form-actions-right">
           <el-checkbox v-model="enableSchedule" label="定时发布" border size="small" />
           <el-date-picker v-if="enableSchedule" v-model="scheduledAt" type="datetime"
@@ -132,7 +140,7 @@
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { postApi } from '@/api/postApi'
 import request from '@/api/request'
 import { markdownToHtml } from '@/composables/useMarkdown'
@@ -155,9 +163,70 @@ const form = ref({
   authorName: authStore.nickname || authStore.username || '',
 })
 
+// ========== Slug 管理 ==========
+const mySlugs = ref([])
+
+async function loadMySlugs() {
+  try {
+    mySlugs.value = await postApi.mySlugs()
+  } catch { /* ignore */ }
+}
+
+function querySlugs(queryString, cb) {
+  const results = queryString
+    ? mySlugs.value.filter(s => s.toLowerCase().includes(queryString.toLowerCase()))
+    : mySlugs.value
+  cb(results.map(s => ({ value: s })))
+}
+
+function clearForm() {
+  ElMessageBox.confirm('确定清空所有内容？此操作不可恢复。', '清空内容', {
+    confirmButtonText: '确定清空',
+    cancelButtonText: '取消',
+    type: 'warning',
+  }).then(() => {
+    form.value = {
+      slug: '',
+      title: '',
+      description: '',
+      coverImage: '',
+      content: '',
+      tags: '',
+      authorName: authStore.nickname || authStore.username || '',
+    }
+    enableSchedule.value = false
+    scheduledAt.value = ''
+    localStorage.removeItem(DRAFT_KEY)
+    ElMessage.success('内容已清空')
+  }).catch(() => {})
+}
+
+async function handleSlugSelect(item) {
+  form.value.slug = item.value
+  // 加载已有文章内容
+  await loadExistingPost(item.value)
+}
+
+async function loadExistingPost(slug) {
+  if (!slug) return
+  try {
+    const raw = await request.get(`/posts/${slug}/edit`)
+    if (raw && raw.title) {
+      ElMessage.info('已加载已有文章内容')
+      form.value.title = raw.title || form.value.title
+      form.value.description = raw.description || form.value.description
+      form.value.coverImage = raw.coverImage || form.value.coverImage
+      form.value.content = raw.content || form.value.content
+      form.value.tags = raw.tags || form.value.tags
+      form.value.authorName = raw.authorName || form.value.authorName
+    }
+  } catch { /* slug 不存在或不是自己的文章，忽略 */ }
+}
+
+onMounted(() => { loadMySlugs() })
+
 const enableSchedule = ref(false)
 const scheduledAt = ref('')
-const API_BASE = 'http://localhost:8080'
 const fileInputRef = ref(null)
 const coverInputRef = ref(null)
 const isDragOver = ref(false)
@@ -189,9 +258,9 @@ async function handleFileChange(e) {
       const end = textarea.selectionEnd
       const before = form.value.content.substring(0, start)
       const after = form.value.content.substring(end)
-      form.value.content = before + `![image](${API_BASE}${url})` + after
+      form.value.content = before + `![image](${url})` + after
     } else {
-      form.value.content += `\n![image](${API_BASE}${url})\n`
+      form.value.content += `\n![image](${url})\n`
     }
     ElMessage.success('图片已插入')
   } catch (err) {
@@ -232,7 +301,7 @@ async function uploadImageToEditor(file) {
     const res = await request.post('/upload', formData, {
       headers: { 'Content-Type': undefined }
     })
-    const url = API_BASE + (res.url || '')
+    const url = res.url || ''
     form.value.content += `\n![image](${url})\n`
     ElMessage.success('图片已插入')
   } catch (err) {
@@ -249,7 +318,7 @@ async function handleCoverChange(e) {
     const res = await request.post('/upload', formData, {
       headers: { 'Content-Type': undefined }
     })
-    form.value.coverImage = API_BASE + res.url
+    form.value.coverImage = res.url
     ElMessage.success('封面已上传')
   } catch {
     ElMessage.error('封面上传失败')
@@ -300,8 +369,13 @@ async function submitForm(status) {
   }
   try {
     await postApi.create(payload)
-    ElMessage.success(status === 1 ? '文章已发布' : '已保存为草稿')
-    router.push(`/blog/${form.value.slug}`)
+    if (status === 1) {
+      ElMessage.success('文章已发布')
+      router.push(`/blog/${form.value.slug}`)
+    } else {
+      ElMessage.success('已保存为草稿')
+      // 草稿保存成功，留在当前页面
+    }
   } catch {
     // 错误已在拦截器提示
   } finally {
@@ -319,6 +393,7 @@ let autoSaveTimer = null
 /** 保存当前草稿到 localStorage */
 function saveDraft() {
   const draft = {
+    userId: authStore.userId,
     slug: form.value.slug,
     title: form.value.title,
     description: form.value.description,
@@ -347,6 +422,11 @@ onMounted(() => {
     const raw = localStorage.getItem(DRAFT_KEY)
     if (!raw) return
     const draft = JSON.parse(raw)
+    // 只恢复当前用户的草稿
+    if (draft.userId && draft.userId !== authStore.userId) {
+      localStorage.removeItem(DRAFT_KEY)
+      return
+    }
     if (!draft.content && !draft.title) return
     // 只有内容非空时才提示恢复
     if (draft.content || draft.title) {

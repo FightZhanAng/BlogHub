@@ -167,7 +167,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { usePosts } from '@/composables/usePosts'
@@ -175,7 +175,11 @@ import ImageLightbox from '@/components/ImageLightbox.vue'
 import { useLikes, useBookmarks } from '@/composables/useInteraction'
 import { useAuthStore } from '@/stores/auth'
 import request from '@/api/request'
-import * as echarts from 'echarts'
+import * as echarts from 'echarts/core'
+import { LineChart } from 'echarts/charts'
+import { GridComponent, TooltipComponent } from 'echarts/components'
+import { CanvasRenderer } from 'echarts/renderers'
+echarts.use([LineChart, GridComponent, TooltipComponent, CanvasRenderer])
 import BlogToc from '@/components/BlogToc.vue'
 import BlogActionBar from '@/components/BlogActionBar.vue'
 import BlogReadingProgress from '@/components/BlogReadingProgress.vue'
@@ -183,8 +187,7 @@ import BlogComments from '@/components/BlogComments.vue'
 
 const route = useRoute()
 const router = useRouter()
-const STATIC_BASE = 'http://localhost:8080'
-const API_BASE = 'http://localhost:8080/api'
+import { API_BASE, STATIC_BASE } from '@/utils/baseUrl'
 const { getPost } = usePosts()
 const slug = ref(route.params.slug)
 const lightboxSrc = ref('')
@@ -234,6 +237,7 @@ const observer = new MutationObserver(() => {
   codeTheme.value = isDark ? 'dark' : 'light'
 })
 observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
+onUnmounted(() => observer.disconnect())
 
 const isFollowing = ref(false)
 
@@ -289,6 +293,16 @@ function shareTo(platform) {
 
 onMounted(async () => {
   post.value = await getPost(slug.value)
+  // 如果文章未找到，检查是否是自己的草稿，跳转到编辑页
+  if (!post.value && authStore.isLoggedIn) {
+    try {
+      const raw = await request.get(`/posts/${slug.value}/edit`)
+      if (raw && raw.authorId && String(raw.authorId) === String(authStore.userId)) {
+        router.push(`/blog/${slug.value}/edit`)
+        return
+      }
+    } catch { /* 不是自己的草稿或不存在 */ }
+  }
   loading.value = false
   checkFollow()
   // 加载相关文章

@@ -72,7 +72,8 @@
       </el-form-item>
 
       <div class="form-actions">
-        <el-button size="large" @click="$router.back()">取消</el-button>
+        <el-button size="large" @click="handleCancel">取消</el-button>
+        <el-button size="large" type="danger" plain @click="clearForm">清空内容</el-button>
         <div class="form-actions-right">
           <el-checkbox v-model="enableSchedule" label="定时发布" border size="small" />
           <el-date-picker v-if="enableSchedule" v-model="scheduledAt" type="datetime"
@@ -89,7 +90,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { postApi } from '@/api/postApi'
 import request from '@/api/request'
 import { markdownToHtml } from '@/composables/useMarkdown'
@@ -106,7 +107,6 @@ const slug = route.params.slug
 
 const enableSchedule = ref(false)
 const scheduledAt = ref('')
-const API_BASE = 'http://localhost:8080'
 const coverInputRef = ref(null)
 
 function triggerCoverUpload() {
@@ -122,7 +122,7 @@ async function handleCoverChange(e) {
     const res = await request.post('/upload', formData, {
       headers: { 'Content-Type': undefined }
     })
-    form.value.coverImage = API_BASE + res.url
+    form.value.coverImage = res.url
     ElMessage.success('封面已上传')
   } catch {
     ElMessage.error('封面上传失败')
@@ -157,7 +157,7 @@ const previewHtml = computed(() => {
 
 onMounted(async () => {
   try {
-    const raw = await postApi.detail(slug)
+    const raw = await request.get(`/posts/${slug}/edit`)
     form.value = {
       title: raw.title || '',
       slug: raw.slug || '',
@@ -180,8 +180,8 @@ async function submitForm(status) {
   if (!valid) return
   saving.value = true
   try {
-    // 先获取文章 ID
-    const raw = await postApi.detail(slug)
+    // 先获取文章 ID（使用编辑接口，允许草稿）
+    const raw = await request.get(`/posts/${slug}/edit`)
     const payload = {
       title: form.value.title,
       description: form.value.description,
@@ -195,12 +195,60 @@ async function submitForm(status) {
       payload.scheduledAt = scheduledAt.value
     }
     await postApi.update(raw.id, payload)
-    ElMessage.success(status === 1 ? '已发布' : '已保存为草稿')
-    router.push(`/blog/${slug}`)
+    if (status === 1) {
+      ElMessage.success('已发布')
+      router.push(`/blog/${slug}`)
+    } else {
+      ElMessage.success('已保存为草稿')
+      // 草稿保存成功，留在当前编辑页面
+    }
   } catch {
     // 错误已在拦截器提示
   } finally {
     saving.value = false
+  }
+}
+
+function clearForm() {
+  ElMessageBox.confirm('确定清空所有内容？此操作不可恢复。', '清空内容', {
+    confirmButtonText: '确定清空',
+    cancelButtonText: '取消',
+    type: 'warning',
+  }).then(() => {
+    form.value = {
+      slug: '',
+      title: '',
+      description: '',
+      coverImage: '',
+      content: '',
+      tags: '',
+      authorName: authStore.nickname || authStore.username || '',
+    }
+    enableSchedule.value = false
+    scheduledAt.value = ''
+    ElMessage.success('内容已清空')
+  }).catch(() => {})
+}
+
+function handleCancel() {
+  // 关闭当前标签并返回上一页
+  const lastTag = sessionStorage.getItem('tagViews')
+  if (lastTag) {
+    try {
+      const tags = JSON.parse(lastTag)
+      const currentIdx = tags.findIndex(t => t.path === route.path)
+      if (currentIdx > 0) {
+        router.push(tags[currentIdx - 1].path)
+      } else if (tags.length > 1) {
+        router.push(tags[1].path)
+      } else {
+        router.push('/blog')
+      }
+    } catch {
+      router.back()
+    }
+  } else {
+    router.back()
   }
 }
 </script>

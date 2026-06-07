@@ -44,8 +44,9 @@ export const useAuthStore = defineStore('auth', () => {
     avatar.value = ''
     role.value = ''
     userId.value = ''
-    // 退出清空菜单
+    // 退出清空菜单和文章草稿
     useMenuStore().clearMenu()
+    localStorage.removeItem('draft_autosave')
   }
 
   return { token, username, nickname, avatar, role, userId, isLoggedIn, isAdmin, login, register, logout, saveUser }

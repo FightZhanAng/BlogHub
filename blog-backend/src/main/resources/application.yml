@@ -1,6 +1,10 @@
 server:
   port: 8080
 
+# 博客站点地址（用于 RSS/Sitemap 生成）
+blog:
+  base-url: ${BLOG_BASE_URL:http://localhost:8080}
+
 spring:
   profiles:
     active: local

@@ -113,7 +113,7 @@
           <!-- 已登录 -->
           <el-dropdown v-else trigger="click">
             <span class="user-info">
-              <el-avatar :size="32" :src="authStore.avatar ? ('http://localhost:8080' + authStore.avatar) : undefined" icon="UserFilled" />
+              <el-avatar :size="32" :src="authStore.avatar || undefined" icon="UserFilled" />
               <span class="username">{{ authStore.nickname || authStore.username }}</span>
             </span>
             <template #dropdown>
@@ -138,7 +138,7 @@
       <!-- 内容区域 -->
       <el-main class="layout-main">
         <router-view v-slot="{ Component }">
-          <keep-alive>
+          <keep-alive :max="15">
             <component :is="Component" :key="route.path" />
           </keep-alive>
         </router-view>
@@ -167,7 +167,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useAuthStore } from '@/stores/auth'
@@ -207,6 +207,7 @@ const themeObserver = new MutationObserver(() => {
   isDark.value = theme === 'dark'
 })
 themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
+onUnmounted(() => themeObserver.disconnect())
 
 // 自动展开包含当前路由的分组
 const defaultOpeneds = computed(() => {
@@ -247,11 +248,13 @@ function toggleNotifications() {
 }
 
 // 点击通知面板外部关闭
-document.addEventListener('click', (e) => {
+function handleGlobalClick(e) {
   if (showNotifications.value && !e.target.closest('.notification-panel') && !e.target.closest('.notification-badge')) {
     showNotifications.value = false
   }
-})
+}
+document.addEventListener('click', handleGlobalClick)
+onUnmounted(() => document.removeEventListener('click', handleGlobalClick))
 
 function toggleCollapse() {
   isCollapse.value = !isCollapse.value

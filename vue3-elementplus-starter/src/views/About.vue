@@ -46,7 +46,7 @@
 
 <script setup>
 function openFeed() {
-  window.open('http://localhost:8080/feed.xml', '_blank')
+  window.open('/feed.xml', '_blank')
 }
 
 const techStack = [

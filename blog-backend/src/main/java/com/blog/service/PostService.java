@@ -12,8 +12,17 @@ public interface PostService extends IService<Post> {
     /** 分页查询已发布的文章 */
     IPage<Post> getPublishedPosts(int page, int size, String tag, String keyword);
 
-    /** 根据 slug 查询文章 */
+    /** 根据 slug 查询文章（仅已发布） */
     Post getBySlug(String slug);
+
+    /** 根据 slug 查询文章（编辑用，允许作者查看草稿） */
+    Post getBySlugForEdit(String slug, Long userId);
+
+    /** 检查 slug 是否已被同用户占用 */
+    boolean isSlugExists(String slug, Long userId, Long excludeId);
+
+    /** 获取用户的所有 slug 列表 */
+    java.util.List<String> getUserSlugs(Long userId);
 
     /** 增加阅读次数 */
     void incrementViews(Long id);
