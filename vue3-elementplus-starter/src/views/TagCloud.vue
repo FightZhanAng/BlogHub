@@ -73,12 +73,12 @@ function tagFontSize(count) {
 
 .page-header h1 {
   font-size: 24px;
-  color: #303133;
+  color: var(--color-text);
   margin: 0;
 }
 
 .subtitle {
-  color: #909399;
+  color: var(--color-text-tertiary);
   font-size: 14px;
   margin: 8px 0 0;
 }
@@ -102,7 +102,7 @@ function tagFontSize(count) {
   display: inline-flex;
   align-items: baseline;
   gap: 3px;
-  color: #409eff;
+  color: var(--color-accent);
   cursor: pointer;
   padding: 4px 10px;
   border-radius: 6px;
@@ -111,14 +111,14 @@ function tagFontSize(count) {
 }
 
 .cloud-tag:hover {
-  background: #ecf5ff;
-  color: #2a6bb0;
+  background: var(--color-accent-light);
+  color: var(--color-accent);
   transform: scale(1.05);
 }
 
 .tag-badge {
   font-size: 11px;
-  color: #909399;
+  color: var(--color-text-tertiary);
   font-weight: normal;
 }
 </style>

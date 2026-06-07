@@ -385,16 +385,16 @@ onMounted(() => {
 <style scoped>
 .api-tester {
   display: flex;
-  height: calc(100vh - 140px);
+  height: calc(100vh - 156px);
   overflow: hidden;
 }
 
 .tester-sidebar {
   width: 260px;
   min-width: 260px;
-  border-right: 1px solid #ebeef5;
+  border-right: 1px solid var(--color-border);
   overflow-y: auto;
-  background: #fafafa;
+  background: var(--color-bg-warm);
 }
 
 .tester-workspace {
@@ -407,7 +407,7 @@ onMounted(() => {
 
 .response-divider {
   height: 1px;
-  background: #ebeef5;
+  background: var(--color-border-light);
   margin: 12px 0;
 }
 

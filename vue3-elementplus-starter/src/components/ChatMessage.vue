@@ -12,7 +12,8 @@
     <!-- 用户头像 -->
     <div v-else class="message-avatar">
       <div class="user-avatar">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <img v-if="authStore.avatar" :src="avatarUrl" class="avatar-img" />
+        <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
           <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
           <circle cx="12" cy="7" r="4"/>
         </svg>
@@ -58,6 +59,15 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useMarkdown } from '@/composables/useMarkdown'
+import { useAuthStore } from '@/stores/auth'
+
+const authStore = useAuthStore()
+
+const avatarUrl = computed(() => {
+  if (!authStore.avatar) return ''
+  // 头像路径如 /uploads/avatars/xxx.jpg，通过 Vite proxy 或 nginx 转发到后端
+  return authStore.avatar
+})
 
 const props = defineProps({
   message: { type: Object, required: true },
@@ -151,6 +161,12 @@ function formatTime(ts) {
   align-items: center;
   justify-content: center;
   color: var(--ai-text-secondary);
+  overflow: hidden;
+}
+.avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 /* ==============================

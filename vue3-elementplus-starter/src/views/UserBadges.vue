@@ -70,7 +70,7 @@ onMounted(fetchBadges)
   font-size: 24px;
   font-weight: 600;
   margin: 0 0 24px;
-  color: #303133;
+  color: var(--color-text);
 }
 
 .badge-section {
@@ -81,7 +81,7 @@ onMounted(fetchBadges)
   font-size: 16px;
   font-weight: 500;
   margin: 0 0 16px;
-  color: #606266;
+  color: var(--color-text-secondary);
 }
 
 .badge-grid {
@@ -91,7 +91,7 @@ onMounted(fetchBadges)
 }
 
 .badge-card {
-  background: #f5f7fa;
+  background: var(--color-bg-warm);
   border-radius: 12px;
   padding: 20px;
   text-align: center;
@@ -103,6 +103,15 @@ onMounted(fetchBadges)
   background: linear-gradient(135deg, #fff9e6, #fff3cc);
   opacity: 1;
   box-shadow: 0 2px 12px rgba(255, 193, 7, 0.15);
+}
+
+[data-theme="dark"] .badge-card.earned {
+  background: linear-gradient(135deg, rgba(201, 169, 110, 0.2), rgba(201, 169, 110, 0.1));
+  box-shadow: 0 2px 12px rgba(201, 169, 110, 0.1);
+}
+
+[data-theme="dark"] .badge-card.earned .badge-name {
+  color: var(--color-accent);
 }
 
 .badge-card:hover {
@@ -117,13 +126,13 @@ onMounted(fetchBadges)
 .badge-name {
   font-size: 14px;
   font-weight: 500;
-  color: #303133;
+  color: var(--color-text);
   margin-bottom: 4px;
 }
 
 .badge-desc {
   font-size: 12px;
-  color: #909399;
+  color: var(--color-text-tertiary);
   margin-bottom: 8px;
 }
 </style>

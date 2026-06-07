@@ -57,6 +57,6 @@ onMounted(fetchLogs)
 .log-page { max-width: 1200px; margin: 0 auto; }
 .page-header { margin-bottom: 20px; }
 .page-header h1 { margin: 0; font-size: 24px; }
-.table-card { border-radius: 12px; border: 1px solid #e8eaed; }
+.table-card { border-radius: 12px; border: 1px solid var(--color-border); }
 .pagination-wrap { display: flex; justify-content: flex-start; padding: 20px 0 8px; }
 </style>

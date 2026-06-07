@@ -129,13 +129,13 @@ onMounted(fetchTopics)
 .page-header h1 {
   font-size: 26px;
   font-weight: 600;
-  color: #303133;
+  color: var(--color-text);
   margin: 0;
 }
 
 .subtitle {
   font-size: 14px;
-  color: #909399;
+  color: var(--color-text-tertiary);
   margin: 4px 0 0;
 }
 
@@ -152,14 +152,14 @@ onMounted(fetchTopics)
   align-items: center;
   gap: 14px;
   padding: 14px 16px;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--color-border-light);
   cursor: pointer;
   transition: background 0.15s;
   border-radius: 8px;
 }
 
 .topic-item:hover {
-  background: #f5f7fa;
+  background: var(--color-bg-warm);
 }
 
 .topic-rank {
@@ -171,8 +171,8 @@ onMounted(fetchTopics)
   justify-content: center;
   font-size: 13px;
   font-weight: 600;
-  color: #909399;
-  background: #f0f2f5;
+  color: var(--color-text-tertiary);
+  background: var(--color-bg-warm);
   flex-shrink: 0;
 }
 
@@ -193,7 +193,7 @@ onMounted(fetchTopics)
 
 .topic-title {
   font-size: 15px;
-  color: #303133;
+  color: var(--color-text);
   font-weight: 500;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -202,7 +202,7 @@ onMounted(fetchTopics)
 
 .topic-extra {
   font-size: 12px;
-  color: #909399;
+  color: var(--color-text-tertiary);
   margin-top: 4px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -224,12 +224,12 @@ onMounted(fetchTopics)
   gap: 16px;
   margin-top: 24px;
   padding-top: 16px;
-  border-top: 1px solid #ebeef5;
+  border-top: 1px solid var(--color-border-light);
 }
 
 .fetch-time {
   font-size: 12px;
-  color: #c0c4cc;
+  color: var(--color-text-placeholder);
 }
 
 .empty-state {

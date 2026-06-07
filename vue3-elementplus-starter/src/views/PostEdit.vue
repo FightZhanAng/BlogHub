@@ -146,12 +146,12 @@ const rules = {
 }
 
 const previewHtml = computed(() => {
-  if (!form.value.content) return '<p style="color:#c0c4cc">暂无内容</p>'
+  if (!form.value.content) return '<p style="color:var(--color-text-placeholder)">暂无内容</p>'
   try {
     const { html } = markdownToHtml(form.value.content)
-    return html || '<p style="color:#909399">（渲染为空）</p>'
+    return html || '<p style="color:var(--color-text-tertiary)">（渲染为空）</p>'
   } catch {
-    return `<pre style="white-space:pre-wrap;background:#f5f7fa;padding:16px;border-radius:8px">${form.value.content.replace(/</g, '&lt;')}</pre>`
+    return `<pre style="white-space:pre-wrap;background:var(--color-bg-warm);padding:16px;border-radius:8px">${form.value.content.replace(/</g, '&lt;')}</pre>`
   }
 })
 
@@ -209,14 +209,14 @@ async function submitForm(status) {
 .post-editor { max-width: 960px; margin: 0 auto; }
 .page-header { margin-bottom: 20px; }
 .page-header h1 { margin: 0; font-size: 24px; }
-.editor-form { background: #fff; padding: 28px 32px; border-radius: 12px; border: 1px solid #e8eaed; }
+.editor-form { background: var(--color-card); padding: 28px 32px; border-radius: 12px; border: 1px solid var(--color-border); }
 
 .editor-field { width: 100%; }
 .editor-field :deep(.el-form-item__content) { width: 100%; }
 
-.markdown-editor { width: 100%; border: 1px solid #dcdfe6; border-radius: 8px; overflow: hidden; background: #fff; }
-.editor-toolbar { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #fafafa; border-bottom: 1px solid #e4e7ed; }
-.word-count { font-size: 12px; color: #c0c4cc; }
+.markdown-editor { width: 100%; border: 1px solid var(--color-border); border-radius: 8px; overflow: hidden; background: var(--color-card); }
+.editor-toolbar { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: var(--color-bg-warm); border-bottom: 1px solid var(--color-border); }
+.word-count { font-size: 12px; color: var(--color-text-placeholder); }
 
 .editor-textarea { width: 100%; }
 .editor-textarea :deep(.el-textarea__inner) { min-height: 420px; padding: 16px 20px; border: none; border-radius: 0; font-family: 'Monaco','Menlo','Consolas',monospace; font-size: 14px; line-height: 1.7; resize: vertical; }
@@ -229,7 +229,7 @@ async function submitForm(status) {
   justify-content: space-between;
   align-items: center;
   padding-top: 16px;
-  border-top: 1px solid #f0f0f0;
+  border-top: 1px solid var(--color-border-light);
 }
 
 .form-actions-right {
@@ -241,7 +241,7 @@ async function submitForm(status) {
 .cover-upload {
   width: 120px;
   height: 80px;
-  border: 2px dashed #dcdfe6;
+  border: 2px dashed var(--color-border);
   border-radius: 8px;
   cursor: pointer;
   overflow: hidden;
@@ -251,7 +251,7 @@ async function submitForm(status) {
   transition: border-color 0.2s;
 }
 
-.cover-upload:hover { border-color: #409eff; }
+.cover-upload:hover { border-color: var(--color-accent); }
 
 .cover-preview {
   width: 100%;
@@ -264,24 +264,24 @@ async function submitForm(status) {
   flex-direction: column;
   align-items: center;
   gap: 4px;
-  color: #c0c4cc;
+  color: var(--color-text-placeholder);
   font-size: 12px;
   padding-top: 20px;
-  border-top: 1px solid #f0f0f0; 
+  border-top: 1px solid var(--color-border-light); 
 }
 
-.preview-markdown :deep(h1), .preview-markdown :deep(h2), .preview-markdown :deep(h3) { margin-top: 28px; margin-bottom: 12px; font-weight: 600; color: #303133; }
+.preview-markdown :deep(h1), .preview-markdown :deep(h2), .preview-markdown :deep(h3) { margin-top: 28px; margin-bottom: 12px; font-weight: 600; color: var(--color-text); }
 .preview-markdown :deep(h1) { font-size: 24px; }
-.preview-markdown :deep(h2) { font-size: 20px; border-bottom: 1px solid #ebeef5; padding-bottom: 8px; }
+.preview-markdown :deep(h2) { font-size: 20px; border-bottom: 1px solid var(--color-border-light); padding-bottom: 8px; }
 .preview-markdown :deep(h3) { font-size: 17px; }
-.preview-markdown :deep(p) { margin: 0 0 16px 0; line-height: 1.8; color: #303133; }
-.preview-markdown :deep(code) { background: #f0f2f5; color: #476582; padding: 2px 6px; border-radius: 4px; font-size: 13px; font-family: 'Monaco','Menlo',monospace; }
+.preview-markdown :deep(p) { margin: 0 0 16px 0; line-height: 1.8; color: var(--color-text); }
+.preview-markdown :deep(code) { background: var(--color-bg-warm); color: var(--color-text-secondary); padding: 2px 6px; border-radius: 4px; font-size: 13px; font-family: 'Monaco','Menlo',monospace; }
 .preview-markdown :deep(pre) { background: #1e1e1e; color: #d4d4d4; padding: 16px 20px; border-radius: 8px; overflow-x: auto; font-size: 13px; line-height: 1.6; margin: 0 0 16px 0; }
 .preview-markdown :deep(pre code) { background: none; color: inherit; padding: 0; font-size: inherit; }
-.preview-markdown :deep(blockquote) { margin: 16px 0; padding: 12px 20px; border-left: 4px solid #409eff; background: #f5f7fa; border-radius: 0 8px 8px 0; color: #606266; }
+.preview-markdown :deep(blockquote) { margin: 16px 0; padding: 12px 20px; border-left: 4px solid var(--color-accent); background: var(--color-bg-warm); border-radius: 0 8px 8px 0; color: var(--color-text-secondary); }
 .preview-markdown :deep(ul), .preview-markdown :deep(ol) { padding-left: 24px; margin: 0 0 16px 0; }
 .preview-markdown :deep(li) { margin-bottom: 4px; line-height: 1.8; }
 .preview-markdown :deep(img) { max-width: 100%; border-radius: 8px; }
-.preview-markdown :deep(a) { color: #409eff; text-decoration: none; }
-.preview-markdown :deep(hr) { border: none; border-top: 1px solid #ebeef5; margin: 24px 0; }
+.preview-markdown :deep(a) { color: var(--color-accent); text-decoration: none; }
+.preview-markdown :deep(hr) { border: none; border-top: 1px solid var(--color-border-light); margin: 24px 0; }
 </style>

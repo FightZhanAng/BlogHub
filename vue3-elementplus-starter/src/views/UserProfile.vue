@@ -80,15 +80,15 @@ onMounted(async () => {
 
 <style scoped>
 .user-profile { max-width: 1100px; margin: 0 auto; }
-.profile-card { border-radius: 12px; border: 1px solid #e8eaed; }
+.profile-card { border-radius: 12px; border: 1px solid var(--color-border); }
 .profile-header { display: flex; align-items: center; gap: 20px; }
 .profile-info { flex: 1; }
 .profile-info h2 { margin: 0 0 4px; font-size: 20px; }
-.bio { color: #909399; font-size: 14px; margin: 0 0 8px; }
-.stats { display: flex; gap: 16px; font-size: 13px; color: #606266; }
+.bio { color: var(--color-text-tertiary); font-size: 14px; margin: 0 0 8px; }
+.stats { display: flex; gap: 16px; font-size: 13px; color: var(--color-text-secondary); }
 .post-col { margin-bottom: 16px; }
-.post-card { border-radius: 10px; border: 1px solid #e8eaed; cursor: pointer; }
+.post-card { border-radius: 10px; border: 1px solid var(--color-border); cursor: pointer; }
 .post-card h4 { margin: 0 0 4px; font-size: 15px; }
-.post-card .date { font-size: 12px; color: #c0c4cc; }
+.post-card .date { font-size: 12px; color: var(--color-text-placeholder); }
 .loading-wrap { padding: 40px 0; }
 </style>

@@ -135,7 +135,10 @@
           >
             <div class="item-drag"><el-icon><Rank /></el-icon></div>
             <div class="item-info">
-              <div class="item-name">{{ item.title }}</div>
+              <div class="item-name">
+                <el-icon v-if="item.icon" style="margin-right: 4px; vertical-align: middle;"><component :is="item.icon" /></el-icon>
+                {{ item.title }}
+              </div>
               <div class="item-meta">{{ item.path }}</div>
             </div>
             <div class="item-actions">
@@ -584,7 +587,7 @@ onMounted(loadAll)
 
 <style scoped>
 .menu-settings {
-  height: calc(100vh - 140px);
+  height: calc(100vh - 156px);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -592,31 +595,33 @@ onMounted(loadAll)
 
 .settings-header {
   margin-bottom: 16px;
+  flex-shrink: 0;
 }
 
 .settings-header h2 {
   margin: 0 0 4px;
   font-size: 20px;
-  color: #303133;
+  color: var(--color-text);
 }
 
 .settings-header p {
   margin: 0;
   font-size: 13px;
-  color: #909399;
+  color: var(--color-text-tertiary);
 }
 
 .settings-body {
   flex: 1;
   display: flex;
   gap: 16px;
+  min-height: 0;
   overflow: hidden;
 }
 
 .panel {
   flex: 1;
-  background: #fff;
-  border: 1px solid #ebeef5;
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
   border-radius: 8px;
   display: flex;
   flex-direction: column;
@@ -628,14 +633,14 @@ onMounted(loadAll)
   justify-content: space-between;
   align-items: center;
   padding: 12px 16px;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--color-border-light);
   flex-shrink: 0;
 }
 
 .panel-title {
   font-size: 15px;
   font-weight: 600;
-  color: #303133;
+  color: var(--color-text);
 }
 
 .panel-header-btns {
@@ -662,22 +667,27 @@ onMounted(loadAll)
 }
 
 .list-item:hover {
-  background: #f5f7fa;
-  border-color: #e4e7ed;
+  background: var(--color-bg-warm);
+  border-color: var(--color-border);
 }
 
 .list-item.active {
-  background: #ecf5ff;
-  border-color: #c6e2ff;
+  background: var(--color-accent-light);
+  border-color: var(--color-accent);
+  color: var(--color-text);
+}
+
+.list-item.active .item-name {
+  color: var(--color-text);
 }
 
 .list-item.dragging {
   opacity: 0.5;
-  background: #f0f5ff;
+  background: var(--color-accent-light);
 }
 
 .item-drag {
-  color: #c0c4cc;
+  color: var(--color-text-placeholder);
   cursor: grab;
   flex-shrink: 0;
 }
@@ -693,13 +703,13 @@ onMounted(loadAll)
 
 .item-name {
   font-size: 14px;
-  color: #303133;
+  color: var(--color-text);
   font-weight: 500;
 }
 
 .item-meta {
   font-size: 12px;
-  color: #909399;
+  color: var(--color-text-tertiary);
   display: flex;
   align-items: center;
   gap: 4px;
