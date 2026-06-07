@@ -16,5 +16,8 @@
   "dependencies": {
     "mysql2": "^3.22.3",
     "pptxgenjs": "^4.0.1"
+  },
+  "devDependencies": {
+    "@playwright/mcp": "^0.0.75"
   }
 }

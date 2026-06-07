@@ -15,9 +15,9 @@
         :collapse="isCollapse"
         :collapse-transition="false"
         router
-        background-color="#fff"
-        text-color="#606266"
-        active-text-color="#409eff"
+        background-color="transparent"
+        text-color="#6b6b6b"
+        active-text-color="#c9a96e"
         class="sidebar-menu"
       >
         <template v-for="item in menuTree" :key="item.id">
@@ -38,7 +38,8 @@
               :key="child.id"
               :index="child.path"
             >
-              {{ child.title }}
+              <el-icon v-if="child.icon"><component :is="child.icon" /></el-icon>
+              <template #title>{{ child.title }}</template>
             </el-menu-item>
           </el-sub-menu>
         </template>
@@ -66,6 +67,16 @@
         </div>
 
         <div class="header-right">
+          <!-- 主题切换 -->
+          <el-tooltip :content="isDark ? '切换亮色主题' : '切换暗色主题'" placement="bottom">
+            <el-button circle size="small" class="header-action-btn" @click="toggleTheme">
+              <el-icon>
+                <Moon v-if="!isDark" />
+                <Sunny v-else />
+              </el-icon>
+            </el-button>
+          </el-tooltip>
+
           <el-tooltip content="写文章" placement="bottom">
             <el-button circle size="small" class="header-action-btn" @click="$router.push('/blog/new')">
               <el-icon><EditPen /></el-icon>
@@ -134,6 +145,25 @@
       </el-main>
     </el-container>
   </el-container>
+
+  <!-- AI 助手悬浮按钮（在 AI 助手页面隐藏） -->
+  <div v-if="route.path !== '/ai-assistant'" class="ai-fab-wrapper">
+    <!-- 展开状态：显示操作项 -->
+    <template v-if="!fabCollapsed">
+      <div class="fab-action" @click="$router.push('/ai-assistant')" title="AI 对话">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+        </svg>
+      </div>
+    </template>
+    <!-- 主按钮 -->
+    <div class="ai-fab" @click="fabCollapsed = !fabCollapsed" :title="fabCollapsed ? '展开' : '收起'">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" :style="{ transform: fabCollapsed ? 'rotate(0deg)' : 'rotate(45deg)', transition: 'transform 0.25s ease' }">
+        <path d="M12 2a7 7 0 0 1 7 7c0 2.5-1.5 4.5-3 6v2a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1v-2c-1.5-1.5-3-3.5-3-6a7 7 0 0 1 7-7z"/>
+        <line x1="9" y1="21" x2="15" y2="21"/>
+      </svg>
+    </div>
+  </div>
 </template>
 
 <script setup>
@@ -153,6 +183,30 @@ const menuStore = useMenuStore()
 const isCollapse = ref(false)
 const isAdmin = computed(() => authStore.isAdmin)
 const menuTree = computed(() => menuStore.menuTree)
+const fabCollapsed = ref(true)
+
+// ========== 主题切换 ==========
+const isDark = ref(localStorage.getItem('blog-theme') === 'dark')
+
+function applyTheme(dark) {
+  document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light')
+}
+
+function toggleTheme() {
+  isDark.value = !isDark.value
+  localStorage.setItem('blog-theme', isDark.value ? 'dark' : 'light')
+  applyTheme(isDark.value)
+}
+
+// 初始化主题
+applyTheme(isDark.value)
+
+// 监听外部主题变化（如从 AI 助手页面切换）
+const themeObserver = new MutationObserver(() => {
+  const theme = document.documentElement.getAttribute('data-theme')
+  isDark.value = theme === 'dark'
+})
+themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
 
 // 自动展开包含当前路由的分组
 const defaultOpeneds = computed(() => {
@@ -206,7 +260,7 @@ function toggleCollapse() {
 function handleLogout() {
   authStore.logout()
   ElMessage.success('已退出登录')
-  router.push('/blog')
+  router.push('/login')
 }
 
 onMounted(() => {
@@ -265,9 +319,9 @@ const breadcrumbs = computed(() => {
 
 /* ========== 侧边栏 ========== */
 .layout-aside {
-  background-color: #fff;
-  border-right: 1px solid #e8eaed;
-  transition: width 0.25s ease;
+  background-color: var(--color-card);
+  border-right: 1px solid var(--color-border-light);
+  transition: width 0.25s var(--ease);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -277,32 +331,35 @@ const breadcrumbs = computed(() => {
   height: 60px;
   display: flex;
   align-items: center;
-  padding: 0 16px;
-  gap: 10px;
+  padding: 0 20px;
+  gap: 12px;
   cursor: pointer;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--color-border-light);
   flex-shrink: 0;
 }
 
 .logo-icon {
-  width: 32px;
-  height: 32px;
-  background: linear-gradient(135deg, #409eff, #337ecc);
-  color: #fff;
-  border-radius: 8px;
+  width: 30px;
+  height: 30px;
+  background: var(--color-text);
+  color: var(--color-card);
+  border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
+  font-family: var(--font-display);
   font-weight: 700;
-  font-size: 18px;
+  font-size: 16px;
   flex-shrink: 0;
 }
 
 .logo-text {
-  font-size: 18px;
-  font-weight: 600;
-  color: #303133;
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--color-text);
   white-space: nowrap;
+  letter-spacing: -0.02em;
 }
 
 /* 侧边栏菜单 */
@@ -310,55 +367,53 @@ const breadcrumbs = computed(() => {
   border-right: none;
   flex: 1;
   overflow-y: auto;
-  padding-top: 4px;
+  padding-top: 8px;
 }
 
 .sidebar-menu :deep(.el-menu-item),
 .sidebar-menu :deep(.el-sub-menu__title) {
-  height: 44px;
-  line-height: 44px;
-  margin: 2px 8px;
-  border-radius: 8px;
-  font-size: 14px;
+  height: 40px;
+  line-height: 40px;
+  margin: 1px 10px;
+  border-radius: var(--radius);
+  font-size: 13px;
+  color: var(--color-text-secondary);
 }
 
 .sidebar-menu :deep(.el-menu-item:hover),
 .sidebar-menu :deep(.el-sub-menu__title:hover) {
-  background-color: #f0f5ff;
-  color: #409eff;
+  background-color: var(--color-bg-warm);
+  color: var(--color-text);
 }
 
 .sidebar-menu :deep(.el-menu-item.is-active) {
-  background-color: #ecf5ff;
-  color: #409eff;
+  background-color: var(--color-accent-light);
+  color: var(--color-accent-hover);
   font-weight: 500;
 }
 
 .sidebar-menu :deep(.el-sub-menu .el-menu) {
-  background-color: #fff;
+  background-color: transparent;
 }
 
-/* 分隔线（备用） */
-
-/* 子菜单样式 */
 .sidebar-menu :deep(.el-sub-menu .el-menu-item) {
-  height: 40px;
-  line-height: 40px;
-  margin: 1px 8px;
-  border-radius: 6px;
-  font-size: 13px;
+  height: 36px;
+  line-height: 36px;
+  margin: 1px 10px;
+  border-radius: var(--radius);
+  font-size: 12.5px;
   padding-left: 48px !important;
   min-width: auto;
 }
 
 .sidebar-menu :deep(.el-sub-menu .el-menu-item:hover) {
-  background-color: #f0f5ff;
-  color: #409eff;
+  background-color: var(--color-bg-warm);
+  color: var(--color-text);
 }
 
 .sidebar-menu :deep(.el-sub-menu .el-menu-item.is-active) {
-  background-color: #ecf5ff;
-  color: #409eff;
+  background-color: var(--color-accent-light);
+  color: var(--color-accent-hover);
   font-weight: 500;
 }
 
@@ -371,9 +426,9 @@ const breadcrumbs = computed(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #fff;
-  border-bottom: 1px solid #e8eaed;
-  padding: 0 20px;
+  background: var(--color-card);
+  border-bottom: 1px solid var(--color-border-light);
+  padding: 0 24px;
   height: 56px !important;
 }
 
@@ -385,29 +440,29 @@ const breadcrumbs = computed(() => {
 
 .collapse-btn {
   cursor: pointer;
-  color: #909399;
+  color: var(--color-text-tertiary);
   padding: 6px;
-  border-radius: 6px;
-  transition: all 0.2s;
+  border-radius: var(--radius);
+  transition: all var(--duration) var(--ease);
 }
 
 .collapse-btn:hover {
-  background: #f0f5ff;
-  color: #409eff;
+  background: var(--color-bg-warm);
+  color: var(--color-text);
 }
 
 .header-breadcrumb :deep(.el-breadcrumb__inner) {
   font-size: 13px;
-  color: #909399;
+  color: var(--color-text-tertiary);
 }
 
 .header-breadcrumb :deep(.el-breadcrumb__inner.is-link) {
   font-weight: 400;
-  color: #606266;
+  color: var(--color-text-secondary);
 }
 
 .header-breadcrumb :deep(.el-breadcrumb__inner.is-link:hover) {
-  color: #409eff;
+  color: var(--color-accent);
 }
 
 .header-right {
@@ -419,7 +474,7 @@ const breadcrumbs = computed(() => {
 
 .notification-badge :deep(.el-badge__content) {
   top: 2px;
-  right: 2px;
+  right: -4px;
 }
 
 .notification-panel {
@@ -428,10 +483,10 @@ const breadcrumbs = computed(() => {
   right: 60px;
   width: 320px;
   max-height: 400px;
-  background: #fff;
-  border: 1px solid #e4e7ed;
-  border-radius: 8px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  background: var(--color-card);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
   z-index: 999;
   overflow: hidden;
 }
@@ -440,10 +495,12 @@ const breadcrumbs = computed(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 16px;
-  border-bottom: 1px solid #f0f0f0;
-  font-size: 14px;
-  font-weight: 500;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--color-border-light);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--font-display);
+  color: var(--color-text);
 }
 
 .panel-body {
@@ -454,33 +511,37 @@ const breadcrumbs = computed(() => {
 .notif-item {
   padding: 10px 16px;
   font-size: 13px;
-  color: #606266;
-  border-bottom: 1px solid #f9f9f9;
+  color: var(--color-text-secondary);
+  border-bottom: 1px solid var(--color-border-light);
   cursor: default;
 }
 
 .notif-item.unread {
-  background: #ecf5ff;
-  color: #303133;
+  background: var(--color-accent-lighter);
+  color: var(--color-text);
+}
+
+.notif-item:last-child {
+  border-bottom: none;
 }
 
 .notif-time {
   display: block;
   font-size: 11px;
-  color: #c0c4cc;
+  color: var(--color-text-placeholder);
   margin-top: 2px;
 }
 
 .header-action-btn {
-  border: 1px solid #e4e7ed;
-  background: #fafafa;
-  color: #606266;
+  border: 1px solid var(--color-border);
+  background: var(--color-card);
+  color: var(--color-text-secondary);
 }
 
 .header-action-btn:hover {
-  background: #ecf5ff;
-  border-color: #409eff;
-  color: #409eff;
+  background: var(--color-accent-light);
+  border-color: var(--color-accent);
+  color: var(--color-accent);
 }
 
 .user-info {
@@ -488,18 +549,18 @@ const breadcrumbs = computed(() => {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 2px 8px 2px 2px;
+  padding: 2px 10px 2px 2px;
   border-radius: 20px;
-  transition: background 0.2s;
+  transition: background var(--duration) var(--ease);
 }
 
 .user-info:hover {
-  background: #f5f7fa;
+  background: var(--color-bg-warm);
 }
 
 .username {
   font-size: 13px;
-  color: #303133;
+  color: var(--color-text);
   max-width: 100px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -508,8 +569,74 @@ const breadcrumbs = computed(() => {
 
 /* ========== 内容区域 ========== */
 .layout-main {
-  background-color: #f5f7fa;
-  padding: 24px;
+  background-color: var(--color-bg);
+  padding: 32px;
   overflow-y: auto;
+}
+
+/* ========== AI 助手悬浮按钮 ========== */
+.ai-fab-wrapper {
+  position: fixed;
+  bottom: 32px;
+  right: 32px;
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: center;
+  gap: 10px;
+  z-index: 900;
+}
+
+.ai-fab {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(201, 169, 110, 0.35);
+  transition: all var(--duration) var(--ease);
+}
+
+.ai-fab:hover {
+  background: var(--color-accent-hover);
+  transform: scale(1.06);
+  box-shadow: 0 6px 24px rgba(201, 169, 110, 0.4);
+}
+
+.ai-fab:active {
+  transform: scale(0.95);
+}
+
+.fab-action {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--color-card);
+  color: var(--color-accent);
+  border: 1px solid var(--color-border-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--duration) var(--ease);
+  opacity: 0;
+  transform: translateY(8px);
+  animation: fab-action-in 0.2s ease forwards;
+}
+
+.fab-action:hover {
+  background: var(--color-accent-light);
+  border-color: var(--color-accent);
+}
+
+@keyframes fab-action-in {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 </style>

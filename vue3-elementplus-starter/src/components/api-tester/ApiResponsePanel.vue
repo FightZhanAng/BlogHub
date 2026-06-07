@@ -72,21 +72,21 @@ function formatSize(bytes) {
 
 <style scoped>
 .response-panel { display: flex; flex-direction: column; height: 100%; }
-.response-status { display: flex; gap: 12px; align-items: center; padding: 8px 12px; background: #f5f7fa; border-radius: 4px; }
+.response-status { display: flex; gap: 12px; align-items: center; padding: 8px 12px; background: var(--color-bg-warm); border-radius: 4px; }
 .status-code { font-weight: 600; }
 .status-ok { color: #67c23a; }
-.status-redirect { color: #409eff; }
+.status-redirect { color: var(--color-accent); }
 .status-warn { color: #e6a23c; }
 .status-error { color: #f56c6c; }
-.status-time { color: #666; }
-.status-size { color: #999; }
-.response-empty { padding: 20px; text-align: center; color: #999; }
+.status-time { color: var(--color-text-secondary); }
+.status-size { color: var(--color-text-tertiary); }
+.response-empty { padding: 20px; text-align: center; color: var(--color-text-tertiary); }
 .response-body { flex: 1; overflow: auto; }
 .json-viewer { height: 100%; overflow: auto; }
-.json-content { margin: 0; padding: 12px; font-family: 'Consolas', 'Monaco', monospace; font-size: 13px; white-space: pre-wrap; word-break: break-all; background: #fafafa; border-radius: 4px; }
+.json-content { margin: 0; padding: 12px; font-family: 'Consolas', 'Monaco', monospace; font-size: 13px; white-space: pre-wrap; word-break: break-all; background: var(--color-bg-warm); border-radius: 4px; }
 .headers-table { display: flex; flex-direction: column; }
-.header-row { display: flex; padding: 6px 0; border-bottom: 1px solid #f0f0f0; }
-.header-key { font-weight: 600; width: 200px; color: #333; }
-.header-value { flex: 1; color: #666; word-break: break-all; }
-.empty-hint { padding: 20px; text-align: center; color: #999; }
+.header-row { display: flex; padding: 6px 0; border-bottom: 1px solid var(--color-border-light); }
+.header-key { font-weight: 600; width: 200px; color: var(--color-text); }
+.header-value { flex: 1; color: var(--color-text-secondary); word-break: break-all; }
+.empty-hint { padding: 20px; text-align: center; color: var(--color-text-tertiary); }
 </style>

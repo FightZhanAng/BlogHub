@@ -68,7 +68,7 @@ const techStack = [
 
 .about-card {
   border-radius: 12px;
-  border: 1px solid #e8eaed;
+  border: 1px solid var(--color-border);
 }
 
 .about-header {
@@ -87,12 +87,12 @@ const techStack = [
 .about-header h1 {
   margin: 0 0 4px 0;
   font-size: 22px;
-  color: #303133;
+  color: var(--color-text);
 }
 
 .about-subtitle {
   margin: 0;
-  color: #909399;
+  color: var(--color-text-tertiary);
   font-size: 14px;
 }
 
@@ -103,13 +103,13 @@ const techStack = [
 .about-body h3 {
   margin: 20px 0 12px 0;
   font-size: 15px;
-  color: #303133;
+  color: var(--color-text);
 }
 
 .about-body p {
   margin: 0 0 16px 0;
   font-size: 14px;
-  color: #606266;
+  color: var(--color-text-secondary);
   line-height: 1.8;
 }
 

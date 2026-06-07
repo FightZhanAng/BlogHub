@@ -102,7 +102,7 @@ onUnmounted(() => {
   align-items: center;
   gap: 6px;
   padding: 10px 4px;
-  background: #fff;
+  background: var(--color-card);
   border-radius: 12px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
   transition: box-shadow 0.3s;
@@ -119,9 +119,9 @@ onUnmounted(() => {
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  border: 1px solid #dcdfe6;
-  background: #fff;
-  color: #909399;
+  border: 1px solid var(--color-border);
+  background: var(--color-card);
+  color: var(--color-text-tertiary);
   font-size: 17px;
   cursor: pointer;
   display: inline-flex;
@@ -133,9 +133,9 @@ onUnmounted(() => {
 }
 
 .act-btn:hover {
-  background: #f0f5ff;
-  border-color: #409eff;
-  color: #409eff;
+  background: var(--color-accent-light);
+  border-color: var(--color-accent);
+  color: var(--color-accent);
 }
 
 .act-btn.liked {
@@ -150,11 +150,18 @@ onUnmounted(() => {
   color: #e6a23c;
 }
 
+[data-theme="dark"] .act-btn.liked {
+  background: rgba(185, 74, 72, 0.15);
+}
+[data-theme="dark"] .act-btn.saved {
+  background: rgba(196, 148, 58, 0.15);
+}
+
 .count {
   display: block;
   width: 36px;
   font-size: 11px;
-  color: #909399;
+  color: var(--color-text-tertiary);
   text-align: center;
   line-height: 1;
 }

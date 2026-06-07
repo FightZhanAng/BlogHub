@@ -138,7 +138,7 @@ onMounted(() => {
   margin-bottom: 24px;
 }
 .search-meta {
-  color: #909399;
+  color: var(--color-text-tertiary);
   font-size: 14px;
   margin-bottom: 16px;
 }
@@ -152,17 +152,17 @@ onMounted(() => {
   transition: background 0.2s;
 }
 .result-card:hover {
-  background: #f5f7fa;
+  background: var(--color-bg-warm);
 }
 .result-title {
   font-size: 16px;
   font-weight: 600;
-  color: #303133;
+  color: var(--color-text);
   margin-bottom: 6px;
 }
 .result-desc {
   font-size: 13px;
-  color: #606266;
+  color: var(--color-text-secondary);
   margin-bottom: 8px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -170,7 +170,7 @@ onMounted(() => {
 }
 .result-meta {
   font-size: 12px;
-  color: #c0c4cc;
+  color: var(--color-text-placeholder);
   display: flex;
   gap: 6px;
 }

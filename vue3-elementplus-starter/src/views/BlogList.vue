@@ -72,7 +72,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch, onActivated } from 'vue'
 import { useRoute } from 'vue-router'
 import { Search } from '@element-plus/icons-vue'
 import { usePosts } from '@/composables/usePosts'
@@ -121,6 +121,24 @@ onMounted(async () => {
     fetchPosts()
   }
 })
+
+// keep-alive 恢复时重新读取路由参数
+onActivated(() => {
+  const tagSlug = route.query.tag || ''
+  if (tagSlug !== activeTag.value) {
+    activeTag.value = tagSlug
+    fetchPosts(tagSlug || undefined, searchKeyword.value || undefined)
+  }
+})
+
+// 监听路由查询参数变化（如从标签云跳转）
+watch(() => route.query.tag, (newTag) => {
+  const slug = newTag || ''
+  if (slug !== activeTag.value) {
+    activeTag.value = slug
+    fetchPosts(slug || undefined, searchKeyword.value || undefined)
+  }
+})
 </script>
 
 <style scoped>
@@ -145,7 +163,7 @@ onMounted(async () => {
 }
 
 .subtitle {
-  color: #909399;
+  color: var(--color-text-tertiary);
   margin: 0;
   font-size: 14px;
 }

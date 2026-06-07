@@ -274,7 +274,7 @@ onMounted(() => {
 
 .profile-card {
   border-radius: 12px;
-  border: 1px solid #e8eaed;
+  border: 1px solid var(--color-border);
 }
 
 .profile-card :deep(.el-card__body) {
@@ -318,13 +318,13 @@ onMounted(() => {
 .profile-info h1 {
   margin: 0 0 4px 0;
   font-size: 22px;
-  color: #303133;
+  color: var(--color-text);
 }
 
 .profile-role {
   margin: 0;
   font-size: 13px;
-  color: #909399;
+  color: var(--color-text-tertiary);
 }
 
 .profile-tabs {
@@ -347,7 +347,7 @@ onMounted(() => {
   align-items: center;
   justify-content: space-between;
   padding: 14px 0;
-  border-bottom: 1px solid #f5f5f5;
+  border-bottom: 1px solid var(--color-border-light);
   cursor: pointer;
   transition: padding-left 0.2s;
 }
@@ -369,12 +369,12 @@ onMounted(() => {
 .post-row-title {
   font-size: 14px;
   font-weight: 500;
-  color: #303133;
+  color: var(--color-text);
 }
 
 .post-row-meta {
   font-size: 12px;
-  color: #c0c4cc;
+  color: var(--color-text-placeholder);
 }
 
 /* 评论列表 */
@@ -385,7 +385,7 @@ onMounted(() => {
 
 .comment-row {
   padding: 14px 0;
-  border-bottom: 1px solid #f5f5f5;
+  border-bottom: 1px solid var(--color-border-light);
 }
 
 .comment-row:last-child {
@@ -395,7 +395,7 @@ onMounted(() => {
 .comment-row-content {
   margin: 0 0 6px 0;
   font-size: 14px;
-  color: #606266;
+  color: var(--color-text-secondary);
   line-height: 1.6;
 }
 
@@ -404,7 +404,7 @@ onMounted(() => {
   align-items: center;
   gap: 6px;
   font-size: 12px;
-  color: #c0c4cc;
+  color: var(--color-text-placeholder);
 }
 
 .pagination {

@@ -16,12 +16,12 @@ function formatPost(raw) {
   } catch (e) {
     console.error('[formatPost] markdown 渲染失败:', e)
     // fallback: 按换行符转义显示纯文本
-    html = '<pre style="white-space:pre-wrap;background:#f5f7fa;padding:16px;border-radius:8px">'
+    html = '<pre style="white-space:pre-wrap;background:var(--color-bg-warm);padding:16px;border-radius:8px">'
          + markdown.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</pre>'
   }
   if (!html && markdown) {
     // markdown-it 返回空但内容不为空 — 纯文本 fallback
-    html = '<pre style="white-space:pre-wrap;background:#f5f7fa;padding:16px;border-radius:8px">'
+    html = '<pre style="white-space:pre-wrap;background:var(--color-bg-warm);padding:16px;border-radius:8px">'
          + markdown.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</pre>'
   }
   return {

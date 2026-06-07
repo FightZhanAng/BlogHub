@@ -14,7 +14,7 @@
     <div v-else class="archive-timeline">
       <div v-for="group in archive" :key="group.month" class="archive-group">
         <div class="month-header">
-          <el-tag size="large" effect="dark" color="#409eff">
+          <el-tag size="large" effect="dark" class="month-tag">
             {{ group.month }}
           </el-tag>
           <span class="month-count">{{ group.posts.length }} 篇</span>
@@ -70,12 +70,12 @@ onMounted(async () => {
 
 .page-header h1 {
   font-size: 24px;
-  color: #303133;
+  color: var(--color-text);
   margin: 0;
 }
 
 .subtitle {
-  color: #909399;
+  color: var(--color-text-tertiary);
   font-size: 14px;
   margin: 8px 0 0;
 }
@@ -97,7 +97,7 @@ onMounted(async () => {
 
 .month-count {
   font-size: 13px;
-  color: #909399;
+  color: var(--color-text-tertiary);
 }
 
 .archive-item {
@@ -112,30 +112,38 @@ onMounted(async () => {
 }
 
 .archive-item:hover {
-  background: #f5f7fa;
-  border-left-color: #409eff;
+  background: var(--color-bg-warm);
+  border-left-color: var(--color-accent);
 }
 
 .item-date {
   font-size: 13px;
-  color: #909399;
+  color: var(--color-text-tertiary);
   min-width: 80px;
   flex-shrink: 0;
+}
+
+.month-tag {
+  background-color: var(--color-accent) !important;
+  border-color: var(--color-accent) !important;
+  color: #fff !important;
+  font-family: var(--font-display);
+  font-weight: 600;
 }
 
 .item-title {
   flex: 1;
   font-size: 15px;
-  color: #303133;
+  color: var(--color-text);
   font-weight: 500;
 }
 
 .item-arrow {
-  color: #c0c4cc;
+  color: var(--color-text-placeholder);
   flex-shrink: 0;
 }
 
 .archive-item:hover .item-arrow {
-  color: #409eff;
+  color: var(--color-accent);
 }
 </style>

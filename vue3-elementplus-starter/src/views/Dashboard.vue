@@ -103,10 +103,10 @@ onMounted(async () => {
 <style scoped>
 .dashboard h1 { font-size: 24px; margin: 0 0 20px; }
 .stat-cards { margin-bottom: 16px; }
-.stat-card { border-radius: 12px; border: 1px solid #e8eaed; margin-bottom: 16px; }
-.stat-value { font-size: 28px; font-weight: 700; color: #303133; }
-.stat-label { font-size: 13px; color: #909399; margin-top: 4px; }
-.chart-card { border-radius: 12px; border: 1px solid #e8eaed; margin-bottom: 16px; }
+.stat-card { border-radius: 12px; border: 1px solid var(--color-border); margin-bottom: 16px; }
+.stat-value { font-size: 28px; font-weight: 700; color: var(--color-text); }
+.stat-label { font-size: 13px; color: var(--color-text-tertiary); margin-top: 4px; }
+.chart-card { border-radius: 12px; border: 1px solid var(--color-border); margin-bottom: 16px; }
 .hot-tag { margin: 4px; }
 .export-btns { display: flex; gap: 8px; }
 </style>

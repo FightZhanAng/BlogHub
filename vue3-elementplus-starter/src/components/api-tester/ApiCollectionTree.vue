@@ -70,19 +70,19 @@ function handleCommand(command, col) {
 <style scoped>
 .collection-tree { display: flex; flex-direction: column; }
 .tree-header { display: flex; justify-content: space-between; align-items: center; padding: 8px; font-weight: 600; }
-.collection-item { border-bottom: 1px solid #f0f0f0; }
+.collection-item { border-bottom: 1px solid var(--color-border-light); }
 .col-header { display: flex; align-items: center; gap: 6px; padding: 8px; cursor: pointer; }
-.col-header:hover { background: #f5f7fa; }
+.col-header:hover { background: var(--color-bg-warm); }
 .col-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .col-requests { padding-left: 20px; }
 .request-item { display: flex; align-items: center; gap: 6px; padding: 6px 8px; cursor: pointer; font-size: 13px; }
-.request-item:hover { background: #f5f7fa; }
-.request-item.active { background: #ecf5ff; }
+.request-item:hover { background: var(--color-bg-warm); }
+.request-item.active { background: var(--color-accent-light); }
 .req-method { font-size: 11px; font-weight: 600; padding: 1px 4px; border-radius: 3px; }
 .req-method.get { color: #67c23a; }
-.req-method.post { color: #409eff; }
+.req-method.post { color: var(--color-accent); }
 .req-method.put { color: #e6a23c; }
 .req-method.delete { color: #f56c6c; }
 .req-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.empty-hint { padding: 8px; color: #999; font-size: 12px; text-align: center; }
+.empty-hint { padding: 8px; color: var(--color-text-tertiary); font-size: 12px; text-align: center; }
 </style>
