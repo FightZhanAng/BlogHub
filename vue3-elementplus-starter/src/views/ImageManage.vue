@@ -80,8 +80,8 @@ async function deleteImage(path) {
   padding: 24px;
 }
 .page-header { margin-bottom: 24px; }
-.page-header h1 { font-size: 24px; color: #303133; margin: 0; }
-.subtitle { color: #909399; font-size: 14px; margin: 8px 0 0; }
+.page-header h1 { font-size: 24px; color: var(--color-text); margin: 0; }
+.subtitle { color: var(--color-text-tertiary); font-size: 14px; margin: 8px 0 0; }
 .loading-state { padding: 40px 0; }
 .image-grid {
   display: grid;
@@ -89,11 +89,11 @@ async function deleteImage(path) {
   gap: 16px;
 }
 .image-card {
-  border: 1px solid #e8eaed;
+  border: 1px solid var(--color-border);
   border-radius: 10px;
   overflow: hidden;
   position: relative;
-  background: #fff;
+  background: var(--color-card);
   transition: box-shadow 0.2s;
 }
 .image-card:hover {
@@ -120,7 +120,7 @@ async function deleteImage(path) {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: #303133;
+  color: var(--color-text);
   font-weight: 500;
   margin-bottom: 4px;
 }
@@ -130,7 +130,7 @@ async function deleteImage(path) {
   gap: 6px;
   margin-bottom: 4px;
 }
-.image-size { color: #c0c4cc; }
+.image-size { color: var(--color-text-placeholder); }
 .image-post-link {
   display: block;
   overflow: hidden;
@@ -138,7 +138,7 @@ async function deleteImage(path) {
   white-space: nowrap;
 }
 .image-no-post {
-  color: #c0c4cc;
+  color: var(--color-text-placeholder);
   font-size: 11px;
 }
 </style>

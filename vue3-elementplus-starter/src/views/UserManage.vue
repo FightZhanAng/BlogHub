@@ -238,12 +238,12 @@ onMounted(fetchUsers)
 
 .table-card {
   border-radius: 12px;
-  border: 1px solid #e8eaed;
+  border: 1px solid var(--color-border);
 }
 
 .search-card {
   border-radius: 12px;
-  border: 1px solid #e8eaed;
+  border: 1px solid var(--color-border);
   padding: 4px 0;
 }
 

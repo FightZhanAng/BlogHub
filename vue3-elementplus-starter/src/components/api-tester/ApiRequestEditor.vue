@@ -77,7 +77,7 @@ const activeTab = ref('params')
 .method-select { width: 110px; }
 .url-input { flex: 1; }
 .url-input :deep(input) { font-family: 'Consolas', 'Monaco', monospace; }
-.request-tabs { border: 1px solid #ebeef5; border-radius: 4px; padding: 0 12px; }
+.request-tabs { border: 1px solid var(--color-border); border-radius: 4px; padding: 0 12px; }
 .auth-section { display: flex; gap: 8px; align-items: center; padding: 8px 0; }
 .auth-type-select { width: 150px; }
 .auth-input { flex: 1; }

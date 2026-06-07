@@ -66,7 +66,7 @@ onMounted(async () => {
 }
 
 .subtitle {
-  color: #909399;
+  color: var(--color-text-tertiary);
   margin: 0;
   font-size: 14px;
 }

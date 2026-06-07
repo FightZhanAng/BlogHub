@@ -85,7 +85,7 @@ onMounted(fetchReactions)
   padding: 4px 8px;
   border: none;
   background: transparent;
-  color: #999;
+  color: var(--color-text-tertiary);
   cursor: pointer;
   border-radius: 4px;
   font-size: 12px;
@@ -93,8 +93,8 @@ onMounted(fetchReactions)
 }
 
 .reaction-btn:hover {
-  background: #f5f5f5;
-  color: #666;
+  background: var(--color-bg-warm);
+  color: var(--color-text-secondary);
 }
 
 .reaction-btn.active {
@@ -102,7 +102,7 @@ onMounted(fetchReactions)
 }
 
 .reaction-btn.active:hover {
-  background: #fef0f2;
+  background: rgba(254, 44, 85, 0.1);
 }
 
 .reaction-btn span {

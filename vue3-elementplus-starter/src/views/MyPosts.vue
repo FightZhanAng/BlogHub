@@ -120,10 +120,10 @@ onMounted(fetchPosts)
   justify-content: space-between;
   align-items: center;
   padding: 16px 20px;
-  border: 1px solid #e8eaed;
+  border: 1px solid var(--color-border);
   border-radius: 10px;
   margin-bottom: 10px;
-  background: #fff;
+  background: var(--color-card);
   transition: box-shadow 0.2s;
 }
 
@@ -140,18 +140,18 @@ onMounted(fetchPosts)
 .post-title {
   font-size: 15px;
   font-weight: 500;
-  color: #303133;
+  color: var(--color-text);
   text-decoration: none;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.post-title:hover { color: #409eff; }
+.post-title:hover { color: var(--color-accent); }
 
 .post-meta {
   font-size: 12px;
-  color: #c0c4cc;
+  color: var(--color-text-placeholder);
   white-space: nowrap;
 }
 

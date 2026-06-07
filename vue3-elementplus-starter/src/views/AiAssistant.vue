@@ -181,17 +181,23 @@ import ChatMessage from '@/components/ChatMessage.vue'
 import ChatHistory from '@/components/ChatHistory.vue'
 import StreamingText from '@/components/StreamingText.vue'
 
-// 主题切换
-const isDark = ref(localStorage.getItem('ai-theme') === 'dark')
+// 主题切换 — 与全局主题同步
+const isDark = ref(document.documentElement.getAttribute('data-theme') === 'dark')
 function applyTheme() {
   document.documentElement.setAttribute('data-theme', isDark.value ? 'dark' : 'light')
+  localStorage.setItem('blog-theme', isDark.value ? 'dark' : 'light')
 }
 function toggleTheme() {
   isDark.value = !isDark.value
-  localStorage.setItem('ai-theme', isDark.value ? 'dark' : 'light')
   applyTheme()
 }
-applyTheme()
+
+// 监听外部主题变化（如从顶栏切换）
+const themeObserver = new MutationObserver(() => {
+  const theme = document.documentElement.getAttribute('data-theme')
+  isDark.value = theme === 'dark'
+})
+themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
 
 const {
   isGenerating,
