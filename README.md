@@ -17,6 +17,7 @@ BlogHub 是一个功能完整的技术博客系统，支持文章管理、评论
 | **AI** | MiMo V2.5（小米大模型，SSE 流式输出） |
 | **热点数据** | 60s API + GitHub API |
 | **构建** | Maven（后端） / Vite（前端） / Docker Compose |
+| **设计** | 杂志编辑风格 + 暗色/亮色双主题 |
 
 ## ✨ 功能总览
 
@@ -110,10 +111,17 @@ BlogHub 是一个功能完整的技术博客系统，支持文章管理、评论
 - 热度值智能格式化（k/w）
 - 点击跳转原平台链接
 
+### 🎨 视觉设计
+- 杂志编辑风格：Playfair Display 衬线标题 + 金色点缀
+- 暗色/亮色双主题切换（localStorage 持久化）
+- 全站 40+ 页面适配暗黑主题
+- AI 助手悬浮快捷入口（可收起）
+- 响应式布局（移动端适配）
+
 ### 🔍 其他
 - 全文搜索（标题/内容/描述模糊匹配）
 - SEO 优化（每页独立 title + description）
-- 暗色/亮色主题切换（localStorage 持久化）
+- 标签页导航（最多 8 个，超出自动关闭）
 
 ## 🏗 项目结构
 
@@ -130,21 +138,20 @@ BlogHub/
 │   │   ├── common/                # 公共工具、响应封装
 │   │   └── exception/             # 全局异常处理
 │   ├── sql/
-│   │   ├── init.sql               # 完整建表 + 种子数据
-│   │   └── migration-ai.sql       # AI 助手表迁移
+│   │   └── init.sql               # 完整建表 + 种子数据（含所有表）
 │   └── src/main/resources/
 │       ├── application.yml        # 应用配置
 │       └── application-local.yml  # 本地 API Key（gitignore）
 │
 ├── vue3-elementplus-starter/      # Vue 3 前端
 │   ├── src/
-│   │   ├── views/                 # 页面组件（含 AiAssistant）
-│   │   ├── components/            # 公共组件（ChatMessage/ChatHistory 等）
+│   │   ├── views/                 # 页面组件（含 AiAssistant/ApiTester）
+│   │   ├── components/            # 公共组件（含 api-tester/ 子目录）
 │   │   ├── composables/           # 组合式函数（useAiChat/useMarkdown）
-│   │   ├── layouts/               # 布局组件
+│   │   ├── layouts/               # 布局组件（含主题切换）
 │   │   ├── router/                # 路由 + 守卫
 │   │   ├── stores/                # Pinia 状态
-│   │   ├── api/                   # API 请求封装（含 aiApi）
+│   │   ├── api/                   # API 请求封装（含 aiApi/apiTesterApi）
 │   │   └── styles/                # 全局样式 + 暗色/亮色主题变量
 │   └── public/
 │
@@ -199,6 +206,8 @@ npm run dev
 ```
 
 前端运行在 `http://localhost:3000`（代理 API 到 :8080）
+
+> 详细前端文档见 [vue3-elementplus-starter/README.md](vue3-elementplus-starter/README.md)
 
 ### 5. Docker（可选）
 

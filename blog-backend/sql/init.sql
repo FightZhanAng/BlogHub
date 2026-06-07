@@ -351,6 +351,158 @@ CREATE TABLE IF NOT EXISTS user_badge (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户徽章表';
 
 -- ============================================================
+-- AI 助手相关表
+-- ============================================================
+
+-- AI 对话表
+CREATE TABLE IF NOT EXISTS ai_conversation (
+    id          BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键',
+    user_id     BIGINT       NOT NULL COMMENT '用户 ID',
+    title       VARCHAR(200) NOT NULL DEFAULT '新对话' COMMENT '对话标题',
+    article_id  BIGINT       DEFAULT NULL COMMENT '关联的文章 ID',
+    model_id    VARCHAR(50)  NOT NULL DEFAULT 'mimo-v2.5-pro' COMMENT '使用的模型',
+    thinking_enabled TINYINT(1) DEFAULT 0 COMMENT '是否开启思考模式',
+    created_at  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    updated_at  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+
+    INDEX idx_user_id (user_id),
+    INDEX idx_article_id (article_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='AI对话表';
+
+-- AI 消息表
+CREATE TABLE IF NOT EXISTS ai_message (
+    id              BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键',
+    conversation_id BIGINT       NOT NULL COMMENT '对话 ID',
+    role            VARCHAR(20)  NOT NULL COMMENT 'system/user/assistant',
+    content         TEXT         NOT NULL COMMENT '消息内容',
+    thinking_content TEXT        DEFAULT NULL COMMENT '思考过程内容',
+    images          JSON         DEFAULT NULL COMMENT '图片信息',
+    tokens_used     INT          DEFAULT 0 COMMENT '消耗 token 数',
+    created_at      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    updated_at      DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+
+    INDEX idx_conversation_id (conversation_id),
+    CONSTRAINT fk_ai_msg_conv FOREIGN KEY (conversation_id) REFERENCES ai_conversation(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='AI消息表';
+
+-- AI 图片表
+CREATE TABLE IF NOT EXISTS ai_image (
+    id            BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键',
+    user_id       BIGINT       NOT NULL COMMENT '用户 ID',
+    filename      VARCHAR(255) NOT NULL COMMENT '存储文件名',
+    original_name VARCHAR(255) NOT NULL COMMENT '原始文件名',
+    mime_type     VARCHAR(50)  NOT NULL COMMENT 'MIME 类型',
+    size          BIGINT       NOT NULL COMMENT '文件大小（字节）',
+    url           VARCHAR(500) NOT NULL COMMENT '访问 URL',
+    created_at    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    updated_at    DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+
+    INDEX idx_user_id (user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='AI图片表';
+
+-- ============================================================
+-- API 测试工具相关表
+-- ============================================================
+
+-- 环境变量表
+CREATE TABLE IF NOT EXISTS api_test_env (
+    id          BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键',
+    user_id     BIGINT       NOT NULL COMMENT '用户 ID',
+    name        VARCHAR(100) NOT NULL COMMENT '变量名',
+    value       VARCHAR(2000) NOT NULL COMMENT '变量值',
+    created_at  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    updated_at  DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+
+    INDEX idx_user_id (user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='API测试环境变量';
+
+-- 请求集合表
+CREATE TABLE IF NOT EXISTS api_test_collection (
+    id          BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键',
+    name        VARCHAR(100) NOT NULL COMMENT '集合名称',
+    description VARCHAR(500) DEFAULT '' COMMENT '集合描述',
+    user_id     BIGINT       NOT NULL COMMENT '用户 ID',
+    base_url    VARCHAR(500) DEFAULT '' COMMENT '默认 Base URL',
+    created_at  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    updated_at  DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+
+    INDEX idx_user_id (user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='API测试请求集合';
+
+-- 保存的请求表
+CREATE TABLE IF NOT EXISTS api_test_request (
+    id              BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键',
+    collection_id   BIGINT       DEFAULT NULL COMMENT '所属集合 ID',
+    user_id         BIGINT       NOT NULL COMMENT '用户 ID',
+    name            VARCHAR(100) NOT NULL COMMENT '请求名称',
+    method          VARCHAR(10)  NOT NULL DEFAULT 'GET' COMMENT 'HTTP 方法',
+    url             VARCHAR(2000) NOT NULL COMMENT '请求 URL',
+    headers         TEXT         DEFAULT NULL COMMENT '请求头 JSON',
+    body_type       VARCHAR(20)  DEFAULT NULL COMMENT 'Body 类型: json/form/multipart/raw',
+    body            MEDIUMTEXT   DEFAULT NULL COMMENT '请求体内容',
+    created_at      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    updated_at      DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+
+    INDEX idx_user_id (user_id),
+    INDEX idx_collection_id (collection_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='API测试保存的请求';
+
+-- 请求历史表
+CREATE TABLE IF NOT EXISTS api_test_history (
+    id              BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键',
+    user_id         BIGINT       NOT NULL COMMENT '用户 ID',
+    method          VARCHAR(10)  NOT NULL COMMENT 'HTTP 方法',
+    url             VARCHAR(2000) NOT NULL COMMENT '请求 URL',
+    headers         TEXT         DEFAULT NULL COMMENT '请求头 JSON',
+    body_type       VARCHAR(20)  DEFAULT NULL COMMENT 'Body 类型',
+    body            MEDIUMTEXT   DEFAULT NULL COMMENT '请求体',
+    status_code     INT          DEFAULT NULL COMMENT '响应状态码',
+    response_time   INT          DEFAULT NULL COMMENT '响应耗时(ms)',
+    response_size   INT          DEFAULT NULL COMMENT '响应大小(bytes)',
+    response_body   MEDIUMTEXT   DEFAULT NULL COMMENT '响应体',
+    response_headers TEXT        DEFAULT NULL COMMENT '响应头 JSON',
+    created_at      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+
+    INDEX idx_user_id (user_id),
+    INDEX idx_created_at (created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='API测试请求历史';
+
+-- ============================================================
+-- 菜单配置相关表
+-- ============================================================
+
+-- 菜单分组表
+CREATE TABLE IF NOT EXISTS menu_group (
+    id          BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键',
+    name        VARCHAR(50)  NOT NULL COMMENT '分组名称',
+    icon        VARCHAR(50)  DEFAULT NULL COMMENT 'Element Plus 图标名',
+    sort_order  INT          NOT NULL DEFAULT 0 COMMENT '排序值（越小越靠前）',
+    enabled     TINYINT(1)   NOT NULL DEFAULT 1 COMMENT '是否启用 1=启用 0=禁用',
+    admin_only  TINYINT(1)   NOT NULL DEFAULT 0 COMMENT '仅管理员可见 1=是 0=否',
+    created_at  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    updated_at  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+
+    INDEX idx_sort_order (sort_order)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='菜单分组';
+
+-- 菜单项表
+CREATE TABLE IF NOT EXISTS menu_item (
+    id          BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键',
+    group_id    BIGINT       DEFAULT NULL COMMENT '所属分组 ID（NULL=独立顶级项）',
+    title       VARCHAR(50)  NOT NULL COMMENT '菜单标题',
+    path        VARCHAR(200) NOT NULL COMMENT '路由路径',
+    icon        VARCHAR(50)  DEFAULT NULL COMMENT 'Element Plus 图标名',
+    sort_order  INT          NOT NULL DEFAULT 0 COMMENT '排序值（越小越靠前）',
+    enabled     TINYINT(1)   NOT NULL DEFAULT 1 COMMENT '是否启用 1=启用 0=禁用',
+    admin_only  TINYINT(1)   NOT NULL DEFAULT 0 COMMENT '仅管理员可见 1=是 0=否',
+    created_at  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    updated_at  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+
+    INDEX idx_group_id (group_id),
+    INDEX idx_sort_order (sort_order)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='菜单项';
+
+-- ============================================================
 -- 初始数据
 -- ============================================================
 
@@ -377,3 +529,47 @@ INSERT INTO badge_rule (badge_id, event_type, condition_json) VALUES
 (6, 'POST_VIEWED', '{"metric": "max_post_views", "op": ">=", "value": 1000}'),
 (7, 'USER_LOGIN', '{"metric": "consecutive_login_days", "op": ">=", "value": 7}'),
 (8, 'USER_REGISTERED', '{"metric": "registered_days", "op": ">=", "value": 365}');
+
+-- 菜单分组
+INSERT INTO menu_group (id, name, icon, sort_order, enabled, admin_only) VALUES
+(1, '博客',     'Notebook',  2, 1, 0),
+(2, '个人',     'User',      3, 1, 0),
+(3, '发现',     'Compass',   4, 1, 0),
+(4, '工具',     'SetUp',     5, 1, 0),
+(5, '管理后台', 'Setting',   6, 1, 1);
+
+-- 独立顶级项
+INSERT INTO menu_item (id, group_id, title, path, icon, sort_order, enabled, admin_only) VALUES
+(1,  NULL, '首页', '/home',  'HomeFilled', 1, 1, 0),
+(19, NULL, '关于', '/about', 'InfoFilled', 99, 1, 0);
+
+-- 博客组
+INSERT INTO menu_item (id, group_id, title, path, icon, sort_order, enabled, admin_only) VALUES
+(2,  1, '博客列表', '/blog',     'Reading',     1, 1, 0),
+(3,  1, '我的文章', '/my-posts', 'Document',    2, 1, 0),
+(4,  1, '写文章',   '/blog/new', 'EditPen',     3, 1, 0),
+(5,  1, '标签云',   '/tags',     'CollectionTag', 4, 1, 0),
+(6,  1, '文章归档', '/archive',  'Files',       5, 1, 0);
+
+-- 个人组
+INSERT INTO menu_item (id, group_id, title, path, icon, sort_order, enabled, admin_only) VALUES
+(7,  2, '收藏',     '/bookmarks', 'Star',       1, 1, 0),
+(8,  2, '我的徽章', '/badges',    'Medal',      2, 1, 0);
+
+-- 发现组
+INSERT INTO menu_item (id, group_id, title, path, icon, sort_order, enabled, admin_only) VALUES
+(9,  3, '每日热点', '/hot',    'Promotion',   1, 1, 0),
+(10, 3, '宝宝相册', '/albums', 'Camera',      2, 1, 0);
+
+-- 工具组
+INSERT INTO menu_item (id, group_id, title, path, icon, sort_order, enabled, admin_only) VALUES
+(11, 4, 'AI 助手', '/ai-assistant', 'ChatDotRound', 1, 1, 0),
+(12, 4, 'API 测试', '/api-tester',  'Monitor',      2, 1, 0);
+
+-- 管理后台组
+INSERT INTO menu_item (id, group_id, title, path, icon, sort_order, enabled, admin_only) VALUES
+(13, 5, '仪表盘',   '/dashboard', 'DataLine',     1, 1, 1),
+(14, 5, '用户管理', '/users',     'UserFilled',   2, 1, 1),
+(15, 5, '评论管理', '/comments',  'Comment',      3, 1, 1),
+(16, 5, '图片管理', '/images',    'Picture',      4, 1, 1),
+(17, 5, '操作日志', '/logs',      'Operation',    5, 1, 1);
