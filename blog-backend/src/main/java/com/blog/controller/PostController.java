@@ -126,12 +126,16 @@ public class PostController {
     @Operation(summary = "创建文章")
     @PostMapping
     public Result<PostResponse> create(@Valid @RequestBody CreatePostRequest request) {
-        return Result.created(postService.createPost(request, getCurrentUserId()));
+        Long userId = getCurrentUserId();
+        if (userId == null) return Result.error(401, "请先登录");
+        return Result.created(postService.createPost(request, userId));
     }
 
     @PutMapping("/{id}")
     public Result<PostResponse> update(@PathVariable Long id, @Valid @RequestBody UpdatePostRequest request) {
-        return Result.success(postService.updatePost(id, request, getCurrentUserId(), getCurrentRole()));
+        Long userId = getCurrentUserId();
+        if (userId == null) return Result.error(401, "请先登录");
+        return Result.success(postService.updatePost(id, request, userId, getCurrentRole()));
     }
 
     @Operation(summary = "点赞排行榜")
@@ -166,6 +170,7 @@ public class PostController {
     @PutMapping("/{id}/pin")
     public Result<Map<String, Object>> togglePin(@PathVariable Long id) {
         String role = getCurrentRole();
+        if (role == null) return Result.error(401, "请先登录");
         if (!"admin".equals(role)) return Result.error(403, "无权操作");
         Post post = postService.getById(id);
         if (post == null) return Result.error(404, "文章不存在");
@@ -179,7 +184,9 @@ public class PostController {
 
     @DeleteMapping("/{id}")
     public Result<Void> delete(@PathVariable Long id) {
-        postService.deletePost(id, getCurrentUserId(), getCurrentRole());
+        Long userId = getCurrentUserId();
+        if (userId == null) return Result.error(401, "请先登录");
+        postService.deletePost(id, userId, getCurrentRole());
         return Result.success();
     }
 }

@@ -86,6 +86,11 @@ public class SeriesController {
     @Operation(summary = "删除系列")
     @DeleteMapping("/{id}")
     public Result<Void> delete(@PathVariable Long id) {
+        Long userId = getUserId();
+        if (userId == null) return Result.error(401, "请先登录");
+        Series s = seriesMapper.selectById(id);
+        if (s == null) return Result.error(404, "系列不存在");
+        if (!userId.equals(s.getUserId())) return Result.error(403, "无权删除");
         seriesMapper.deleteById(id);
         return Result.success();
     }

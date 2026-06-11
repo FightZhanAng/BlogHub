@@ -21,6 +21,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * AI 助手控制器
@@ -34,6 +36,7 @@ public class AiChatController {
 
     private final AiChatService aiChatService;
     private final AiImageService aiImageService;
+    private final ExecutorService sseExecutor = Executors.newCachedThreadPool();
 
     @Operation(summary = "获取可用模型列表")
     @GetMapping("/models")
@@ -80,7 +83,7 @@ public class AiChatController {
         Long userId = (Long) request.getAttribute("userId");
         SseEmitter emitter = new SseEmitter(120000L); // 2 分钟超时
         // 异步执行
-        new Thread(() -> aiChatService.streamChat(body, userId, emitter)).start();
+        sseExecutor.execute(() -> aiChatService.streamChat(body, userId, emitter));
         return emitter;
     }
 
