@@ -54,4 +54,8 @@ public class Post extends BaseEntity {
 
     /** 是否置顶 0=否 1=是 */
     private Integer isPinned;
+
+    private Integer isPrivate;
+
+    private Integer isHidden;
 }

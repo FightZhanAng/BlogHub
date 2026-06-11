@@ -12,6 +12,8 @@ public class PostResponse {
     private Long id;
     private String slug;
     private Integer isPinned;
+    private Integer isPrivate;
+    private Integer isHidden;
     private String authorAvatar;
     private String title;
     private String description;
@@ -46,6 +48,8 @@ public class PostResponse {
         r.setAuthorName(post.getAuthorName());
         r.setAuthorId(post.getAuthorId());
         r.setIsPinned(post.getIsPinned());
+        r.setIsPrivate(post.getIsPrivate());
+        r.setIsHidden(post.getIsHidden());
         return r;
     }
 
@@ -79,6 +83,10 @@ public class PostResponse {
     public void setAuthorId(Long authorId) { this.authorId = authorId; }
     public Integer getIsPinned() { return isPinned; }
     public void setIsPinned(Integer isPinned) { this.isPinned = isPinned; }
+    public Integer getIsPrivate() { return isPrivate; }
+    public void setIsPrivate(Integer isPrivate) { this.isPrivate = isPrivate; }
+    public Integer getIsHidden() { return isHidden; }
+    public void setIsHidden(Integer isHidden) { this.isHidden = isHidden; }
     public String getAuthorAvatar() { return authorAvatar; }
     public void setAuthorAvatar(String authorAvatar) { this.authorAvatar = authorAvatar; }
     public String getCoverImage() { return coverImage; }

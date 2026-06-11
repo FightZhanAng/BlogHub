@@ -25,7 +25,11 @@
                 <span class="meta-reading-time">{{ readingTime }}</span>
                 <a class="export-btn" :href="`${API_BASE}/posts/${post.slug}/export`" title="下载 Markdown" download><i class="bi bi-download"></i></a>
               </div>
-              <h1 class="post-title">{{ post.title }}</h1>
+              <h1 class="post-title">
+                <span v-if="post.isPrivate" class="status-badge private">🔒 仅自己可见</span>
+                <span v-if="post.isHidden" class="status-badge hidden">🚫 已隐藏</span>
+                {{ post.title }}
+              </h1>
               <div class="header-author">
                 <el-avatar :size="32" :src="post.authorAvatar ? (post.authorAvatar.startsWith('http') ? post.authorAvatar : STATIC_BASE + post.authorAvatar) : undefined" />
                 <div class="author-info">
@@ -104,6 +108,14 @@
               <el-button v-if="authStore.isAdmin" round size="small" :type="post.isPinned ? 'warning' : 'default'" @click="togglePin">
                 <i :class="post.isPinned ? 'bi bi-pin-angle-fill' : 'bi bi-pin-angle'"></i>
                 {{ post.isPinned ? '已置顶' : '置顶' }}
+              </el-button>
+              <el-button v-if="authStore.isAdmin" round size="small" :type="post.isHidden ? 'danger' : 'default'" @click="toggleHide">
+                <i :class="post.isHidden ? 'bi bi-eye-slash-fill' : 'bi bi-eye-slash'"></i>
+                {{ post.isHidden ? '已隐藏' : '隐藏' }}
+              </el-button>
+              <el-button v-if="isAuthor" round size="small" :type="post.isPrivate ? 'warning' : 'default'" @click="togglePrivate">
+                <i class="bi bi-lock"></i>
+                {{ post.isPrivate ? '仅自己可见' : '公开' }}
               </el-button>
               <el-button v-if="canEdit" round size="small" @click="$router.push(`/blog/${slug}/edit`)">
                 <i class="bi bi-pencil"></i>
@@ -211,6 +223,28 @@ async function togglePin() {
     ElMessage.success(res.isPinned ? '已置顶' : '已取消置顶')
   } catch { ElMessage.error('操作失败') }
 }
+
+async function togglePrivate() {
+  try {
+    const res = await request.put(`/posts/${post.value.id}/private`)
+    post.value.isPrivate = res.isPrivate
+    ElMessage.success(res.isPrivate ? '已设为仅自己可见' : '已设为公开')
+  } catch { ElMessage.error('操作失败') }
+}
+
+async function toggleHide() {
+  try {
+    const res = await request.put(`/posts/${post.value.id}/hide`)
+    post.value.isHidden = res.isHidden
+    ElMessage.success(res.isHidden ? '已隐藏' : '已取消隐藏')
+  } catch { ElMessage.error('操作失败') }
+}
+
+const isAuthor = computed(() => {
+  if (!authStore.isLoggedIn || !post.value) return false
+  return post.value.authorId && authStore.userId && String(post.value.authorId) === String(authStore.userId)
+})
+
 const { bookmarked, toggleBookmark } = useBookmarks(slug.value)
 const relatedPosts = ref([])
 const trendChartRef = ref(null)
@@ -442,6 +476,25 @@ function goToRelated(rp) {
   color: var(--color-text);
   line-height: 1.35;
   letter-spacing: -0.02em;
+}
+
+.status-badge {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 4px;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
+.status-badge.private {
+  color: #e6a23c;
+  border: 1px solid #e6a23c;
+}
+
+.status-badge.hidden {
+  color: #f56c6c;
+  border: 1px solid #f56c6c;
 }
 
 @media (max-width: 768px) {

@@ -58,6 +58,8 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
         log.info("查询文章列表 page={}, size={}, tag={}, keyword={}", page, size, tag, keyword);
         LambdaQueryWrapper<Post> wrapper = new LambdaQueryWrapper<Post>()
                 .eq(Post::getStatus, 1)
+                .eq(Post::getIsPrivate, 0)
+                .eq(Post::getIsHidden, 0)
                 .orderByDesc(Post::getIsPinned)
                 .orderByDesc(Post::getCreatedAt);
         if (tag != null && !tag.trim().isEmpty()) {
@@ -216,6 +218,7 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
             existing.setAuthorName(request.getAuthorName());
             existing.setCoverImage(request.getCoverImage());
             existing.setSeriesId(request.getSeriesId());
+            if (request.getIsPrivate() != null) existing.setIsPrivate(request.getIsPrivate());
             // 发布时清除定时发布时间
             if (newStatus != 2) {
                 existing.setScheduledAt(null);
@@ -245,6 +248,8 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
         post.setLikes(0);
         post.setCoverImage(request.getCoverImage());
         post.setSeriesId(request.getSeriesId());
+        post.setIsPrivate(request.getIsPrivate() != null ? request.getIsPrivate() : 0);
+        post.setIsHidden(0);
         // 非定时发布时清除定时发布时间
         if (newStatus != 2) {
             post.setScheduledAt(null);
@@ -296,6 +301,7 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
         if (request.getAuthorName() != null) post.setAuthorName(request.getAuthorName());
         if (request.getCoverImage() != null) post.setCoverImage(request.getCoverImage());
         if (request.getSeriesId() != null) post.setSeriesId(request.getSeriesId());
+        if (request.getIsPrivate() != null) post.setIsPrivate(request.getIsPrivate());
         if (post.getStatus() != null && post.getStatus() == 2
                 && request.getScheduledAt() != null && !request.getScheduledAt().isEmpty()) {
             post.setScheduledAt(java.time.LocalDateTime.parse(request.getScheduledAt()));
@@ -410,6 +416,7 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
         return baseMapper.selectList(
                 new LambdaQueryWrapper<Post>()
                         .eq(Post::getStatus, 1)
+                        .eq(Post::getIsPrivate, 0)
                         .orderByDesc(Post::getLikes)
                         .last("LIMIT " + safeLimit));
     }
@@ -417,7 +424,9 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
     @Override
     public IPage<Post> searchPosts(String query, int page, int size) {
         LambdaQueryWrapper<Post> wrapper = new LambdaQueryWrapper<Post>()
-                .eq(Post::getStatus, 1);
+                .eq(Post::getStatus, 1)
+                .eq(Post::getIsPrivate, 0)
+                .eq(Post::getIsHidden, 0);
         if (query != null && !query.trim().isEmpty()) {
             String q = query.trim();
             wrapper.and(w -> w
