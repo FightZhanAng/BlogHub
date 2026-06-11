@@ -64,8 +64,10 @@ public class PostController {
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String tag,
-            @RequestParam(required = false) String keyword) {
-        return Result.success(PageResult.of(postService.getPublishedPosts(page, size, tag, keyword)));
+            @RequestParam(required = false) String keyword,
+            HttpServletRequest request) {
+        String role = (String) request.getAttribute("role");
+        return Result.success(PageResult.of(postService.getPublishedPosts(page, size, tag, keyword, role)));
     }
 
     @Operation(summary = "文章详情")
