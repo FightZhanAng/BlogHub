@@ -113,15 +113,14 @@ public class TagServiceImpl extends ServiceImpl<TagMapper, Tag> implements TagSe
         recalcAllPostCounts();
     }
 
-    /** 重新计算所有标签的文章数（排除隐藏文章） */
+    /** 重新计算所有标签的文章数 */
     @Override
     public void recalcAllPostCounts() {
         List<Tag> allTags = tagMapper.selectList(null);
         for (Tag tag : allTags) {
             Long count = postTagMapper.selectCount(
                     new LambdaQueryWrapper<PostTag>().eq(PostTag::getTagId, tag.getId())
-                        .inSql(PostTag::getPostId,
-                            "SELECT id FROM posts WHERE status = 1 AND is_hidden = 0")
+                        .inSql(PostTag::getPostId, "SELECT id FROM posts WHERE status = 1")
             );
             tag.setPostCount(count.intValue());
             tagMapper.updateById(tag);

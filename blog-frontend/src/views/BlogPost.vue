@@ -36,7 +36,7 @@
                   <span class="author-name">{{ post.author || '匿名' }}</span>
                   <span class="author-date">{{ post.date }}</span>
                 </div>
-                <el-button v-if="authStore.isLoggedIn && post.authorId && authStore.userId !== String(post.authorId)"
+                <el-button v-if="authStore.isLoggedIn && post.authorId && String(authStore.userId) !== String(post.authorId)"
                   size="small" :type="isFollowing ? 'default' : 'primary'" plain
                   @click="toggleFollow">
                   {{ isFollowing ? '已关注' : '+ 关注' }}

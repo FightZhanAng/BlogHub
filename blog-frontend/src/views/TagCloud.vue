@@ -29,7 +29,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onActivated } from 'vue'
 import { tagApi } from '@/api/tagApi'
 import { CollectionTag } from '@element-plus/icons-vue'
 
@@ -46,6 +46,13 @@ onMounted(async () => {
   } finally {
     loading.value = false
   }
+})
+
+onActivated(async () => {
+  try {
+    const res = await tagApi.list()
+    tags.value = Array.isArray(res) ? res : []
+  } catch { /* ignore */ }
 })
 
 /** 按文章数比例计算字号（12px ~ 36px） */

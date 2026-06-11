@@ -123,13 +123,11 @@ onMounted(async () => {
   }
 })
 
-// keep-alive 恢复时重新读取路由参数
+// keep-alive 恢复时刷新数据
 onActivated(() => {
   const tagSlug = route.query.tag || ''
-  if (tagSlug !== activeTag.value) {
-    activeTag.value = tagSlug
-    fetchPosts(tagSlug || undefined, searchKeyword.value || undefined)
-  }
+  activeTag.value = tagSlug
+  fetchPosts(tagSlug || undefined, searchKeyword.value || undefined)
 })
 
 // 监听路由查询参数变化（如从标签云跳转）
