@@ -40,6 +40,8 @@ function formatPost(raw) {
     authorAvatar: raw.authorAvatar || '',
     coverImage: raw.coverImage || '',
     isPinned: raw.isPinned || 0,
+    isPrivate: raw.isPrivate || 0,
+    isHidden: raw.isHidden || 0,
   }
 }
 
