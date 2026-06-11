@@ -31,7 +31,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onActivated } from 'vue'
 import { usePosts } from '@/composables/usePosts'
 import { useBookmarks } from '@/composables/useInteraction'
 import BlogCard from '@/components/BlogCard.vue'
@@ -47,6 +47,10 @@ const bookmarkedPosts = computed(() => {
 onMounted(async () => {
   await fetchPosts()
   loading.value = false
+})
+
+onActivated(async () => {
+  await fetchPosts()
 })
 </script>
 

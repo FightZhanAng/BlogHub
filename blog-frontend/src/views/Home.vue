@@ -109,7 +109,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onActivated } from 'vue'
 import { usePosts } from '@/composables/usePosts'
 import request from '@/api/request'
 
@@ -146,6 +146,14 @@ onMounted(async () => {
   ])
   if (statsRes.status === 'fulfilled') totalComments.value = statsRes.value?.totalComments || 0
   if (rankRes.status === 'fulfilled') ranking.value = Array.isArray(rankRes.value) ? rankRes.value : []
+})
+
+onActivated(async () => {
+  await fetchPosts()
+  try {
+    const rankRes = await request.get('/posts/ranking/likes', { params: { limit: 10 } })
+    ranking.value = Array.isArray(rankRes) ? rankRes : []
+  } catch { /* ignore */ }
 })
 </script>
 
