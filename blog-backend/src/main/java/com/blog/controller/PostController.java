@@ -158,7 +158,8 @@ public class PostController {
     @Operation(summary = "点赞排行榜")
     @GetMapping("/ranking/likes")
     public Result<List<Post>> rankingLikes(@RequestParam(defaultValue = "10") int limit) {
-        return Result.success(postService.getRankingByLikes(limit));
+        String role = getCurrentRole();
+        return Result.success(postService.getRankingByLikes(limit, role));
     }
 
     @Operation(summary = "全文搜索")

@@ -93,7 +93,10 @@
             @click="$router.push(`/blog/${post.slug}`)"
           >
             <span class="ranking-num" :class="{ top: i < 3 }">{{ String(i + 1).padStart(2, '0') }}</span>
-            <span class="ranking-title">{{ post.title }}</span>
+            <span class="ranking-title">
+              {{ post.title }}
+              <span v-if="post.isHidden" class="ranking-hidden-tag">隐藏</span>
+            </span>
             <span class="ranking-likes">{{ post.likes }}</span>
           </div>
         </div>
@@ -436,6 +439,17 @@ onMounted(async () => {
   font-size: 12px;
   color: var(--color-text-tertiary);
   flex-shrink: 0;
+}
+
+.ranking-hidden-tag {
+  font-size: 10px;
+  color: #f56c6c;
+  border: 1px solid #f56c6c;
+  padding: 0 4px;
+  border-radius: 3px;
+  margin-left: 6px;
+  vertical-align: middle;
+  font-weight: 600;
 }
 
 .empty-state {
