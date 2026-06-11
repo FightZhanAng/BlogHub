@@ -24,6 +24,9 @@ public interface TagService extends IService<Tag> {
     /** 更新文章 tags：删除旧关联，建立新关联 */
     void updatePostTags(Long postId, String tagsStr);
 
+    /** 重新计算所有标签的文章数（排除隐藏文章） */
+    void recalcAllPostCounts();
+
     /** 按 slug 或 name 查询标签 ID 列表（参数化查询，防 SQL 注入） */
     List<Long> getTagIdsBySlugOrName(String tag);
 }

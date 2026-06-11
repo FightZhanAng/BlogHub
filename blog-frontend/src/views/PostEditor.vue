@@ -120,18 +120,20 @@
       </el-form-item>
 
       <div class="form-actions">
-        <el-button size="large" @click="$router.push('/blog')">取消</el-button>
-        <el-button size="large" type="danger" plain @click="clearForm">清空内容</el-button>
-        <div class="form-actions-right">
+        <div class="actions-left">
+          <el-button @click="$router.push('/blog')">取消</el-button>
+          <el-button type="danger" plain @click="clearForm">清空内容</el-button>
+        </div>
+        <div class="actions-center">
           <el-checkbox v-model="isPrivate" label="仅自己可见" border size="small" />
           <el-checkbox v-model="enableSchedule" label="定时发布" border size="small" />
           <el-date-picker v-if="enableSchedule" v-model="scheduledAt" type="datetime"
             placeholder="选择发布时间" value-format="YYYY-MM-DDTHH:mm:ss"
             :disabled-date="d => d < new Date()" size="small" style="width:200px" />
-          <el-button size="large" :loading="submitting" @click="submitForm(0)">保存草稿</el-button>
-          <el-button size="large" type="primary" :loading="submitting" @click="submitForm(1)">
-            发布文章
-          </el-button>
+        </div>
+        <div class="actions-right">
+          <el-button :loading="submitting" @click="submitForm(0)">保存草稿</el-button>
+          <el-button type="primary" :loading="submitting" @click="submitForm(1)">发布文章</el-button>
         </div>
       </div>
     </el-form>
@@ -587,9 +589,12 @@ onUnmounted(() => {
   align-items: center;
   padding-top: 16px;
   border-top: 1px solid var(--color-border-light);
+  gap: 12px;
 }
 
-.form-actions-right {
+.actions-left,
+.actions-center,
+.actions-right {
   display: flex;
   align-items: center;
   gap: 8px;

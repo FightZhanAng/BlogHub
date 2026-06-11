@@ -192,6 +192,7 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
         return baseMapper.selectPage(new Page<>(page, size),
                 new LambdaQueryWrapper<Post>()
                         .eq(Post::getAuthorId, authorId)
+                        .eq(Post::getIsHidden, 0)
                         .orderByDesc(Post::getCreatedAt));
     }
 

@@ -4,9 +4,10 @@
     <div class="page-header">
       <div class="page-header-row">
         <h1><el-icon :size="24" style="vertical-align:middle;margin-right:8px"><Notebook /></el-icon>博客</h1>
-        <el-button type="primary" icon="Edit" @click="$router.push('/blog/new')">
-          写文章
-        </el-button>
+        <div>
+          <el-button icon="Refresh" @click="fetchPosts(activeTag)" :loading="loading">刷新</el-button>
+          <el-button type="primary" icon="Edit" @click="$router.push('/blog/new')">写文章</el-button>
+        </div>
       </div>
       <p class="subtitle" v-if="!loading">共 {{ posts.length }} 篇文章</p>
     </div>
