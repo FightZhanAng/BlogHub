@@ -8,6 +8,7 @@ import com.blog.entity.Post;
 import com.blog.mapper.CommentMapper;
 import com.blog.mapper.DailyViewsMapper;
 import com.blog.mapper.PostMapper;
+import com.blog.mapper.TagMapper;
 import com.blog.mapper.UserMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -40,6 +41,8 @@ public class StatsController {
 
     private final DailyViewsMapper dailyViewsMapper;
 
+    private final TagMapper tagMapper;
+
     private boolean isAdmin(HttpServletRequest request) {
         try {
             String h = request.getHeader("Authorization");
@@ -59,10 +62,12 @@ public class StatsController {
         data.put("totalPosts", postMapper.selectCount(null));
         data.put("totalUsers", userMapper.selectCount(null));
         data.put("totalComments", commentMapper.selectCount(null));
-        data.put("totalViews", postMapper.selectList(null).stream()
-                .mapToInt(p -> p.getViews() != null ? p.getViews() : 0).sum());
-        data.put("totalLikes", postMapper.selectList(null).stream()
-                .mapToInt(p -> p.getLikes() != null ? p.getLikes() : 0).sum());
+        data.put("totalViews", postMapper.selectMaps(
+                new LambdaQueryWrapper<Post>().select("COALESCE(SUM(views), 0) AS total"))
+                .get(0).get("total"));
+        data.put("totalLikes", postMapper.selectMaps(
+                new LambdaQueryWrapper<Post>().select("COALESCE(SUM(likes), 0) AS total"))
+                .get(0).get("total"));
 
         List<Map<String, Object>> trend = new ArrayList<>();
         for (int i = 6; i >= 0; i--) {
@@ -107,7 +112,14 @@ public class StatsController {
     @Operation(summary = "获取热门搜索词")
     @GetMapping("/search-keywords")
     public Result<List<String>> searchKeywords() {
-        return Result.success(new ArrayList<>());
+        List<String> keywords = tagMapper.selectList(
+                new LambdaQueryWrapper<com.blog.entity.Tag>()
+                        .orderByDesc(com.blog.entity.Tag::getPostCount)
+                        .last("LIMIT 10"))
+                .stream()
+                .map(com.blog.entity.Tag::getName)
+                .collect(java.util.stream.Collectors.toList());
+        return Result.success(keywords);
     }
 
     /** 埋点事件接收 */
