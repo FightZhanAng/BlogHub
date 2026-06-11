@@ -67,7 +67,7 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
         }
         // 私有文章：仅作者本人可见
         if (userId != null) {
-            wrapper.and(w -> w.eq(Post::getIsPrivate, 0).or().eq(Post::getAuthorId, userId));
+            wrapper.apply("(is_private = 0 OR author_id = {0})", userId);
         } else {
             wrapper.eq(Post::getIsPrivate, 0);
         }
