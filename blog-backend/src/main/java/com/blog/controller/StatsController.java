@@ -63,10 +63,12 @@ public class StatsController {
         data.put("totalUsers", userMapper.selectCount(null));
         data.put("totalComments", commentMapper.selectCount(null));
         data.put("totalViews", postMapper.selectMaps(
-                new LambdaQueryWrapper<Post>().select("COALESCE(SUM(views), 0) AS total"))
+                new com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<Post>()
+                        .select("COALESCE(SUM(views), 0) AS total"))
                 .get(0).get("total"));
         data.put("totalLikes", postMapper.selectMaps(
-                new LambdaQueryWrapper<Post>().select("COALESCE(SUM(likes), 0) AS total"))
+                new com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<Post>()
+                        .select("COALESCE(SUM(likes), 0) AS total"))
                 .get(0).get("total"));
 
         List<Map<String, Object>> trend = new ArrayList<>();
