@@ -32,6 +32,8 @@ public class PostController {
 
     private final PostService postService;
 
+    private final com.blog.service.TagService tagService;
+
     private final JwtUtil jwtUtil;
 
     private final HttpServletRequest request;
@@ -228,6 +230,7 @@ public class PostController {
         boolean hidden = post.getIsHidden() != null && post.getIsHidden() == 1;
         post.setIsHidden(hidden ? 0 : 1);
         postService.updateById(post);
+        tagService.recalcAllPostCounts();
         Map<String, Object> r = new java.util.HashMap<>();
         r.put("isHidden", post.getIsHidden());
         return Result.success(r);

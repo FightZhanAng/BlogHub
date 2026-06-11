@@ -22,7 +22,7 @@
           <el-tag v-if="p.status === 0 && !p.scheduledAt" size="small" type="warning">草稿</el-tag>
           <el-tag v-else-if="p.scheduledAt" size="small" type="info">定时 {{ p.scheduledAt?.slice(0, 16).replace('T', ' ') }}</el-tag>
           <el-tag v-else size="small" type="success">已发布</el-tag>
-          <router-link :to="`/blog/${p.slug}`" class="post-title">{{ p.title || '无标题' }}</router-link>
+          <router-link :to="p.status === 0 && !p.scheduledAt ? `/blog/${p.slug}/edit` : `/blog/${p.slug}`" class="post-title">{{ p.title || '无标题' }}</router-link>
           <span class="post-meta">{{ p.createdAt?.slice(0, 10) }} · {{ p.views || 0 }} 阅读</span>
         </div>
         <div class="post-actions">
