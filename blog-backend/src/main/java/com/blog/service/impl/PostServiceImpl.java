@@ -419,14 +419,18 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
     }
 
     @Override
-    public List<Post> getRankingByLikes(int limit) {
+    public List<Post> getRankingByLikes(int limit, String role) {
         int safeLimit = Math.max(1, Math.min(limit, 100));
-        return baseMapper.selectList(
-                new LambdaQueryWrapper<Post>()
-                        .eq(Post::getStatus, 1)
-                        .eq(Post::getIsPrivate, 0)
-                        .orderByDesc(Post::getLikes)
-                        .last("LIMIT " + safeLimit));
+        boolean isAdmin = "admin".equals(role);
+        LambdaQueryWrapper<Post> wrapper = new LambdaQueryWrapper<Post>()
+                .eq(Post::getStatus, 1)
+                .eq(Post::getIsPrivate, 0);
+        if (!isAdmin) {
+            wrapper.eq(Post::getIsHidden, 0);
+        }
+        wrapper.orderByDesc(Post::getLikes)
+               .last("LIMIT " + safeLimit);
+        return baseMapper.selectList(wrapper);
     }
 
     @Override
