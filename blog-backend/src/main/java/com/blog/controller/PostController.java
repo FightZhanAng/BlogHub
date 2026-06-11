@@ -67,7 +67,8 @@ public class PostController {
             @RequestParam(required = false) String keyword,
             HttpServletRequest httpRequest) {
         String role = getCurrentRole();
-        return Result.success(PageResult.of(postService.getPublishedPosts(page, size, tag, keyword, role)));
+        Long userId = getCurrentUserId();
+        return Result.success(PageResult.of(postService.getPublishedPosts(page, size, tag, keyword, role, userId)));
     }
 
     @Operation(summary = "文章详情")

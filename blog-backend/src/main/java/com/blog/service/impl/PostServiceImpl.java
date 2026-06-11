@@ -54,17 +54,22 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
     private final BadgeService badgeService;
 
     @Override
-    public IPage<Post> getPublishedPosts(int page, int size, String tag, String keyword, String role) {
-        log.info("查询文章列表 page={}, size={}, tag={}, keyword={}, role={}", page, size, tag, keyword, role);
+    public IPage<Post> getPublishedPosts(int page, int size, String tag, String keyword, String role, Long userId) {
+        log.info("查询文章列表 page={}, size={}, tag={}, keyword={}, role={}, userId={}", page, size, tag, keyword, role, userId);
         boolean isAdmin = "admin".equals(role);
         LambdaQueryWrapper<Post> wrapper = new LambdaQueryWrapper<Post>()
                 .eq(Post::getStatus, 1)
-                .eq(Post::getIsPrivate, 0)
                 .orderByDesc(Post::getIsPinned)
                 .orderByDesc(Post::getCreatedAt);
         // 管理员可以看到隐藏文章，普通用户看不到
         if (!isAdmin) {
             wrapper.eq(Post::getIsHidden, 0);
+        }
+        // 私有文章：仅作者本人可见
+        if (userId != null) {
+            wrapper.and(w -> w.eq(Post::getIsPrivate, 0).or().eq(Post::getAuthorId, userId));
+        } else {
+            wrapper.eq(Post::getIsPrivate, 0);
         }
         if (tag != null && !tag.trim().isEmpty()) {
             // 安全查询：先通过参数化查询获取 tagId，再关联 post_tag
