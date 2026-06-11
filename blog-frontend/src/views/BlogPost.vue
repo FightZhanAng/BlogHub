@@ -510,7 +510,7 @@ function goToRelated(rp) {
 }
 
 .header-author .el-button {
-  color: var(--color-text);
+  color: #fff;
 }
 
 .author-info {
