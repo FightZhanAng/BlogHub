@@ -75,6 +75,7 @@
         <el-button size="large" @click="handleCancel">取消</el-button>
         <el-button size="large" type="danger" plain @click="clearForm">清空内容</el-button>
         <div class="form-actions-right">
+          <el-checkbox v-model="isPrivate" label="仅自己可见" border size="small" />
           <el-checkbox v-model="enableSchedule" label="定时发布" border size="small" />
           <el-date-picker v-if="enableSchedule" v-model="scheduledAt" type="datetime"
             placeholder="选择发布时间" value-format="YYYY-MM-DDTHH:mm:ss"
@@ -107,6 +108,7 @@ const slug = route.params.slug
 
 const enableSchedule = ref(false)
 const scheduledAt = ref('')
+const isPrivate = ref(false)
 const coverInputRef = ref(null)
 
 function triggerCoverUpload() {
@@ -167,6 +169,7 @@ onMounted(async () => {
       tags: raw.tags || '',
       authorName: raw.authorName || '',
     }
+    isPrivate.value = raw.isPrivate === 1
   } catch {
     ElMessage.error('文章不存在')
     router.push('/blog')
@@ -190,6 +193,7 @@ async function submitForm(status) {
       tags: form.value.tags,
       authorName: form.value.authorName,
       status: status,
+      isPrivate: isPrivate.value ? 1 : 0,
     }
     if (status === 0 && enableSchedule.value && scheduledAt.value) {
       payload.scheduledAt = scheduledAt.value

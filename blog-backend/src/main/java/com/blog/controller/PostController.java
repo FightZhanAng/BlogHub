@@ -71,6 +71,21 @@ public class PostController {
     @Operation(summary = "文章详情")
     @GetMapping("/{slug}")
     public Result<PostResponse> detail(@PathVariable String slug) {
+        Post post = postService.getBySlug(slug);
+        // 私有文章仅作者可访问
+        if (post.getIsPrivate() != null && post.getIsPrivate() == 1) {
+            Long userId = getCurrentUserId();
+            if (userId == null || !userId.equals(post.getAuthorId())) {
+                return Result.error(404, "文章不存在");
+            }
+        }
+        // 隐藏文章仅管理员可访问
+        if (post.getIsHidden() != null && post.getIsHidden() == 1) {
+            String role = getCurrentRole();
+            if (!"admin".equals(role)) {
+                return Result.error(404, "文章不存在");
+            }
+        }
         return Result.success(postService.getPostDetail(slug));
     }
 
@@ -179,6 +194,38 @@ public class PostController {
         postService.updateById(post);
         Map<String, Object> r = new java.util.HashMap<>();
         r.put("isPinned", post.getIsPinned());
+        return Result.success(r);
+    }
+
+    @Operation(summary = "切换仅自己可见")
+    @PutMapping("/{id}/private")
+    public Result<Map<String, Object>> togglePrivate(@PathVariable Long id) {
+        Long userId = getCurrentUserId();
+        if (userId == null) return Result.error(401, "请先登录");
+        Post post = postService.getById(id);
+        if (post == null) return Result.error(404, "文章不存在");
+        if (!userId.equals(post.getAuthorId())) return Result.error(403, "只能操作自己的文章");
+        boolean priv = post.getIsPrivate() != null && post.getIsPrivate() == 1;
+        post.setIsPrivate(priv ? 0 : 1);
+        postService.updateById(post);
+        Map<String, Object> r = new java.util.HashMap<>();
+        r.put("isPrivate", post.getIsPrivate());
+        return Result.success(r);
+    }
+
+    @Operation(summary = "管理员隐藏文章")
+    @PutMapping("/{id}/hide")
+    public Result<Map<String, Object>> toggleHide(@PathVariable Long id) {
+        String role = getCurrentRole();
+        if (role == null) return Result.error(401, "请先登录");
+        if (!"admin".equals(role)) return Result.error(403, "无权操作");
+        Post post = postService.getById(id);
+        if (post == null) return Result.error(404, "文章不存在");
+        boolean hidden = post.getIsHidden() != null && post.getIsHidden() == 1;
+        post.setIsHidden(hidden ? 0 : 1);
+        postService.updateById(post);
+        Map<String, Object> r = new java.util.HashMap<>();
+        r.put("isHidden", post.getIsHidden());
         return Result.success(r);
     }
 

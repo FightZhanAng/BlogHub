@@ -26,6 +26,8 @@ public class UpdatePostRequest {
 
     private Integer status;
 
+    private Integer isPrivate;
+
     private String authorName;
 
     // ========== Getters / Setters ==========
@@ -48,6 +50,8 @@ public class UpdatePostRequest {
     public void setTags(String tags) { this.tags = tags; }
     public Integer getStatus() { return status; }
     public void setStatus(Integer status) { this.status = status; }
+    public Integer getIsPrivate() { return isPrivate; }
+    public void setIsPrivate(Integer isPrivate) { this.isPrivate = isPrivate; }
     public String getAuthorName() { return authorName; }
     public void setAuthorName(String authorName) { this.authorName = authorName; }
 }
