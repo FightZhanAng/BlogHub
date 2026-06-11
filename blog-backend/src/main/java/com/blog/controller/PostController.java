@@ -65,8 +65,8 @@ public class PostController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String tag,
             @RequestParam(required = false) String keyword,
-            HttpServletRequest request) {
-        String role = (String) request.getAttribute("role");
+            HttpServletRequest httpRequest) {
+        String role = getCurrentRole();
         return Result.success(PageResult.of(postService.getPublishedPosts(page, size, tag, keyword, role)));
     }
 
