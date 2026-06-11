@@ -54,14 +54,18 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
     private final BadgeService badgeService;
 
     @Override
-    public IPage<Post> getPublishedPosts(int page, int size, String tag, String keyword) {
-        log.info("查询文章列表 page={}, size={}, tag={}, keyword={}", page, size, tag, keyword);
+    public IPage<Post> getPublishedPosts(int page, int size, String tag, String keyword, String role) {
+        log.info("查询文章列表 page={}, size={}, tag={}, keyword={}, role={}", page, size, tag, keyword, role);
+        boolean isAdmin = "admin".equals(role);
         LambdaQueryWrapper<Post> wrapper = new LambdaQueryWrapper<Post>()
                 .eq(Post::getStatus, 1)
                 .eq(Post::getIsPrivate, 0)
-                .eq(Post::getIsHidden, 0)
                 .orderByDesc(Post::getIsPinned)
                 .orderByDesc(Post::getCreatedAt);
+        // 管理员可以看到隐藏文章，普通用户看不到
+        if (!isAdmin) {
+            wrapper.eq(Post::getIsHidden, 0);
+        }
         if (tag != null && !tag.trim().isEmpty()) {
             // 安全查询：先通过参数化查询获取 tagId，再关联 post_tag
             List<Long> tagIds = tagService.getTagIdsBySlugOrName(tag.trim());
@@ -366,6 +370,8 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
             return baseMapper.selectList(
                     new LambdaQueryWrapper<Post>()
                             .eq(Post::getStatus, 1)
+                            .eq(Post::getIsPrivate, 0)
+                            .eq(Post::getIsHidden, 0)
                             .ne(Post::getId, current.getId())
                             .orderByDesc(Post::getViews)
                             .last("LIMIT " + safeLimit));
@@ -387,6 +393,8 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
         return baseMapper.selectList(
                 new LambdaQueryWrapper<Post>()
                         .eq(Post::getStatus, 1)
+                        .eq(Post::getIsPrivate, 0)
+                        .eq(Post::getIsHidden, 0)
                         .ne(Post::getId, current.getId())
                         .inSql(Post::getId,
                                 "SELECT DISTINCT pt.post_id FROM post_tag pt WHERE pt.tag_id IN (" +
@@ -444,6 +452,8 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
         List<Post> posts = baseMapper.selectList(
                 new LambdaQueryWrapper<Post>()
                         .eq(Post::getStatus, 1)
+                        .eq(Post::getIsPrivate, 0)
+                        .eq(Post::getIsHidden, 0)
                         .orderByDesc(Post::getCreatedAt)
                         .select(Post::getId, Post::getTitle, Post::getSlug, Post::getCreatedAt));
         // 按年月分组

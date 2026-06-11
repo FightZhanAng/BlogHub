@@ -10,7 +10,7 @@ import com.blog.entity.Post;
 public interface PostService extends IService<Post> {
 
     /** 分页查询已发布的文章 */
-    IPage<Post> getPublishedPosts(int page, int size, String tag, String keyword);
+    IPage<Post> getPublishedPosts(int page, int size, String tag, String keyword, String role);
 
     /** 根据 slug 查询文章（仅已发布） */
     Post getBySlug(String slug);
