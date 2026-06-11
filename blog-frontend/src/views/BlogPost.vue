@@ -509,6 +509,10 @@ function goToRelated(rp) {
   gap: 12px;
 }
 
+.header-author .el-button {
+  color: var(--color-text);
+}
+
 .author-info {
   display: flex;
   flex-direction: column;

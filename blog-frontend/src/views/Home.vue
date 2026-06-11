@@ -67,6 +67,8 @@
           >
             <div class="post-title">
               <span v-if="post.isPinned" class="pin-badge">置顶</span>
+              <span v-if="post.isPrivate" class="private-badge">🔒 仅自己可见</span>
+              <span v-if="post.isHidden" class="hidden-badge">🚫 已隐藏</span>
               {{ post.title }}
             </div>
             <div class="post-meta">
@@ -382,6 +384,28 @@ onMounted(async () => {
   font-weight: 600;
   color: var(--color-accent);
   border: 1px solid var(--color-accent);
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+.private-badge {
+  font-size: 10px;
+  font-weight: 600;
+  color: #e6a23c;
+  border: 1px solid #e6a23c;
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+.hidden-badge {
+  font-size: 10px;
+  font-weight: 600;
+  color: #f56c6c;
+  border: 1px solid #f56c6c;
   padding: 1px 6px;
   border-radius: var(--radius-sm);
   margin-right: 6px;
