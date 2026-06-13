@@ -7,7 +7,6 @@ import com.blog.entity.Notification;
 import com.blog.entity.Post;
 import com.blog.mapper.NotificationMapper;
 import com.blog.service.*;
-import com.blog.service.impl.BadgeServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 

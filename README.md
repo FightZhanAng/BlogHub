@@ -1,4 +1,4 @@
-﻿<div align="center">
+<div align="center">
   <h1>📝 BlogHub</h1>
   <p>全栈技术博客系统 — Spring Boot + Vue 3 + Element Plus</p>
 </div>
@@ -15,6 +15,7 @@ BlogHub 是一个功能完整的技术博客系统，支持文章管理、评论
 | **后端** | Spring Boot 2.7 + MyBatis-Plus + MySQL 8 |
 | **认证** | JWT（Access Token + Refresh Token） |
 | **AI** | MiMo V2.5（小米大模型，SSE 流式输出） |
+| **定时任务** | XXL-Job 2.4（可视化管理、执行日志、失败重试） |
 | **热点数据** | 60s API + GitHub API |
 | **构建** | Maven（后端） / Vite（前端） / Docker Compose |
 | **设计** | 杂志编辑风格 + 暗色/亮色双主题 |
@@ -138,7 +139,8 @@ BlogHub/
 │   │   ├── common/                # 公共工具、响应封装
 │   │   └── exception/             # 全局异常处理
 │   ├── sql/
-│   │   └── init.sql               # 完整建表 + 种子数据（含所有表）
+│   │   ├── init.sql               # 完整建表 + 种子数据（含所有表）
+│   │   └── xxl_job_init.sql       # XXL-Job 建表 SQL（独立库 xxl_job）
 │   └── src/main/resources/
 │       ├── application.yml        # 应用配置
 │       └── application-local.yml  # 本地 API Key（gitignore）
@@ -155,7 +157,7 @@ BlogHub/
 │   │   └── styles/                # 全局样式 + 暗色/亮色主题变量
 │   └── public/
 │
-├── docker-compose.yml             # 一键部署（MySQL + 后端 + Nginx）
+├── docker-compose.yml             # 一键部署（MySQL + 后端 + Nginx + XXL-Job Admin）
 ├── nginx.conf                     # Nginx 反向代理配置
 └── docs/                          # 设计文档
 ```
@@ -173,6 +175,7 @@ BlogHub/
 
 ```bash
 mysql -u root -p < blog-backend/sql/init.sql
+mysql -u root -p < blog-backend/sql/xxl_job_init.sql
 ```
 
 ### 2. AI 配置
@@ -212,8 +215,24 @@ npm run dev
 ### 5. Docker（可选）
 
 ```bash
-docker-compose up -d    # MySQL :3307, Backend :8081, Frontend :80
+docker-compose up -d    # MySQL :3307, Backend :8081, Frontend :80, XXL-Job Admin :8082
 ```
+
+### 6. XXL-Job 定时任务管理
+
+XXL-Job Admin 提供定时任务的可视化管理：
+
+```bash
+# 本地启动（需先构建 xxl-job-admin.jar）
+cd xxl-job-admin
+java -jar xxl-job-admin.jar --spring.config.location=./application.properties
+```
+
+访问 `http://localhost:8082/xxl-job-admin`，登录 `admin` / `123456`。
+
+在任务管理中新建任务：
+- `publishScheduledPosts`：cron `0/60 * * * * ?`（每分钟检查定时发布文章）
+- `fetchAllTopics`：cron `0 0 0/2 * * ?`（每 2 小时抓取热点话题）
 
 ## 🔗 API 文档
 

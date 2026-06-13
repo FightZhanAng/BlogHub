@@ -21,11 +21,12 @@ import com.blog.mapper.PostVersionMapper;
 import com.blog.service.BadgeService;
 import com.blog.service.PostService;
 import com.blog.service.TagService;
+import com.xxl.job.core.handler.annotation.XxlJob;
+import com.xxl.job.core.context.XxlJobHelper;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
@@ -411,7 +412,7 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    @Scheduled(fixedRate = 60000)
+    @XxlJob("publishScheduledPosts")
     public int publishScheduledPosts() {
         int count = baseMapper.update(null, new LambdaUpdateWrapper<Post>()
                 .set(Post::getStatus, 1)
@@ -421,6 +422,7 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
         if (count > 0) {
             log.info("定时发布: {} 篇文章已发布", count);
         }
+        XxlJobHelper.log("定时发布: {} 篇文章已发布", count);
         return count;
     }
 

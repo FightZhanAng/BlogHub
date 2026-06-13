@@ -30,7 +30,7 @@ public class FeedController {
     @Operation(summary = "生成Sitemap")
     @GetMapping(value = "/sitemap.xml", produces = "application/xml;charset=utf-8")
     public String sitemap() {
-        IPage<Post> page = postService.getPublishedPosts(1, 500, null, null);
+        IPage<Post> page = postService.getPublishedPosts(1, 500, null, null, null, null);
         String base = baseUrl;
         StringBuilder xml = new StringBuilder();
         xml.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
@@ -57,7 +57,7 @@ public class FeedController {
     @Operation(summary = "生成RSS订阅源")
     @GetMapping(value = "/feed.xml", produces = "application/rss+xml;charset=utf-8")
     public String rss() {
-        IPage<Post> page = postService.getPublishedPosts(1, 20, null, null);
+        IPage<Post> page = postService.getPublishedPosts(1, 20, null, null, null, null);
         StringBuilder xml = new StringBuilder();
         xml.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
         xml.append("<rss version=\"2.0\" xmlns:atom=\"http://www.w3.org/2005/Atom\">\n");

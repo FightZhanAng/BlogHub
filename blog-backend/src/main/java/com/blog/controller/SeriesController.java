@@ -90,7 +90,7 @@ public class SeriesController {
         if (userId == null) return Result.error(401, "请先登录");
         Series s = seriesMapper.selectById(id);
         if (s == null) return Result.error(404, "系列不存在");
-        if (!userId.equals(s.getUserId())) return Result.error(403, "无权删除");
+        if (!userId.equals(s.getAuthorId())) return Result.error(403, "无权删除");
         seriesMapper.deleteById(id);
         return Result.success();
     }
