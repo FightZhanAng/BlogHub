@@ -13,6 +13,7 @@ import com.blog.mapper.NotificationMapper;
 import com.blog.entity.User;
 import com.blog.service.BadgeService;
 import com.blog.service.CommentService;
+import com.blog.service.ContentModerationService;
 import com.blog.service.PostService;
 import com.blog.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -37,6 +38,8 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
     private final UserService userService;
 
     private final BadgeService badgeService;
+
+    private final ContentModerationService contentModerationService;
 
     @Override
     public List<Map<String, Object>> getPostComments(String slug) {
@@ -76,10 +79,14 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
     @Transactional(rollbackFor = Exception.class)
     public void addComment(String slug, String nickname, String content, Long parentId, Long userId) {
         Post post = postService.getBySlug(slug);
+
+        ContentModerationService.ModerationResult nickCheck = contentModerationService.moderateText(nickname);
+        ContentModerationService.ModerationResult contentCheck = contentModerationService.moderateText(content);
+
         Comment comment = new Comment();
         comment.setPostId(post.getId());
-        comment.setNickname(nickname != null ? nickname : "匿名");
-        comment.setContent(content != null ? content : "");
+        comment.setNickname(nickCheck.isPassed() ? (nickCheck.getFilteredText() != null ? nickCheck.getFilteredText() : "匿名") : "匿名");
+        comment.setContent(contentCheck.isPassed() ? (contentCheck.getFilteredText() != null ? contentCheck.getFilteredText() : "") : "");
         comment.setParentId(parentId);
         comment.setUserId(userId);
         baseMapper.insert(comment);

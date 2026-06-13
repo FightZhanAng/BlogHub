@@ -231,11 +231,11 @@ java -jar xxl-job-admin.jar --spring.config.location=./application.properties
 访问 `http://localhost:8082/xxl-job-admin`，登录 `admin` / `123456`。
 
 在任务管理中新建任务：
-- `publishScheduledPosts`：cron `0/60 * * * * ?`（每分钟检查定时发布文章）
-- `fetchAllTopics`：cron `0 0 0/2 * * ?`（每 2 小时抓取热点话题）
+- `publishScheduledPosts`：cron `0 0/1 * * * ?`（每分钟检查定时发布文章）
+- `fetchAllTopics`：cron `0 0 0/3 * * ?`（每 3 小时抓取热点话题）
 
 ## 🔗 API 文档
-
+ 
 启动后端后访问 Knife4j 文档：
 
 ```

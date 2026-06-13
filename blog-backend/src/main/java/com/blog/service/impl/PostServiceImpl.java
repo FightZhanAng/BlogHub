@@ -19,6 +19,7 @@ import com.blog.mapper.ImageMapper;
 import com.blog.mapper.PostMapper;
 import com.blog.mapper.PostVersionMapper;
 import com.blog.service.BadgeService;
+import com.blog.service.ContentModerationService;
 import com.blog.service.PostService;
 import com.blog.service.TagService;
 import com.xxl.job.core.handler.annotation.XxlJob;
@@ -53,6 +54,8 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
     private final TagService tagService;
 
     private final BadgeService badgeService;
+
+    private final ContentModerationService contentModerationService;
 
     @Override
     public IPage<Post> getPublishedPosts(int page, int size, String tag, String keyword, String role, Long userId) {
@@ -202,6 +205,13 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
     public PostResponse createPost(CreatePostRequest request, Long userId) {
         log.info("创建文章: title={}, authorId={}", request.getTitle(), userId);
 
+        ContentModerationService.ModerationResult titleCheck = contentModerationService.moderateText(request.getTitle());
+        ContentModerationService.ModerationResult descCheck = contentModerationService.moderateText(request.getDescription());
+        ContentModerationService.ModerationResult contentCheck = contentModerationService.moderateText(request.getContent());
+        request.setTitle(titleCheck.getFilteredText());
+        request.setDescription(descCheck.getFilteredText());
+        request.setContent(contentCheck.getFilteredText());
+
         // 检查 slug 是否被其他用户占用
         Post slugOwner = baseMapper.selectOne(
                 new LambdaQueryWrapper<Post>()
@@ -298,9 +308,15 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
         }
 
         if (request.getSlug() != null) post.setSlug(request.getSlug());
-        if (request.getTitle() != null) post.setTitle(request.getTitle());
-        if (request.getDescription() != null) post.setDescription(request.getDescription());
-        if (request.getContent() != null) post.setContent(request.getContent());
+        if (request.getTitle() != null) {
+            post.setTitle(contentModerationService.moderateText(request.getTitle()).getFilteredText());
+        }
+        if (request.getDescription() != null) {
+            post.setDescription(contentModerationService.moderateText(request.getDescription()).getFilteredText());
+        }
+        if (request.getContent() != null) {
+            post.setContent(contentModerationService.moderateText(request.getContent()).getFilteredText());
+        }
         if (request.getTags() != null) post.setTags(request.getTags());
         if (request.getStatus() != null) {
             post.setStatus(request.getStatus());
