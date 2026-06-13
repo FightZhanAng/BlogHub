@@ -9,13 +9,13 @@ blog-backend/*.iml
 blog-backend/src/main/resources/application-local.yml
 
 # Node / Vue
-vue3-elementplus-starter/node_modules/
-vue3-elementplus-starter/dist/
-vue3-elementplus-starter/*.local
-vue3-elementplus-starter/.env.local
-vue3-elementplus-starter/*.log
-vue3-elementplus-starter/.vscode/
-vue3-elementplus-starter/.idea/
+blog-frontend/node_modules/
+blog-frontend/dist/
+blog-frontend/*.local
+blog-frontend/.env.local
+blog-frontend/*.log
+blog-frontend/.vscode/
+blog-frontend/.idea/
 
 # Root
 node_modules/
@@ -53,3 +53,11 @@ reasonix.toml
 docs/
 scripts/
 CLAUDE.md
+
+# XXL-Job local build artifacts
+xxl-job-src/
+xxl-job-admin/
+
+# MiMo Code
+.mimocode/
+backend.log

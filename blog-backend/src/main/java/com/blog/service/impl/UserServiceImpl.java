@@ -6,7 +6,6 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.blog.common.PageResult;
 import com.blog.config.JwtUtil;
-import com.blog.config.SecurityConfig;
 import com.blog.dto.LoginRequest;
 import com.blog.dto.LoginResponse;
 import com.blog.entity.Comment;

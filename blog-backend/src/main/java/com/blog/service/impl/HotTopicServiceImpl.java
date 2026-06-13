@@ -5,11 +5,12 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.blog.entity.HotTopic;
 import com.blog.mapper.HotTopicMapper;
 import com.blog.service.HotTopicService;
+import com.xxl.job.core.handler.annotation.XxlJob;
+import com.xxl.job.core.context.XxlJobHelper;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -51,15 +52,17 @@ public class HotTopicServiceImpl extends ServiceImpl<HotTopicMapper, HotTopic> i
         return baseMapper.findByPlatformAndDate(platform, LocalDate.now());
     }
 
-    @Scheduled(cron = "0 0 */2 * * ?")
+    @XxlJob("fetchAllTopics")
     @Override
     public void fetchAllTopics() {
         log.info("开始抓取每日热点...");
+        XxlJobHelper.log("开始抓取每日热点...");
         fetchGitHubTrending();
         for (Map.Entry<String, String> entry : PLATFORMS.entrySet()) {
             fetchFrom60sApi(entry.getKey(), entry.getValue());
         }
         log.info("每日热点抓取完成");
+        XxlJobHelper.log("每日热点抓取完成");
     }
 
     @Override

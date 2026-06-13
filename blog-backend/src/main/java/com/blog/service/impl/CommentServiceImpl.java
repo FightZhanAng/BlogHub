@@ -11,7 +11,6 @@ import com.blog.entity.Post;
 import com.blog.mapper.CommentMapper;
 import com.blog.mapper.NotificationMapper;
 import com.blog.entity.User;
-import com.blog.mapper.UserMapper;
 import com.blog.service.BadgeService;
 import com.blog.service.CommentService;
 import com.blog.service.PostService;
