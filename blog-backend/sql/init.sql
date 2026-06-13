@@ -44,6 +44,8 @@ CREATE TABLE IF NOT EXISTS posts (
     tags        VARCHAR(255) DEFAULT '' COMMENT '标签（逗号分隔）',
     status      TINYINT      DEFAULT 1 COMMENT '状态: 0=草稿, 1=已发布',
     is_pinned   TINYINT      DEFAULT 0 COMMENT '是否置顶: 0=否, 1=是',
+    is_private  TINYINT(1)   DEFAULT 0 COMMENT '仅自己可见: 0=否, 1=是',
+    is_hidden   TINYINT(1)   DEFAULT 0 COMMENT '管理员隐藏: 0=否, 1=是',
     views       INT          DEFAULT 0 COMMENT '阅读次数',
     likes       INT          DEFAULT 0 COMMENT '点赞数',
     author_name VARCHAR(50)  DEFAULT '管理员' COMMENT '作者名',
