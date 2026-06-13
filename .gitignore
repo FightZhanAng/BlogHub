@@ -56,8 +56,9 @@ CLAUDE.md
 
 # XXL-Job local build artifacts
 xxl-job-src/
-xxl-job-admin/
+xxl-job-admin/*.jar
 
 # MiMo Code
 .mimocode/
 backend.log
+AGENTS.md

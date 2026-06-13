@@ -1,0 +1,3 @@
+@echo off
+echo Starting XXL-Job Admin on port 8082...
+java -jar xxl-job-admin.jar --spring.config.location=classpath:/application.properties,./application.properties
