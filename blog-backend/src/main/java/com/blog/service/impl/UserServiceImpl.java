@@ -15,6 +15,7 @@ import com.blog.exception.BusinessException;
 import com.blog.mapper.CommentMapper;
 import com.blog.mapper.UserMapper;
 import com.blog.service.BadgeService;
+import com.blog.service.ContentModerationService;
 import com.blog.service.PostService;
 import com.blog.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -43,6 +44,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     private final PostService postService;
 
     private final BadgeService badgeService;
+
+    private final ContentModerationService contentModerationService;
 
     private String encryptPassword(String password) {
         return passwordEncoder.encode(password);
@@ -90,7 +93,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Override
     public LoginResponse register(LoginRequest request) {
-        User exist = baseMapper.findByUsername(request.getUsername());
+        String username = request.getUsername();
+
+        ContentModerationService.ModerationResult nameCheck = contentModerationService.moderateText(username);
+        if (!nameCheck.isPassed()) {
+            throw new BusinessException(400, "用户名包含违规内容");
+        }
+
+        User exist = baseMapper.findByUsername(username);
         if (exist != null) {
             throw new BusinessException(400, "用户名已存在");
         }
@@ -147,7 +157,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if (user == null) {
             throw new BusinessException(404, "用户不存在");
         }
-        if (nickname != null) user.setNickname(nickname);
+        if (nickname != null) {
+            ContentModerationService.ModerationResult nameCheck = contentModerationService.moderateText(nickname);
+            if (!nameCheck.isPassed()) {
+                throw new BusinessException(400, "昵称包含违规内容");
+            }
+            user.setNickname(nameCheck.getFilteredText());
+        }
         if (avatar != null) user.setAvatar(avatar);
         baseMapper.updateById(user);
         user.setPassword(null);

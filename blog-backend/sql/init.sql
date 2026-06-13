@@ -574,4 +574,19 @@ INSERT INTO menu_item (id, group_id, title, path, icon, sort_order, enabled, adm
 (14, 5, '用户管理', '/users',     'UserFilled',   2, 1, 1),
 (15, 5, '评论管理', '/comments',  'Comment',      3, 1, 1),
 (16, 5, '图片管理', '/images',    'Picture',      4, 1, 1),
-(17, 5, '操作日志', '/logs',      'Operation',    5, 1, 1);
+(17, 5, '操作日志', '/logs',      'Operation',    5, 1, 1),
+(18, 5, '敏感词管理', '/sensitive-words', 'Filter', 6, 1, 1);
+
+-- ============================================================
+-- 敏感词库
+-- ============================================================
+CREATE TABLE IF NOT EXISTS sensitive_word (
+    id         BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键',
+    word       VARCHAR(100) NOT NULL COMMENT '敏感词',
+    level      TINYINT      DEFAULT 1 COMMENT '级别: 1=替换为*, 2=直接拒绝',
+    enabled    TINYINT      DEFAULT 1 COMMENT '是否启用: 0=禁用, 1=启用',
+    created_at DATETIME     DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    updated_at DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+
+    UNIQUE KEY uk_word (word)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='敏感词库';

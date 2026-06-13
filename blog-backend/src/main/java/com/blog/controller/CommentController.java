@@ -59,8 +59,9 @@ public class CommentController {
     public Result<Void> addComment(@PathVariable String slug,
                                     @Valid @RequestBody CommentRequest body) {
         String content = HtmlSanitizer.stripHtml(body.getContent());
+        String nickname = HtmlSanitizer.stripHtml(body.getNickname());
         Long userId = getCurrentUserId();
-        commentService.addComment(slug, body.getNickname(), content, body.getParentId(), userId);
+        commentService.addComment(slug, nickname, content, body.getParentId(), userId);
         return Result.success(null);
     }
 

@@ -140,6 +140,12 @@ const routes = [
         meta: { title: '评论管理', requiresAuth: true, requiresAdmin: true },
       },
       {
+        path: 'sensitive-words',
+        name: 'SensitiveWordManage',
+        component: () => import('@/views/SensitiveWordManage.vue'),
+        meta: { title: '敏感词管理', requiresAuth: true, requiresAdmin: true },
+      },
+      {
         path: 'images',
         name: 'ImageManage',
         component: () => import('@/views/ImageManage.vue'),
