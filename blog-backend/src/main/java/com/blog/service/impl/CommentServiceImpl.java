@@ -8,6 +8,7 @@ import com.blog.common.PageResult;
 import com.blog.entity.Comment;
 import com.blog.entity.Notification;
 import com.blog.entity.Post;
+import com.blog.exception.BusinessException;
 import com.blog.mapper.CommentMapper;
 import com.blog.mapper.NotificationMapper;
 import com.blog.entity.User;
@@ -83,10 +84,22 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
         ContentModerationService.ModerationResult nickCheck = contentModerationService.moderateText(nickname);
         ContentModerationService.ModerationResult contentCheck = contentModerationService.moderateText(content);
 
+        log.info("敏感词检查: nickname={}, content={}, nickPassed={}, contentPassed={}",
+                nickname, content, nickCheck.isPassed(), contentCheck.isPassed());
+
+        if (!nickCheck.isPassed()) {
+            log.warn("昵称被拒绝: {}", nickCheck.getReason());
+            throw new BusinessException(400, nickCheck.getReason());
+        }
+        if (!contentCheck.isPassed()) {
+            log.warn("内容被拒绝: {}", contentCheck.getReason());
+            throw new BusinessException(400, contentCheck.getReason());
+        }
+
         Comment comment = new Comment();
         comment.setPostId(post.getId());
-        comment.setNickname(nickCheck.isPassed() ? (nickCheck.getFilteredText() != null ? nickCheck.getFilteredText() : "匿名") : "匿名");
-        comment.setContent(contentCheck.isPassed() ? (contentCheck.getFilteredText() != null ? contentCheck.getFilteredText() : "") : "");
+        comment.setNickname(nickCheck.getFilteredText() != null ? nickCheck.getFilteredText() : "匿名");
+        comment.setContent(contentCheck.getFilteredText() != null ? contentCheck.getFilteredText() : "");
         comment.setParentId(parentId);
         comment.setUserId(userId);
         baseMapper.insert(comment);

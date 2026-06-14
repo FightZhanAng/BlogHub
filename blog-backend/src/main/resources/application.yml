@@ -17,6 +17,12 @@ spring:
     username: root
     password: root
     driver-class-name: com.mysql.cj.jdbc.Driver
+  redis:
+    host: ${REDIS_HOST:localhost}
+    port: ${REDIS_PORT:6379}
+    password: ${REDIS_PASSWORD:Aa123456}
+    database: 0
+    timeout: 3000ms
 
     # HikariCP 连接池配置
     hikari:

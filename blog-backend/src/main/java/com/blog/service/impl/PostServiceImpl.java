@@ -25,6 +25,9 @@ import com.blog.service.TagService;
 import com.xxl.job.core.handler.annotation.XxlJob;
 import com.xxl.job.core.context.XxlJobHelper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -96,6 +99,7 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
     }
 
     @Override
+    @Cacheable(value = "posts", key = "'slug:' + #slug")
     public Post getBySlug(String slug) {
         log.debug("查询文章: slug={}", slug);
         Post post = baseMapper.selectOne(
@@ -202,6 +206,7 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
 
     @Override
     @Transactional(rollbackFor = Exception.class)
+    @CacheEvict(value = {"posts", "archive"}, allEntries = true)
     public PostResponse createPost(CreatePostRequest request, Long userId) {
         log.info("创建文章: title={}, authorId={}", request.getTitle(), userId);
 
@@ -293,6 +298,7 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
 
     @Override
     @Transactional(rollbackFor = Exception.class)
+    @CacheEvict(value = {"posts", "archive"}, allEntries = true)
     public PostResponse updatePost(Long id, UpdatePostRequest request, Long userId, String role) {
         log.info("更新文章: id={}, userId={}", id, userId);
         Post post = baseMapper.selectById(id);
@@ -345,6 +351,7 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
 
     @Override
     @Transactional(rollbackFor = Exception.class)
+    @CacheEvict(value = {"posts", "archive"}, allEntries = true)
     public void deletePost(Long id, Long userId, String role) {
         log.info("删除文章: id={}, userId={}", id, userId);
         Post post = baseMapper.selectById(id);
@@ -443,6 +450,7 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
     }
 
     @Override
+    @Cacheable(value = "posts", key = "'ranking:' + #limit + ':' + #role")
     public List<Post> getRankingByLikes(int limit, String role) {
         int safeLimit = Math.max(1, Math.min(limit, 100));
         boolean isAdmin = "admin".equals(role);
@@ -476,6 +484,7 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
     }
 
     @Override
+    @Cacheable(value = "archive", key = "'all'")
     public List<Map<String, Object>> getArchive() {
         List<Post> posts = baseMapper.selectList(
                 new LambdaQueryWrapper<Post>()

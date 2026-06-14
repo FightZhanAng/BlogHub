@@ -10,6 +10,8 @@ import com.blog.mapper.MenuGroupMapper;
 import com.blog.mapper.MenuItemMapper;
 import com.blog.service.MenuService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +26,7 @@ public class MenuServiceImpl implements MenuService {
     private final MenuItemMapper itemMapper;
 
     @Override
+    @Cacheable(value = "menus", key = "#role")
     public List<MenuTreeVO> getMenuTree(String role) {
         boolean isAdmin = "admin".equals(role);
 
@@ -107,6 +110,7 @@ public class MenuServiceImpl implements MenuService {
     }
 
     @Override
+    @CacheEvict(value = "menus", allEntries = true)
     public MenuGroup createGroup(MenuGroup group) {
         if (group.getSortOrder() == null) {
             // 默认排到最后
@@ -120,6 +124,7 @@ public class MenuServiceImpl implements MenuService {
     }
 
     @Override
+    @CacheEvict(value = "menus", allEntries = true)
     public MenuGroup updateGroup(Long id, MenuGroup group) {
         MenuGroup existing = groupMapper.selectById(id);
         if (existing == null) throw new BusinessException(404, "菜单组不存在");
@@ -134,6 +139,7 @@ public class MenuServiceImpl implements MenuService {
     }
 
     @Override
+    @CacheEvict(value = "menus", allEntries = true)
     @Transactional
     public void deleteGroup(Long id) {
         // 先删除组下所有菜单项
@@ -144,6 +150,7 @@ public class MenuServiceImpl implements MenuService {
     }
 
     @Override
+    @CacheEvict(value = "menus", allEntries = true)
     public void updateGroupSort(List<Long> ids) {
         for (int i = 0; i < ids.size(); i++) {
             MenuGroup group = groupMapper.selectById(ids.get(i));
@@ -174,6 +181,7 @@ public class MenuServiceImpl implements MenuService {
     }
 
     @Override
+    @CacheEvict(value = "menus", allEntries = true)
     public MenuItem createItem(MenuItem item) {
         if (item.getSortOrder() == null) {
             Long count = itemMapper.selectCount(
@@ -190,6 +198,7 @@ public class MenuServiceImpl implements MenuService {
     }
 
     @Override
+    @CacheEvict(value = "menus", allEntries = true)
     public MenuItem updateItem(Long id, MenuItem item) {
         MenuItem existing = itemMapper.selectById(id);
         if (existing == null) throw new BusinessException(404, "菜单项不存在");
@@ -206,11 +215,13 @@ public class MenuServiceImpl implements MenuService {
     }
 
     @Override
+    @CacheEvict(value = "menus", allEntries = true)
     public void deleteItem(Long id) {
         itemMapper.deleteById(id);
     }
 
     @Override
+    @CacheEvict(value = "menus", allEntries = true)
     public void updateItemSort(List<Long> ids) {
         for (int i = 0; i < ids.size(); i++) {
             MenuItem item = itemMapper.selectById(ids.get(i));

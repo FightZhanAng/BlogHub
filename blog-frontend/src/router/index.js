@@ -158,6 +158,12 @@ const routes = [
         meta: { title: '每日热点' },
       },
       {
+        path: 'health',
+        name: 'HealthCheck',
+        component: () => import('@/views/HealthCheck.vue'),
+        meta: { title: '健康检查', requiresAuth: true, roles: ['admin'] },
+      },
+      {
         path: 'ai-assistant',
         name: 'AiAssistant',
         component: () => import('@/views/AiAssistant.vue'),

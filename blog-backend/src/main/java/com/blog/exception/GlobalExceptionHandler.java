@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
+import org.springframework.transaction.TransactionSystemException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -28,7 +29,6 @@ public class GlobalExceptionHandler {
 
     /** 业务异常 */
     @ExceptionHandler(BusinessException.class)
-    @ResponseStatus(HttpStatus.OK)
     public Result<Void> handleBusinessException(BusinessException e) {
         log.warn("业务异常: code={}, message={}", e.getCode(), e.getMessage());
         return Result.error(e.getCode(), e.getMessage());
@@ -77,6 +77,14 @@ public class GlobalExceptionHandler {
         return Result.badRequest("参数类型错误: " + e.getName());
     }
 
+    /** 事务异常 */
+    @ExceptionHandler(TransactionSystemException.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public Result<Void> handleTransactionSystemException(TransactionSystemException e) {
+        log.error("事务异常", e);
+        return Result.error(500, "服务器内部错误");
+    }
+
     /** 请求体解析失败 */
     @ExceptionHandler(HttpMessageNotReadableException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
@@ -95,7 +103,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public Result<Void> handleException(Exception e) {
-        log.error("未捕获异常", e);
+        log.error("未捕获异常: {} - {}", e.getClass().getName(), e.getMessage(), e);
         return Result.error(ResultCode.INTERNAL_ERROR);
     }
 }

@@ -10,6 +10,8 @@ import com.xxl.job.core.context.XxlJobHelper;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -38,6 +40,7 @@ public class HotTopicServiceImpl extends ServiceImpl<HotTopicMapper, HotTopic> i
     private final RestTemplate restTemplate;
 
     @Override
+    @Cacheable(value = "hotTopics", key = "'today'")
     public Map<String, List<HotTopic>> getTodayTopics() {
         LocalDate today = LocalDate.now();
         List<HotTopic> allTopics = list(new LambdaQueryWrapper<HotTopic>()
@@ -48,11 +51,13 @@ public class HotTopicServiceImpl extends ServiceImpl<HotTopicMapper, HotTopic> i
     }
 
     @Override
+    @Cacheable(value = "hotTopics", key = "'platform:' + #platform")
     public List<HotTopic> getTopicsByPlatform(String platform) {
         return baseMapper.findByPlatformAndDate(platform, LocalDate.now());
     }
 
     @XxlJob("fetchAllTopics")
+    @CacheEvict(value = "hotTopics", allEntries = true)
     @Override
     public void fetchAllTopics() {
         log.info("开始抓取每日热点...");
