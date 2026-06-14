@@ -575,7 +575,9 @@ INSERT INTO menu_item (id, group_id, title, path, icon, sort_order, enabled, adm
 (15, 5, '评论管理', '/comments',  'Comment',      3, 1, 1),
 (16, 5, '图片管理', '/images',    'Picture',      4, 1, 1),
 (17, 5, '操作日志', '/logs',      'Operation',    5, 1, 1),
-(18, 5, '敏感词管理', '/sensitive-words', 'Filter', 6, 1, 1);
+(18, 5, '敏感词管理', '/sensitive-words', 'Filter', 6, 1, 1),
+(20, 5, '菜单配置', '//admin/menu-settings', 'SetUp', 7, 1, 1),
+(21, 5, '健康检查', '/health', 'Monitor', 8, 1, 1);
 
 -- ============================================================
 -- 敏感词库

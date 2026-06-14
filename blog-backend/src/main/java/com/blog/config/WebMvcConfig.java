@@ -34,7 +34,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
                         "/api/tags/**", "/api/series/**", "/api/users/*/profile",
                         "/api/stats/**", "/api/upload/**", "/api/hot-topics/**",
                         "/api/comments/*/replies", "/api/comments/*/reaction", "/api/comments/*/reactions",
-                        "/api/badges", "/api/users/*/badges",
+                        "/api/badges", "/api/users/*/badges", "/api/health",
                         "/uploads/**");
     }
 }
