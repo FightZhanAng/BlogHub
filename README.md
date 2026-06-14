@@ -13,6 +13,7 @@ BlogHub 是一个功能完整的技术博客系统，支持文章管理、评论
 |------|------|
 | **前端** | Vue 3 + Vite + Element Plus + Pinia + Vue Router |
 | **后端** | Spring Boot 2.7 + MyBatis-Plus + MySQL 8 |
+| **缓存** | Redis（Spring Cache 注解，allkeys-lru 策略） |
 | **认证** | JWT（Access Token + Refresh Token） |
 | **AI** | MiMo V2.5（小米大模型，SSE 流式输出） |
 | **定时任务** | XXL-Job 2.4（可视化管理、执行日志、失败重试） |
@@ -87,6 +88,8 @@ BlogHub 是一个功能完整的技术博客系统，支持文章管理、评论
 - 仪表盘（文章/用户/评论统计 + ECharts 7 日趋势图）
 - 用户管理、评论管理、操作日志审计
 - 图片管理（查看/删除，显示文章来源和用途）
+- 敏感词管理（增删改查、批量导入、热加载词库）
+- 健康检查（MySQL/Redis/XXL-Job 实时状态监控）
 - 数据导出 CSV（文章/用户/评论）
 
 ### 🔧 API 测试工具
@@ -123,6 +126,23 @@ BlogHub 是一个功能完整的技术博客系统，支持文章管理、评论
 - 全文搜索（标题/内容/描述模糊匹配）
 - SEO 优化（每页独立 title + description）
 - 标签页导航（最多 8 个，超出自动关闭）
+
+### 🛡️ 内容安全
+- 敏感词过滤（DFA 算法，数据库词库，管理员可增删）
+- 两级策略：替换为 `***`（评论/文章）或直接拒绝（注册/昵称）
+- 批量导入 + 热加载（修改后立即生效，无需重启）
+- 预留第三方内容审核接口（阿里云内容安全）
+
+### 📡 Redis 缓存
+- Redis 替代 Caffeine 本地缓存，支持多实例共享
+- 高频接口自动缓存：文章详情、归档、排行、菜单树、徽章、热点
+- 写操作自动清除缓存（`@CacheEvict`）
+- `allkeys-lru` 淘汰策略，256MB 内存限制
+
+### 🏥 健康检查
+- `/api/health` 端点：检查 MySQL、Redis、XXL-Job 状态
+- 管理后台可视化页面（状态灯 + 刷新按钮）
+- Docker Compose 服务间健康检查（依赖链：MySQL → Redis → Backend → Frontend）
 
 ## 🏗 项目结构
 
@@ -169,6 +189,7 @@ BlogHub/
 - JDK 8+
 - Node.js 18+
 - MySQL 8.0+
+- Redis（端口 6379）
 - Maven
 
 ### 1. 数据库
@@ -215,7 +236,7 @@ npm run dev
 ### 5. Docker（可选）
 
 ```bash
-docker-compose up -d    # MySQL :3307, Backend :8081, Frontend :80, XXL-Job Admin :8082
+docker-compose up -d    # MySQL :3307, Redis :6379, Backend :8081, Frontend :80, XXL-Job Admin :8082
 ```
 
 ### 6. XXL-Job 定时任务管理
