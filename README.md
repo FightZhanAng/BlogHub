@@ -179,6 +179,7 @@ BlogHub/
 │
 ├── docker-compose.yml             # 一键部署（MySQL + 后端 + Nginx + XXL-Job Admin）
 ├── nginx.conf                     # Nginx 反向代理配置
+├── ops/                           # 运维脚本（一键启停/状态查看）
 └── docs/                          # 设计文档
 ```
 
@@ -254,6 +255,41 @@ java -jar xxl-job-admin.jar --spring.config.location=./application.properties
 在任务管理中新建任务：
 - `publishScheduledPosts`：cron `0 0/1 * * * ?`（每分钟检查定时发布文章）
 - `fetchAllTopics`：cron `0 0 0/3 * * ?`（每 3 小时抓取热点话题）
+
+### 7. 一键启停脚本
+
+`ops/` 目录提供 Windows 环境下的快速启停脚本，自动管理 MySQL、Redis、XXL-Job Admin、Backend、Frontend 五个服务：
+
+```powershell
+# 一键启动全部服务（含构建后端 JAR）
+.\ops\start-all.ps1
+
+# 跳过后端构建，直接启动
+.\ops\start-all.ps1 -SkipBuild
+
+# MySQL/Redis 已在运行时跳过服务启动
+.\ops\start-all.ps1 -SkipServices
+
+# 一键停止（保留 MySQL/Redis）
+.\ops\stop-all.ps1
+
+# 全部停止（含 MySQL/Redis）
+.\ops\stop-all.ps1 -All
+
+# 查看各服务运行状态
+.\ops\status.ps1
+```
+
+也可直接双击 `ops/*.bat` 文件运行。每个长驻服务会在独立的 PowerShell 窗口中启动，方便查看日志。
+
+| 脚本 | 说明 |
+|------|------|
+| `ops/start-all` | 依次启动 MySQL → Redis → XXL-Job Admin → Backend → Frontend，自动检测端口跳过已运行的服务 |
+| `ops/stop-all` | 依次停止 Frontend → Backend → XXL-Job Admin，`-All` 可追加停止 MySQL/Redis |
+| `ops/status` | 显示各服务运行状态、监听端口、PID、访问地址 |
+| `ops/start-xxl-job` | 单独启动 XXL-Job Admin |
+| `ops/start-backend` | 单独启动 Backend |
+| `ops/start-frontend` | 单独启动 Frontend |
 
 ## 🔗 API 文档
  
