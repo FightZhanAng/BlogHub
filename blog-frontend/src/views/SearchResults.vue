@@ -78,7 +78,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Search } from '@element-plus/icons-vue'
 import request from '@/api/request'
@@ -95,6 +95,13 @@ const size = ref(10)
 const loading = ref(false)
 const searched = ref(false)
 const hotKeywords = ref([])
+
+// 手动清空输入框时也重置结果
+watch(keyword, (val) => {
+  if (!val.trim() && searched.value) {
+    clearSearch()
+  }
+})
 
 async function fetchHotKeywords() {
   try {
