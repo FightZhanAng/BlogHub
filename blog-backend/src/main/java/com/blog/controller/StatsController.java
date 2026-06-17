@@ -42,6 +42,7 @@ public class StatsController {
     private final DailyViewsMapper dailyViewsMapper;
 
     private final TagMapper tagMapper;
+    private final com.blog.mapper.SearchHistoryMapper searchHistoryMapper;
 
     private boolean isAdmin(HttpServletRequest request) {
         try {
@@ -114,6 +115,20 @@ public class StatsController {
     @Operation(summary = "获取热门搜索词")
     @GetMapping("/search-keywords")
     public Result<List<String>> searchKeywords() {
+        // 优先从搜索历史表获取热词（近30天）
+        // 优先从搜索历史表获取热词（近30天，按搜索次数排序）
+        List<com.blog.entity.SearchHistory> recent = searchHistoryMapper.selectList(
+                new LambdaQueryWrapper<com.blog.entity.SearchHistory>()
+                        .ge(com.blog.entity.SearchHistory::getCreatedAt,
+                                java.time.LocalDateTime.now().minusDays(30))
+                        .groupBy(com.blog.entity.SearchHistory::getKeyword)
+                        .last("LIMIT 10"));
+        if (recent != null && !recent.isEmpty()) {
+            return Result.success(recent.stream()
+                    .map(com.blog.entity.SearchHistory::getKeyword)
+                    .collect(java.util.stream.Collectors.toList()));
+        }
+        // 降级：热门标签
         List<String> keywords = tagMapper.selectList(
                 new LambdaQueryWrapper<com.blog.entity.Tag>()
                         .orderByDesc(com.blog.entity.Tag::getPostCount)
