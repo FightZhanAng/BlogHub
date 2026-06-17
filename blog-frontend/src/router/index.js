@@ -183,6 +183,13 @@ const routes = [
       },
     ],
   },
+  // 404 catch-all
+  {
+    path: '/:pathMatch(.*)*',
+    name: 'NotFound',
+    component: () => import('@/views/NotFound.vue'),
+    meta: { title: '404 页面未找到' },
+  },
 ]
 
 const router = createRouter({

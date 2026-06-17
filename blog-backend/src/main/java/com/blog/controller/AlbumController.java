@@ -11,6 +11,7 @@ import com.blog.service.PhotoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
@@ -22,6 +23,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/albums")
+@Slf4j
 @RequiredArgsConstructor
 @Tag(name = "宝宝相册", description = "相册和照片管理接口")
 public class AlbumController {
@@ -43,7 +45,7 @@ public class AlbumController {
                 String token = header.substring(7);
                 if (jwtUtil.validateToken(token)) return jwtUtil.getUserId(token);
             }
-        } catch (Exception ignored) {}
+        } catch (Exception e) { log.debug("解析 userId 失败: {}", e.getMessage()); }
         return null;
     }
 
@@ -54,7 +56,7 @@ public class AlbumController {
                 String token = header.substring(7);
                 if (jwtUtil.validateToken(token)) return jwtUtil.getRole(token);
             }
-        } catch (Exception ignored) {}
+        } catch (Exception e) { log.debug("解析 role 失败: {}", e.getMessage()); }
         return null;
     }
 

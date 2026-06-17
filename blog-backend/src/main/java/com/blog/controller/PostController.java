@@ -34,6 +34,8 @@ public class PostController {
 
     private final com.blog.service.TagService tagService;
 
+    private final com.blog.mapper.SearchHistoryMapper searchHistoryMapper;
+
     private final JwtUtil jwtUtil;
 
     private final HttpServletRequest request;
@@ -45,7 +47,7 @@ public class PostController {
                 String token = header.substring(7);
                 if (jwtUtil.validateToken(token)) return jwtUtil.getUserId(token);
             }
-        } catch (Exception ignored) {}
+        } catch (Exception e) { log.debug("解析 userId 失败: {}", e.getMessage()); }
         return null;
     }
 
@@ -56,7 +58,7 @@ public class PostController {
                 String token = header.substring(7);
                 if (jwtUtil.validateToken(token)) return jwtUtil.getRole(token);
             }
-        } catch (Exception ignored) {}
+        } catch (Exception e) { log.debug("解析 role 失败: {}", e.getMessage()); }
         return null;
     }
 
@@ -171,6 +173,15 @@ public class PostController {
             @RequestParam String q,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size) {
+        // 记录搜索历史
+        if (q != null && !q.trim().isEmpty()) {
+            try {
+                com.blog.entity.SearchHistory history = new com.blog.entity.SearchHistory();
+                history.setKeyword(q.trim());
+                history.setUserId(getCurrentUserId());
+                searchHistoryMapper.insert(history);
+            } catch (Exception e) { log.debug("记录搜索历史失败: {}", e.getMessage()); }
+        }
         return Result.success(postService.searchPosts(q, page, size));
     }
 

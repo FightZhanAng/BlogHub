@@ -1,4 +1,4 @@
-package com.blog.service.impl;
+﻿package com.blog.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -50,8 +50,7 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
                         .eq(Comment::getPostId, post.getId())
                         .orderByAsc(Comment::getCreatedAt));
 
-        // 统计每条评论的直接子回复数
-        Map<Long, Long> replyCountMap = list.stream()
+        // 缁熻姣忔潯璇勮鐨勭洿鎺ュ瓙鍥炲鏁?        Map<Long, Long> replyCountMap = list.stream()
                 .filter(c -> c.getParentId() != null)
                 .collect(Collectors.groupingBy(Comment::getParentId, Collectors.counting()));
 
@@ -67,7 +66,7 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
             m.put("dislikes", c.getDislikes() != null ? c.getDislikes() : 0);
             m.put("createdAt", c.getCreatedAt());
             m.put("replyCount", replyCountMap.getOrDefault(c.getId(), 0L).intValue());
-            // 设置头像
+            // 璁剧疆澶村儚
             if (c.getUserId() != null) {
                 com.blog.entity.User u = userService.getUserById(c.getUserId());
                 if (u != null) m.put("avatar", u.getAvatar());
@@ -84,28 +83,27 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
         ContentModerationService.ModerationResult nickCheck = contentModerationService.moderateText(nickname);
         ContentModerationService.ModerationResult contentCheck = contentModerationService.moderateText(content);
 
-        log.info("敏感词检查: nickname={}, content={}, nickPassed={}, contentPassed={}",
+        log.info("鏁忔劅璇嶆鏌? nickname={}, content={}, nickPassed={}, contentPassed={}",
                 nickname, content, nickCheck.isPassed(), contentCheck.isPassed());
 
         if (!nickCheck.isPassed()) {
-            log.warn("昵称被拒绝: {}", nickCheck.getReason());
+            log.warn("鏄电О琚嫆缁? {}", nickCheck.getReason());
             throw new BusinessException(400, nickCheck.getReason());
         }
         if (!contentCheck.isPassed()) {
-            log.warn("内容被拒绝: {}", contentCheck.getReason());
+            log.warn("鍐呭琚嫆缁? {}", contentCheck.getReason());
             throw new BusinessException(400, contentCheck.getReason());
         }
 
         Comment comment = new Comment();
         comment.setPostId(post.getId());
-        comment.setNickname(nickCheck.getFilteredText() != null ? nickCheck.getFilteredText() : "匿名");
+        comment.setNickname(nickCheck.getFilteredText() != null ? nickCheck.getFilteredText() : "鍖垮悕");
         comment.setContent(contentCheck.getFilteredText() != null ? contentCheck.getFilteredText() : "");
         comment.setParentId(parentId);
         comment.setUserId(userId);
         baseMapper.insert(comment);
 
-        // 创建评论通知（通知文章作者，自己评论自己除外）
-        if (userId == null || !userId.equals(post.getAuthorId())) {
+        // 鍒涘缓璇勮閫氱煡锛堥€氱煡鏂囩珷浣滆€咃紝鑷繁璇勮鑷繁闄ゅ锛?        if (userId == null || !userId.equals(post.getAuthorId())) {
             try {
                 Notification n = new Notification();
                 n.setUserId(post.getAuthorId());
@@ -114,15 +112,15 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
                 n.setIsRead(0);
                 n.setCreatedAt(java.time.LocalDateTime.now());
                 if (parentId != null) {
-                    n.setMessage(comment.getNickname() + " 回复了你的评论");
+                    n.setMessage(comment.getNickname() + " 鍥炲浜嗕綘鐨勮瘎璁?);
                 } else {
-                    n.setMessage(comment.getNickname() + " 评论了你的文章《" + post.getTitle() + "》");
+                    n.setMessage(comment.getNickname() + " 璇勮浜嗕綘鐨勬枃绔犮€? + post.getTitle() + "銆?);
                 }
                 notificationMapper.insert(n);
-            } catch (Exception ignored) {}
+            } catch (Exception e) { log.debug("操作失败: {}", e.getMessage()); }
         }
 
-        // @提及通知：解析 @username 并通知被提及的用户
+        // @鎻愬強閫氱煡锛氳В鏋?@username 骞堕€氱煡琚彁鍙婄殑鐢ㄦ埛
         if (content != null && content.contains("@")) {
             try {
                 java.util.regex.Matcher m = java.util.regex.Pattern.compile("@(\\w{2,20})").matcher(content);
@@ -133,20 +131,19 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
                         Notification n = new Notification();
                         n.setUserId(mentioned.getId());
                         n.setType("mention");
-                        n.setMessage(comment.getNickname() + " 在评论中提到了你");
+                        n.setMessage(comment.getNickname() + " 鍦ㄨ瘎璁轰腑鎻愬埌浜嗕綘");
                         n.setRelatedId(post.getId());
                         n.setIsRead(0);
                         n.setCreatedAt(java.time.LocalDateTime.now());
                         notificationMapper.insert(n);
                     }
                 }
-            } catch (Exception ignored) {}
+            } catch (Exception e) { log.debug("操作失败: {}", e.getMessage()); }
         }
 
-        log.info("评论发表成功: postId={}, nickname={}", post.getId(), nickname);
+        log.info("璇勮鍙戣〃鎴愬姛: postId={}, nickname={}", post.getId(), nickname);
 
-        // 检查徽章
-        if (userId != null) {
+        // 妫€鏌ュ窘绔?        if (userId != null) {
             badgeService.checkAndGrant(userId, "COMMENT_CREATED");
         }
     }
@@ -155,7 +152,7 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
     @Transactional(rollbackFor = Exception.class)
     public void likeComment(Long id) {
         Comment c = baseMapper.selectById(id);
-        if (c == null) throw new RuntimeException("评论不存在");
+        if (c == null) throw new RuntimeException("璇勮涓嶅瓨鍦?);
         c.setLikes(c.getLikes() == null ? 1 : c.getLikes() + 1);
         baseMapper.updateById(c);
     }
@@ -164,7 +161,7 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
     @Transactional(rollbackFor = Exception.class)
     public void dislikeComment(Long id) {
         Comment c = baseMapper.selectById(id);
-        if (c == null) throw new RuntimeException("评论不存在");
+        if (c == null) throw new RuntimeException("璇勮涓嶅瓨鍦?);
         c.setDislikes(c.getDislikes() == null ? 1 : c.getDislikes() + 1);
         baseMapper.updateById(c);
     }
@@ -190,7 +187,7 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
 
         IPage<Comment> ipage = baseMapper.selectPage(new Page<>(page, size), wrapper);
 
-        // 收集文章信息
+        // 鏀堕泦鏂囩珷淇℃伅
         Set<Long> postIds = ipage.getRecords().stream()
                 .map(Comment::getPostId).collect(Collectors.toSet());
         Map<Long, String> postTitles = new HashMap<>();
@@ -207,7 +204,7 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
             Map<String, Object> m = new LinkedHashMap<>();
             m.put("id", c.getId());
             m.put("postId", c.getPostId());
-            m.put("postTitle", postTitles.getOrDefault(c.getPostId(), "已删除"));
+            m.put("postTitle", postTitles.getOrDefault(c.getPostId(), "宸插垹闄?));
             m.put("postSlug", postSlugs.get(c.getPostId()));
             m.put("nickname", c.getNickname());
             m.put("content", c.getContent());
@@ -243,7 +240,7 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
             m.put("likes", c.getLikes() != null ? c.getLikes() : 0);
             m.put("dislikes", c.getDislikes() != null ? c.getDislikes() : 0);
             m.put("createdAt", c.getCreatedAt());
-            // 统计该回复自己的子回复数
+            // 缁熻璇ュ洖澶嶈嚜宸辩殑瀛愬洖澶嶆暟
             Long childCount = baseMapper.selectCount(
                     new LambdaQueryWrapper<Comment>().eq(Comment::getParentId, c.getId()));
             m.put("replyCount", childCount != null ? childCount.intValue() : 0);

@@ -1,4 +1,4 @@
-package com.blog.controller;
+﻿package com.blog.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.blog.common.Result;
@@ -23,12 +23,12 @@ import java.time.LocalDate;
 import java.util.*;
 
 /**
- * 数据统计接口（仅管理员）
+ * 鏁版嵁缁熻鎺ュ彛锛堜粎绠＄悊鍛橈級
  */
 @RestController
 @RequestMapping("/api/stats")
 @RequiredArgsConstructor
-@Tag(name = "数据统计", description = "仪表盘和埋点统计")
+@Tag(name = "鏁版嵁缁熻", description = "浠〃鐩樺拰鍩嬬偣缁熻")
 public class StatsController {
 
     private final PostMapper postMapper;
@@ -42,6 +42,7 @@ public class StatsController {
     private final DailyViewsMapper dailyViewsMapper;
 
     private final TagMapper tagMapper;
+    private final com.blog.mapper.SearchHistoryMapper searchHistoryMapper;
 
     private boolean isAdmin(HttpServletRequest request) {
         try {
@@ -49,14 +50,14 @@ public class StatsController {
             if (h != null && h.startsWith("Bearer ")) {
                 return "admin".equals(jwtUtil.getRole(h.substring(7)));
             }
-        } catch (Exception ignored) {}
+        } catch (Exception e) { log.debug("操作失败: {}", e.getMessage()); }
         return false;
     }
 
-    @Operation(summary = "获取仪表盘数据")
+    @Operation(summary = "鑾峰彇浠〃鐩樻暟鎹?)
     @GetMapping("/dashboard")
     public Result<Map<String, Object>> dashboard(HttpServletRequest request) {
-        if (!isAdmin(request)) return Result.error(403, "无权访问");
+        if (!isAdmin(request)) return Result.error(403, "鏃犳潈璁块棶");
 
         Map<String, Object> data = new HashMap<>();
         data.put("totalPosts", postMapper.selectCount(null));
@@ -85,8 +86,8 @@ public class StatsController {
         return Result.success(data);
     }
 
-    /** 文章阅读趋势 */
-    @Operation(summary = "获取文章阅读趋势")
+    /** 鏂囩珷闃呰瓒嬪娍 */
+    @Operation(summary = "鑾峰彇鏂囩珷闃呰瓒嬪娍")
     @GetMapping("/post/{postId}/trend")
     public Result<List<Map<String, Object>>> postTrend(
             @PathVariable Long postId,
@@ -110,10 +111,23 @@ public class StatsController {
         return Result.success(result);
     }
 
-    /** 热门搜索词 */
     @Operation(summary = "获取热门搜索词")
     @GetMapping("/search-keywords")
     public Result<List<String>> searchKeywords() {
+        // 优先从搜索历史表获取热词，无记录时降级到标签
+        List<com.blog.entity.SearchHistory> recent = searchHistoryMapper.selectList(
+                new LambdaQueryWrapper<com.blog.entity.SearchHistory>()
+                        .ge(com.blog.entity.SearchHistory::getCreatedAt,
+                                java.time.LocalDateTime.now().minusDays(30))
+                        .groupBy(com.blog.entity.SearchHistory::getKeyword)
+                        .orderByDesc("COUNT(*)")
+                        .last("LIMIT 10"));
+        if (recent != null && !recent.isEmpty()) {
+            return Result.success(recent.stream()
+                    .map(com.blog.entity.SearchHistory::getKeyword)
+                    .collect(java.util.stream.Collectors.toList()));
+        }
+        // 降级：热门标签
         List<String> keywords = tagMapper.selectList(
                 new LambdaQueryWrapper<com.blog.entity.Tag>()
                         .orderByDesc(com.blog.entity.Tag::getPostCount)
@@ -124,10 +138,10 @@ public class StatsController {
         return Result.success(keywords);
     }
 
-    /** 埋点事件接收 */
+    /** 鍩嬬偣浜嬩欢鎺ユ敹 */
     private static final Logger statsLog = LoggerFactory.getLogger("tracking");
 
-    @Operation(summary = "接收埋点事件")
+    @Operation(summary = "鎺ユ敹鍩嬬偣浜嬩欢")
     @PostMapping("/track")
     public Result<Void> track(@Valid @RequestBody TrackRequest body) {
         statsLog.info("event={} url={} visitorId={}", body.getEvent(), body.getUrl(), body.getVisitorId());

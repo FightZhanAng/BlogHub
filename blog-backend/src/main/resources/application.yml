@@ -45,7 +45,7 @@ spring:
 
 # JWT 配置
 jwt:
-  secret: QmxvZ0h1YkAyMDI0U2VjcmV0S2V5Rm9ySldUVG9rZW5HZW5lcmF0aW9u
+  secret: ${JWT_SECRET:QmxvZ0h1YkAyMDI0U2VjcmV0S2V5Rm9ySldUVG9rZW5HZW5lcmF0aW9u}
   expiration: 86400000       # Access Token: 24h
   refresh-expiration: 604800000  # Refresh Token: 7d
 

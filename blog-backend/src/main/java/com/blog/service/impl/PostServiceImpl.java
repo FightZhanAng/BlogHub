@@ -1,4 +1,4 @@
-package com.blog.service.impl;
+﻿package com.blog.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
@@ -62,32 +62,30 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
 
     @Override
     public IPage<Post> getPublishedPosts(int page, int size, String tag, String keyword, String role, Long userId) {
-        log.info("查询文章列表 page={}, size={}, tag={}, keyword={}, role={}, userId={}", page, size, tag, keyword, role, userId);
+        log.info("鏌ヨ鏂囩珷鍒楄〃 page={}, size={}, tag={}, keyword={}, role={}, userId={}", page, size, tag, keyword, role, userId);
         boolean isAdmin = "admin".equals(role);
         LambdaQueryWrapper<Post> wrapper = new LambdaQueryWrapper<Post>()
                 .eq(Post::getStatus, 1)
                 .orderByDesc(Post::getIsPinned)
                 .orderByDesc(Post::getCreatedAt);
-        // 管理员可以看到隐藏文章，普通用户看不到
+        // 绠＄悊鍛樺彲浠ョ湅鍒伴殣钘忔枃绔狅紝鏅€氱敤鎴风湅涓嶅埌
         if (!isAdmin) {
             wrapper.eq(Post::getIsHidden, 0);
         }
-        // 私有文章：仅作者本人可见
-        if (userId != null) {
+        // 绉佹湁鏂囩珷锛氫粎浣滆€呮湰浜哄彲瑙?        if (userId != null) {
             wrapper.apply("(is_private = 0 OR author_id = {0})", userId);
         } else {
             wrapper.eq(Post::getIsPrivate, 0);
         }
         if (tag != null && !tag.trim().isEmpty()) {
-            // 安全查询：先通过参数化查询获取 tagId，再关联 post_tag
+            // 瀹夊叏鏌ヨ锛氬厛閫氳繃鍙傛暟鍖栨煡璇㈣幏鍙?tagId锛屽啀鍏宠仈 post_tag
             List<Long> tagIds = tagService.getTagIdsBySlugOrName(tag.trim());
             if (!tagIds.isEmpty()) {
                 wrapper.inSql(Post::getId,
                     "SELECT post_id FROM post_tag WHERE tag_id IN (" +
                     tagIds.stream().map(String::valueOf).collect(Collectors.joining(",")) + ")");
             } else {
-                // 无匹配标签，返回空结果
-                wrapper.inSql(Post::getId, "SELECT id FROM post WHERE 1=0");
+                // 鏃犲尮閰嶆爣绛撅紝杩斿洖绌虹粨鏋?                wrapper.inSql(Post::getId, "SELECT id FROM post WHERE 1=0");
             }
         }
         if (keyword != null && !keyword.trim().isEmpty()) {
@@ -101,32 +99,30 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
     @Override
     @Cacheable(value = "posts", key = "'slug:' + #slug")
     public Post getBySlug(String slug) {
-        log.debug("查询文章: slug={}", slug);
+        log.debug("鏌ヨ鏂囩珷: slug={}", slug);
         Post post = baseMapper.selectOne(
                 new LambdaQueryWrapper<Post>().eq(Post::getSlug, slug));
         if (post == null) {
-            throw new ResourceNotFoundException("文章", "slug", slug);
+            throw new ResourceNotFoundException("鏂囩珷", "slug", slug);
         }
-        // 草稿文章只允许作者本人访问
-        if (post.getStatus() == 0) {
-            throw new ResourceNotFoundException("文章", "slug", slug);
+        // 鑽夌鏂囩珷鍙厑璁镐綔鑰呮湰浜鸿闂?        if (post.getStatus() == 0) {
+            throw new ResourceNotFoundException("鏂囩珷", "slug", slug);
         }
         return post;
     }
 
     @Override
     public Post getBySlugForEdit(String slug, Long userId) {
-        log.debug("查询文章(编辑): slug={}, userId={}", slug, userId);
+        log.debug("鏌ヨ鏂囩珷(缂栬緫): slug={}, userId={}", slug, userId);
         Post post = baseMapper.selectOne(
                 new LambdaQueryWrapper<Post>().eq(Post::getSlug, slug));
         if (post == null) {
-            throw new ResourceNotFoundException("文章", "slug", slug);
+            throw new ResourceNotFoundException("鏂囩珷", "slug", slug);
         }
-        // 草稿文章只允许作者本人访问
-        if (post.getStatus() == 0) {
+        // 鑽夌鏂囩珷鍙厑璁镐綔鑰呮湰浜鸿闂?        if (post.getStatus() == 0) {
             boolean isOwner = userId != null && post.getAuthorId() != null && userId.equals(post.getAuthorId());
             if (!isOwner) {
-                throw new ResourceNotFoundException("文章", "slug", slug);
+                throw new ResourceNotFoundException("鏂囩珷", "slug", slug);
             }
         }
         return post;
@@ -159,12 +155,11 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void incrementViews(Long id) {
-        log.debug("增加阅读量: postId={}", id);
+        log.debug("澧炲姞闃呰閲? postId={}", id);
         baseMapper.update(null, new LambdaUpdateWrapper<Post>()
                 .setSql("views = views + 1")
                 .eq(Post::getId, id));
-        // 记录每日阅读量
-        try {
+        // 璁板綍姣忔棩闃呰閲?        try {
             java.time.LocalDate today = java.time.LocalDate.now();
             DailyViews dv = dailyViewsMapper.selectOne(
                     new LambdaQueryWrapper<DailyViews>()
@@ -181,14 +176,14 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
                 dailyViewsMapper.insert(dv);
             }
         } catch (Exception e) {
-            log.warn("记录每日阅读量失败: {}", e.getMessage());
+            log.warn("璁板綍姣忔棩闃呰閲忓け璐? {}", e.getMessage());
         }
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void updateLikesCount(Long id) {
-        log.debug("更新点赞数: postId={}", id);
+        log.debug("鏇存柊鐐硅禐鏁? postId={}", id);
         int count = baseMapper.selectCountLikes(id);
         baseMapper.update(null, new LambdaUpdateWrapper<Post>()
                 .set(Post::getLikes, count)
@@ -208,7 +203,7 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
     @Transactional(rollbackFor = Exception.class)
     @CacheEvict(value = {"posts", "archive"}, allEntries = true)
     public PostResponse createPost(CreatePostRequest request, Long userId) {
-        log.info("创建文章: title={}, authorId={}", request.getTitle(), userId);
+        log.info("鍒涘缓鏂囩珷: title={}, authorId={}", request.getTitle(), userId);
 
         ContentModerationService.ModerationResult titleCheck = contentModerationService.moderateText(request.getTitle());
         ContentModerationService.ModerationResult descCheck = contentModerationService.moderateText(request.getDescription());
@@ -217,24 +212,23 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
         request.setDescription(descCheck.getFilteredText());
         request.setContent(contentCheck.getFilteredText());
 
-        // 检查 slug 是否被其他用户占用
-        Post slugOwner = baseMapper.selectOne(
+        // 妫€鏌?slug 鏄惁琚叾浠栫敤鎴峰崰鐢?        Post slugOwner = baseMapper.selectOne(
                 new LambdaQueryWrapper<Post>()
                         .eq(Post::getSlug, request.getSlug())
                         .select(Post::getAuthorId)
                         .last("LIMIT 1")
         );
         if (slugOwner != null && slugOwner.getAuthorId() != null && !slugOwner.getAuthorId().equals(userId)) {
-            throw new BusinessException(400, "该 URL 标识已被其他用户占用，请更换");
+            throw new BusinessException(400, "璇?URL 鏍囪瘑宸茶鍏朵粬鐢ㄦ埛鍗犵敤锛岃鏇存崲");
         }
 
-        // 检查是否已存在同 slug 的文章（同作者），存在则更新而非新建
+        // 妫€鏌ユ槸鍚﹀凡瀛樺湪鍚?slug 鐨勬枃绔狅紙鍚屼綔鑰咃級锛屽瓨鍦ㄥ垯鏇存柊鑰岄潪鏂板缓
         Post existing = baseMapper.selectOne(
                 new LambdaQueryWrapper<Post>()
                         .eq(Post::getSlug, request.getSlug())
                         .eq(Post::getAuthorId, userId));
         if (existing != null) {
-            // 更新已有草稿
+            // 鏇存柊宸叉湁鑽夌
             existing.setTitle(request.getTitle());
             existing.setDescription(request.getDescription());
             existing.setContent(request.getContent());
@@ -245,8 +239,7 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
             existing.setCoverImage(request.getCoverImage());
             existing.setSeriesId(request.getSeriesId());
             if (request.getIsPrivate() != null) existing.setIsPrivate(request.getIsPrivate());
-            // 发布时清除定时发布时间
-            if (newStatus != 2) {
+            // 鍙戝竷鏃舵竻闄ゅ畾鏃跺彂甯冩椂闂?            if (newStatus != 2) {
                 existing.setScheduledAt(null);
             } else if (request.getScheduledAt() != null && !request.getScheduledAt().isEmpty()) {
                 existing.setScheduledAt(java.time.LocalDateTime.parse(request.getScheduledAt()));
@@ -255,11 +248,11 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
             saveVersion(existing, getNextVersion(existing.getId()));
             tagService.updatePostTags(existing.getId(), request.getTags());
             linkPostImages(existing.getId(), request.getContent(), request.getCoverImage());
-            log.info("文章更新成功: id={}, slug={}", existing.getId(), existing.getSlug());
+            log.info("鏂囩珷鏇存柊鎴愬姛: id={}, slug={}", existing.getId(), existing.getSlug());
             return PostResponse.from(existing);
         }
 
-        // 新建文章
+        // 鏂板缓鏂囩珷
         Post post = new Post();
         post.setSlug(request.getSlug());
         post.setTitle(request.getTitle());
@@ -276,7 +269,7 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
         post.setSeriesId(request.getSeriesId());
         post.setIsPrivate(request.getIsPrivate() != null ? request.getIsPrivate() : 0);
         post.setIsHidden(0);
-        // 非定时发布时清除定时发布时间
+        // 闈炲畾鏃跺彂甯冩椂娓呴櫎瀹氭椂鍙戝竷鏃堕棿
         if (newStatus != 2) {
             post.setScheduledAt(null);
         } else if (request.getScheduledAt() != null && !request.getScheduledAt().isEmpty()) {
@@ -286,10 +279,9 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
         saveVersion(post, 1);
         tagService.updatePostTags(post.getId(), request.getTags());
         linkPostImages(post.getId(), request.getContent(), request.getCoverImage());
-        log.info("文章创建成功: id={}, slug={}", post.getId(), post.getSlug());
+        log.info("鏂囩珷鍒涘缓鎴愬姛: id={}, slug={}", post.getId(), post.getSlug());
 
-        // 检查徽章
-        if (userId != null) {
+        // 妫€鏌ュ窘绔?        if (userId != null) {
             badgeService.checkAndGrant(userId, "POST_CREATED");
         }
 
@@ -300,17 +292,17 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
     @Transactional(rollbackFor = Exception.class)
     @CacheEvict(value = {"posts", "archive"}, allEntries = true)
     public PostResponse updatePost(Long id, UpdatePostRequest request, Long userId, String role) {
-        log.info("更新文章: id={}, userId={}", id, userId);
+        log.info("鏇存柊鏂囩珷: id={}, userId={}", id, userId);
         Post post = baseMapper.selectById(id);
         if (post == null) {
-            throw new BusinessException(404, "文章不存在");
+            throw new BusinessException(404, "鏂囩珷涓嶅瓨鍦?);
         }
 
-        // 权限校验
+        // 鏉冮檺鏍￠獙
         boolean isAdmin = "admin".equals(role);
         boolean isOwner = userId != null && post.getAuthorId() != null && userId.equals(post.getAuthorId());
         if (!isOwner && !isAdmin) {
-            throw new BusinessException(403, "无权修改此文章");
+            throw new BusinessException(403, "鏃犳潈淇敼姝ゆ枃绔?);
         }
 
         if (request.getSlug() != null) post.setSlug(request.getSlug());
@@ -326,7 +318,7 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
         if (request.getTags() != null) post.setTags(request.getTags());
         if (request.getStatus() != null) {
             post.setStatus(request.getStatus());
-            // 非定时发布时清除定时发布时间
+            // 闈炲畾鏃跺彂甯冩椂娓呴櫎瀹氭椂鍙戝竷鏃堕棿
             if (request.getStatus() != 2) {
                 post.setScheduledAt(null);
             }
@@ -341,11 +333,11 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
         }
         baseMapper.updateById(post);
         saveVersion(post, getNextVersion(id));
-        // 更新标签关联
+        // 鏇存柊鏍囩鍏宠仈
         tagService.updatePostTags(post.getId(), request.getTags());
-        // 关联图片
+        // 鍏宠仈鍥剧墖
         linkPostImages(post.getId(), request.getContent(), request.getCoverImage());
-        log.info("文章更新成功: id={}", id);
+        log.info("鏂囩珷鏇存柊鎴愬姛: id={}", id);
         return PostResponse.from(post);
     }
 
@@ -353,20 +345,20 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
     @Transactional(rollbackFor = Exception.class)
     @CacheEvict(value = {"posts", "archive"}, allEntries = true)
     public void deletePost(Long id, Long userId, String role) {
-        log.info("删除文章: id={}, userId={}", id, userId);
+        log.info("鍒犻櫎鏂囩珷: id={}, userId={}", id, userId);
         Post post = baseMapper.selectById(id);
         if (post == null) {
-            throw new BusinessException(404, "文章不存在");
+            throw new BusinessException(404, "鏂囩珷涓嶅瓨鍦?);
         }
 
         boolean isAdmin = "admin".equals(role);
         boolean isOwner = userId != null && post.getAuthorId() != null && userId.equals(post.getAuthorId());
         if (!isOwner && !isAdmin) {
-            throw new BusinessException(403, "无权删除此文章");
+            throw new BusinessException(403, "鏃犳潈鍒犻櫎姝ゆ枃绔?);
         }
 
         baseMapper.deleteById(id);
-        log.info("文章删除成功: id={}", id);
+        log.info("鏂囩珷鍒犻櫎鎴愬姛: id={}", id);
     }
 
     @Override
@@ -375,19 +367,18 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
         Post post = getBySlug(slug);
         incrementViews(post.getId());
         post.setViews(post.getViews() + 1);
-        log.info("查看文章: slug={}, views={}", slug, post.getViews());
+        log.info("鏌ョ湅鏂囩珷: slug={}, views={}", slug, post.getViews());
 
-        // 检查徽章（文章阅读量）
+        // 妫€鏌ュ窘绔狅紙鏂囩珷闃呰閲忥級
         if (post.getAuthorId() != null) {
             badgeService.checkAndGrant(post.getAuthorId(), "POST_VIEWED");
         }
         PostResponse res = PostResponse.from(post);
-        // 设置作者头像
-        if (post.getAuthorId() != null) {
+        // 璁剧疆浣滆€呭ご鍍?        if (post.getAuthorId() != null) {
             try {
                 com.blog.entity.User u = userMapper.selectById(post.getAuthorId());
                 if (u != null) res.setAuthorAvatar(u.getAvatar());
-            } catch (Exception ignored) {}
+            } catch (Exception e) { log.debug("操作失败: {}", e.getMessage()); }
         }
         return res;
     }
@@ -406,8 +397,7 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
                             .orderByDesc(Post::getViews)
                             .last("LIMIT " + safeLimit));
         }
-        // 按标签匹配（通过 post_tag 关联表），拆分逗号分隔的标签
-        List<Long> tagIds = new ArrayList<>();
+        // 鎸夋爣绛惧尮閰嶏紙閫氳繃 post_tag 鍏宠仈琛級锛屾媶鍒嗛€楀彿鍒嗛殧鐨勬爣绛?        List<Long> tagIds = new ArrayList<>();
         for (String tag : current.getTags().split(",")) {
             tagIds.addAll(tagService.getTagIdsBySlugOrName(tag.trim()));
         }
@@ -443,9 +433,9 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
                 .isNotNull(Post::getScheduledAt)
                 .le(Post::getScheduledAt, LocalDateTime.now()));
         if (count > 0) {
-            log.info("定时发布: {} 篇文章已发布", count);
+            log.info("瀹氭椂鍙戝竷: {} 绡囨枃绔犲凡鍙戝竷", count);
         }
-        XxlJobHelper.log("定时发布: {} 篇文章已发布", count);
+        XxlJobHelper.log("瀹氭椂鍙戝竷: {} 绡囨枃绔犲凡鍙戝竷", count);
         return count;
     }
 
@@ -493,8 +483,7 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
                         .eq(Post::getIsHidden, 0)
                         .orderByDesc(Post::getCreatedAt)
                         .select(Post::getId, Post::getTitle, Post::getSlug, Post::getCreatedAt));
-        // 按年月分组
-        Map<String, List<Map<String, Object>>> grouped = new LinkedHashMap<>();
+        // 鎸夊勾鏈堝垎缁?        Map<String, List<Map<String, Object>>> grouped = new LinkedHashMap<>();
         for (Post p : posts) {
             String key = p.getCreatedAt().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM"));
             Map<String, Object> item = new LinkedHashMap<>();
@@ -513,7 +502,7 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
         return result;
     }
 
-    /** 保存版本历史 */
+    /** 淇濆瓨鐗堟湰鍘嗗彶 */
     private void saveVersion(Post post, int version) {
         try {
             PostVersion pv = new PostVersion();
@@ -523,7 +512,7 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
             pv.setVersion(version);
             pv.setCreatedAt(LocalDateTime.now());
             postVersionMapper.insert(pv);
-            // 超过50个版本时清理最旧的
+            // 瓒呰繃50涓増鏈椂娓呯悊鏈€鏃х殑
             long count = postVersionMapper.selectCount(
                     new LambdaQueryWrapper<PostVersion>().eq(PostVersion::getPostId, post.getId()));
             if (count > 50) {
@@ -534,11 +523,11 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
                                 .last("LIMIT " + (count - 50)));
             }
         } catch (Exception e) {
-            log.warn("版本保存失败: postId={}", post.getId(), e);
+            log.warn("鐗堟湰淇濆瓨澶辫触: postId={}", post.getId(), e);
         }
     }
 
-    /** 获取下一个版本号 */
+    /** 鑾峰彇涓嬩竴涓増鏈彿 */
     private int getNextVersion(Long postId) {
         PostVersion last = postVersionMapper.selectOne(
                 new LambdaQueryWrapper<PostVersion>()
@@ -548,14 +537,13 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
         return (last != null ? last.getVersion() : 0) + 1;
     }
 
-    /** 扫描文章内容中的图片并建立关联 */
+    /** 鎵弿鏂囩珷鍐呭涓殑鍥剧墖骞跺缓绔嬪叧鑱?*/
     private void linkPostImages(Long postId, String content, String coverImage) {
         try {
-            // 封面图
-            if (coverImage != null && !coverImage.isEmpty()) {
+            // 灏侀潰鍥?            if (coverImage != null && !coverImage.isEmpty()) {
                 String path = coverImage;
                 if (path.startsWith("http")) {
-                    try { path = new java.net.URL(path).getPath(); } catch (Exception ignored) {}
+                    try { path = new java.net.URL(path).getPath(); } catch (Exception e) { log.debug("操作失败: {}", e.getMessage()); }
                 }
                 imageMapper.update(null,
                         new LambdaUpdateWrapper<Image>()
@@ -563,7 +551,7 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
                                 .set(Image::getType, "cover")
                                 .eq(Image::getPath, path));
             }
-            // 正文图片
+            // 姝ｆ枃鍥剧墖
             if (content != null && !content.isEmpty()) {
                 String clean = content.replaceAll("https?://[^/]+", "");
                 java.util.regex.Matcher m =
@@ -579,7 +567,7 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
                 }
             }
         } catch (Exception e) {
-            log.warn("关联图片失败: {}", e.getMessage());
+            log.warn("鍏宠仈鍥剧墖澶辫触: {}", e.getMessage());
         }
     }
 }

@@ -1,4 +1,4 @@
-package com.blog.controller;
+﻿package com.blog.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
@@ -28,7 +28,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor
-@Tag(name = "社交功能", description = "关注、通知和排行榜")
+@Tag(name = "绀句氦鍔熻兘", description = "鍏虫敞銆侀€氱煡鍜屾帓琛屾")
 public class SocialController {
 
     private final com.blog.mapper.UserMapper userMapper;
@@ -49,7 +49,7 @@ public class SocialController {
             if (h != null && h.startsWith("Bearer ")) {
                 return jwtUtil.getUserId(h.substring(7));
             }
-        } catch (Exception ignored) {}
+        } catch (Exception e) { log.debug("操作失败: {}", e.getMessage()); }
         return null;
     }
 
@@ -59,26 +59,26 @@ public class SocialController {
             if (h != null && h.startsWith("Bearer ")) {
                 return jwtUtil.getUsername(h.substring(7));
             }
-        } catch (Exception ignored) {}
+        } catch (Exception e) { log.debug("操作失败: {}", e.getMessage()); }
         return null;
     }
 
-    // ==================== 关注 ====================
+    // ==================== 鍏虫敞 ====================
 
-    @Operation(summary = "关注用户")
+    @Operation(summary = "鍏虫敞鐢ㄦ埛")
     @PostMapping("/follows")
     public Result<Void> follow(@Valid @RequestBody FollowRequest body) {
         Long userId = getUserId();
-        if (userId == null) return Result.error(403, "请先登录");
+        if (userId == null) return Result.error(403, "璇峰厛鐧诲綍");
         Long followingId = body.getUserId();
-        if (userId.equals(followingId)) return Result.error(400, "不能关注自己");
+        if (userId.equals(followingId)) return Result.error(400, "涓嶈兘鍏虫敞鑷繁");
         Follow f = new Follow();
         f.setFollowerId(userId);
         f.setFollowingId(followingId);
         f.setCreatedAt(LocalDateTime.now());
         try {
             followMapper.insert(f);
-            // 关注通知
+            // 鍏虫敞閫氱煡
             Notification n = new Notification();
             n.setUserId(followingId);
             n.setType("follow");
@@ -86,29 +86,29 @@ public class SocialController {
             n.setIsRead(0);
             n.setCreatedAt(LocalDateTime.now());
             String username = getUsername();
-            n.setMessage((username != null ? username : "有人") + "关注了你");
+            n.setMessage((username != null ? username : "鏈変汉") + "鍏虫敞浜嗕綘");
             notificationMapper.insert(n);
-        } catch (Exception ignored) {}
+        } catch (Exception e) { log.debug("操作失败: {}", e.getMessage()); }
         return Result.success(null);
     }
 
-    @Operation(summary = "取消关注")
+    @Operation(summary = "鍙栨秷鍏虫敞")
     @DeleteMapping("/follows/{userId}")
     public Result<Void> unfollow(@PathVariable Long userId) {
         Long cur = getUserId();
-        if (cur == null) return Result.error(403, "请先登录");
+        if (cur == null) return Result.error(403, "璇峰厛鐧诲綍");
         followMapper.delete(new LambdaQueryWrapper<Follow>()
                 .eq(Follow::getFollowerId, cur)
                 .eq(Follow::getFollowingId, userId));
         return Result.success(null);
     }
 
-    @Operation(summary = "获取用户主页信息")
+    @Operation(summary = "鑾峰彇鐢ㄦ埛涓婚〉淇℃伅")
     @GetMapping("/users/{id}/profile")
     public Result<Map<String, Object>> profile(@PathVariable Long id) {
         Map<String, Object> data = new HashMap<>();
         data.put("userId", id);
-        // 用户基本信息
+        // 鐢ㄦ埛鍩烘湰淇℃伅
         com.blog.entity.User user = userMapper.selectById(id);
         if (user != null) {
             data.put("username", user.getUsername());
@@ -131,22 +131,22 @@ public class SocialController {
         return Result.success(data);
     }
 
-    // ==================== 通知 ====================
+    // ==================== 閫氱煡 ====================
 
-    @Operation(summary = "获取通知列表")
+    @Operation(summary = "鑾峰彇閫氱煡鍒楄〃")
     @GetMapping("/notifications")
     public Result<IPage<Notification>> notifications(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "20") int size) {
         Long userId = getUserId();
-        if (userId == null) return Result.error(403, "请先登录");
+        if (userId == null) return Result.error(403, "璇峰厛鐧诲綍");
         return Result.success(notificationMapper.selectPage(new Page<>(page, size),
                 new LambdaQueryWrapper<Notification>()
                         .eq(Notification::getUserId, userId)
                         .orderByDesc(Notification::getCreatedAt)));
     }
 
-    @Operation(summary = "获取未读通知数")
+    @Operation(summary = "鑾峰彇鏈閫氱煡鏁?)
     @GetMapping("/notifications/unread-count")
     public Result<Map<String, Long>> unreadCount() {
         Long userId = getUserId();
@@ -164,7 +164,7 @@ public class SocialController {
         return Result.success(r);
     }
 
-    @Operation(summary = "标记全部通知已读")
+    @Operation(summary = "鏍囪鍏ㄩ儴閫氱煡宸茶")
     @PutMapping("/notifications/read-all")
     public Result<Void> readAll() {
         Long userId = getUserId();
@@ -176,9 +176,9 @@ public class SocialController {
         return Result.success();
     }
 
-    // ==================== 排行榜 ====================
+    // ==================== 鎺掕姒?====================
 
-    @Operation(summary = "获取文章排行榜")
+    @Operation(summary = "鑾峰彇鏂囩珷鎺掕姒?)
     @GetMapping("/posts/ranking")
     public Result<List<Post>> ranking() {
         List<Post> top = postMapper.selectList(

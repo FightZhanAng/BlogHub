@@ -1,4 +1,4 @@
-package com.blog.controller;
+﻿package com.blog.controller;
 
 import com.blog.common.AuditLog;
 import com.blog.common.HtmlSanitizer;
@@ -22,7 +22,7 @@ import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
-@Tag(name = "评论管理", description = "文章评论和评论管理")
+@Tag(name = "璇勮绠＄悊", description = "鏂囩珷璇勮鍜岃瘎璁虹鐞?)
 public class CommentController {
 
     private final CommentService commentService;
@@ -42,19 +42,19 @@ public class CommentController {
                     return "admin".equals(jwtUtil.getRole(token));
                 }
             }
-        } catch (Exception ignored) {}
+        } catch (Exception e) { log.debug("操作失败: {}", e.getMessage()); }
         return false;
     }
 
-    // ========== 文章评论（公开） ==========
+    // ========== 鏂囩珷璇勮锛堝叕寮€锛?==========
 
-    @Operation(summary = "获取文章评论列表")
+    @Operation(summary = "鑾峰彇鏂囩珷璇勮鍒楄〃")
     @GetMapping("/api/posts/{slug}/comments")
     public Result<List<Map<String, Object>>> postComments(@PathVariable String slug) {
         return Result.success(commentService.getPostComments(slug));
     }
 
-    @Operation(summary = "添加评论")
+    @Operation(summary = "娣诲姞璇勮")
     @PostMapping("/api/posts/{slug}/comments")
     public Result<Void> addComment(@PathVariable String slug,
                                     @Valid @RequestBody CommentRequest body) {
@@ -65,7 +65,7 @@ public class CommentController {
         return Result.success(null);
     }
 
-    @Operation(summary = "懒加载评论回复")
+    @Operation(summary = "鎳掑姞杞借瘎璁哄洖澶?)
     @GetMapping("/api/comments/{id}/replies")
     public Result<PageResult<Map<String, Object>>> replies(
             @PathVariable Long id,
@@ -81,13 +81,13 @@ public class CommentController {
                 String token = header.substring(7);
                 if (jwtUtil.validateToken(token)) return jwtUtil.getUserId(token);
             }
-        } catch (Exception ignored) {}
+        } catch (Exception e) { log.debug("操作失败: {}", e.getMessage()); }
         return null;
     }
 
-    // ========== 评论赞/踩（公开） ==========
+    // ========== 璇勮璧?韪╋紙鍏紑锛?==========
 
-    @Operation(summary = "评论点赞/点踩")
+    @Operation(summary = "璇勮鐐硅禐/鐐硅俯")
     @PostMapping("/api/comments/{id}/reaction")
     public Result<Void> react(@PathVariable Long id, @Valid @RequestBody ReactionRequest body) {
         Long userId = getCurrentUserId();
@@ -96,7 +96,7 @@ public class CommentController {
         return Result.success(null);
     }
 
-    @Operation(summary = "取消评论反应")
+    @Operation(summary = "鍙栨秷璇勮鍙嶅簲")
     @DeleteMapping("/api/comments/{id}/reaction")
     public Result<Void> removeReaction(@PathVariable Long id) {
         Long userId = getCurrentUserId();
@@ -105,7 +105,7 @@ public class CommentController {
         return Result.success(null);
     }
 
-    @Operation(summary = "获取评论反应统计")
+    @Operation(summary = "鑾峰彇璇勮鍙嶅簲缁熻")
     @GetMapping("/api/comments/{id}/reactions")
     public Result<ReactionResponse> getReactions(@PathVariable Long id) {
         Long userId = getCurrentUserId();
@@ -121,32 +121,32 @@ public class CommentController {
         return request.getRemoteAddr();
     }
 
-    // ========== 评论统计 ==========
+    // ========== 璇勮缁熻 ==========
 
-    @Operation(summary = "获取评论统计")
+    @Operation(summary = "鑾峰彇璇勮缁熻")
     @GetMapping("/api/comments/stats")
     public Result<Map<String, Object>> stats() {
         return Result.success(commentService.getStats());
     }
 
-    // ========== 评论管理（仅管理员） ==========
+    // ========== 璇勮绠＄悊锛堜粎绠＄悊鍛橈級 ==========
 
-    @Operation(summary = "分页查询评论列表")
+    @Operation(summary = "鍒嗛〉鏌ヨ璇勮鍒楄〃")
     @GetMapping("/api/comments")
     public Result<PageResult<Map<String, Object>>> list(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String nickname) {
-        if (!isAdminUser()) return Result.error(403, "无权访问");
+        if (!isAdminUser()) return Result.error(403, "鏃犳潈璁块棶");
         return Result.success(commentService.getCommentList(page, size, keyword, nickname));
     }
 
-    @Operation(summary = "删除评论")
+    @Operation(summary = "鍒犻櫎璇勮")
     @DeleteMapping("/api/comments/{id}")
-    @AuditLog(action = "删除评论", resource = "#id")
+    @AuditLog(action = "鍒犻櫎璇勮", resource = "#id")
     public Result<Void> delete(@PathVariable Long id) {
-        if (!isAdminUser()) return Result.error(403, "无权访问");
+        if (!isAdminUser()) return Result.error(403, "鏃犳潈璁块棶");
         commentService.removeById(id);
         return Result.success();
     }
