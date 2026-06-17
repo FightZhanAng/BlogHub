@@ -173,16 +173,18 @@ public class PostController {
             @RequestParam String q,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size) {
+        Long userId = getCurrentUserId();
+        String role = getCurrentRole();
         // 记录搜索历史
         if (q != null && !q.trim().isEmpty()) {
             try {
                 com.blog.entity.SearchHistory history = new com.blog.entity.SearchHistory();
                 history.setKeyword(q.trim());
-                history.setUserId(getCurrentUserId());
+                history.setUserId(userId);
                 searchHistoryMapper.insert(history);
             } catch (Exception e) { log.debug("记录搜索历史失败: {}", e.getMessage()); }
         }
-        return Result.success(postService.searchPosts(q, page, size));
+        return Result.success(postService.searchPosts(q, page, size, role, userId));
     }
 
     @Operation(summary = "文章归档", description = "按年月分组的已发布文章列表")

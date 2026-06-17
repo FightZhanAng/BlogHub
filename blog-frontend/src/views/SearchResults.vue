@@ -51,10 +51,34 @@
         class="result-card"
         @click="$router.push('/blog/' + p.slug)"
       >
-        <div class="result-title">{{ p.title }}</div>
-        <div class="result-desc">{{ p.description || '暂无摘要' }}</div>
+        <!-- 标题 + 标识 -->
+        <div class="result-title">
+          <span v-if="p.isPinned" class="badge pin">置顶</span>
+          <span v-if="p.isPrivate" class="badge private">🔒 仅自己可见</span>
+          <span v-if="p.isHidden" class="badge hidden">🚫 已隐藏</span>
+          <span v-html="highlight(p.title)"></span>
+        </div>
+
+        <!-- 摘要（高亮关键词） -->
+        <div class="result-desc" v-html="highlight(p.description || '暂无摘要')"></div>
+
+        <!-- 标签 -->
+        <div v-if="p.tags" class="result-tags">
+          <el-tag
+            v-for="tag in parseTags(p.tags)"
+            :key="tag"
+            size="small"
+            effect="plain"
+            class="result-tag"
+            @click.stop="keyword = tag; doSearch()"
+          >
+            {{ tag }}
+          </el-tag>
+        </div>
+
+        <!-- 元信息 -->
         <div class="result-meta">
-          <span>{{ new Date(p.createdAt).toLocaleDateString() }}</span>
+          <span>{{ formatDate(p.createdAt) }}</span>
           <span>·</span>
           <span>{{ p.likes || 0 }} 赞</span>
           <span>·</span>
@@ -78,7 +102,7 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted } from 'vue'
+import { ref, watch, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Search } from '@element-plus/icons-vue'
 import request from '@/api/request'
@@ -103,6 +127,26 @@ watch(keyword, (val) => {
   }
 })
 
+/** 高亮关键词 */
+function highlight(text) {
+  if (!text || !query.value) return text
+  const escaped = query.value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  const regex = new RegExp(`(${escaped})`, 'gi')
+  return text.replace(regex, '<mark class="hl">$1</mark>')
+}
+
+/** 解析标签字符串 */
+function parseTags(tags) {
+  if (!tags) return []
+  return tags.split(',').map(t => t.trim()).filter(Boolean)
+}
+
+/** 格式化日期 */
+function formatDate(dateStr) {
+  if (!dateStr) return ''
+  return new Date(dateStr).toLocaleDateString('zh-CN')
+}
+
 async function fetchHotKeywords() {
   try {
     const res = await request.get('/stats/search-keywords')
@@ -117,6 +161,8 @@ async function doSearch() {
   searched.value = true
   page.value = 1
   await fetchResults()
+  // 搜索后刷新热词
+  fetchHotKeywords()
 }
 
 async function fetchResults() {
@@ -219,7 +265,35 @@ onMounted(() => {
   font-weight: 600;
   color: var(--color-text);
   margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
 }
+
+.badge {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.badge.pin {
+  color: var(--color-accent);
+  border: 1px solid var(--color-accent);
+}
+
+.badge.private {
+  color: #e6a23c;
+  border: 1px solid #e6a23c;
+}
+
+.badge.hidden {
+  color: #f56c6c;
+  border: 1px solid #f56c6c;
+}
+
 .result-desc {
   font-size: 13px;
   color: var(--color-text-secondary);
@@ -228,6 +302,31 @@ onMounted(() => {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* 关键词高亮 */
+:deep(.hl) {
+  background: rgba(255, 213, 79, 0.4);
+  color: inherit;
+  padding: 0 2px;
+  border-radius: 2px;
+}
+
+.result-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.result-tag {
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.result-tag:hover {
+  opacity: 0.8;
+}
+
 .result-meta {
   font-size: 12px;
   color: var(--color-text-placeholder);

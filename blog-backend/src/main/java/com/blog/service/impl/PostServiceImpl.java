@@ -442,15 +442,24 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
     }
 
     @Override
-    public IPage<Post> searchPosts(String query, int page, int size) {
+    public IPage<Post> searchPosts(String query, int page, int size, String role, Long userId) {
+        boolean isAdmin = "admin".equals(role);
         LambdaQueryWrapper<Post> wrapper = new LambdaQueryWrapper<Post>()
-                .eq(Post::getStatus, 1)
-                .eq(Post::getIsPrivate, 0)
-                .eq(Post::getIsHidden, 0);
+                .eq(Post::getStatus, 1);
+        // 管理员可以看到隐藏文章
+        if (!isAdmin) {
+            wrapper.eq(Post::getIsHidden, 0);
+        }
+        // 私有文章仅作者本人可见
+        if (userId != null) {
+            wrapper.apply("(is_private = 0 OR author_id = {0})", userId);
+        } else {
+            wrapper.eq(Post::getIsPrivate, 0);
+        }
         if (query != null && !query.trim().isEmpty()) {
             String q = query.trim();
-            wrapper.apply("(title LIKE {0} OR content LIKE {1} OR description LIKE {2})",
-                    "%" + q + "%", "%" + q + "%", "%" + q + "%");
+            wrapper.apply("(title LIKE {0} OR content LIKE {1} OR description LIKE {2} OR tags LIKE {3})",
+                    "%" + q + "%", "%" + q + "%", "%" + q + "%", "%" + q + "%");
         }
         wrapper.orderByDesc(Post::getLikes);
         return baseMapper.selectPage(new Page<>(page, size), wrapper);

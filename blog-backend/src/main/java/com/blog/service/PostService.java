@@ -58,5 +58,5 @@ public interface PostService extends IService<Post> {
     java.util.List<Post> getRankingByLikes(int limit, String role);
 
     /** 全文搜索：按标题/内容/描述/标签搜索已发布文章 */
-    IPage<Post> searchPosts(String query, int page, int size);
+    IPage<Post> searchPosts(String query, int page, int size, String role, Long userId);
 }
