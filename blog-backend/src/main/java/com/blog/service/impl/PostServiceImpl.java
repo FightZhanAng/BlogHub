@@ -463,11 +463,8 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
                 .eq(Post::getIsHidden, 0);
         if (query != null && !query.trim().isEmpty()) {
             String q = query.trim();
-            wrapper.and(w -> w
-                .like(Post::getTitle, q)
-                .or().like(Post::getContent, q)
-                .or().like(Post::getDescription, q)
-            );
+            wrapper.apply("(title LIKE {0} OR content LIKE {1} OR description LIKE {2})",
+                    "%" + q + "%", "%" + q + "%", "%" + q + "%");
         }
         wrapper.orderByDesc(Post::getLikes);
         return baseMapper.selectPage(new Page<>(page, size), wrapper);

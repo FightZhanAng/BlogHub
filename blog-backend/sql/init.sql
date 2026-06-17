@@ -464,6 +464,7 @@ CREATE TABLE IF NOT EXISTS api_test_history (
     response_body   MEDIUMTEXT   DEFAULT NULL COMMENT '响应体',
     response_headers TEXT        DEFAULT NULL COMMENT '响应头 JSON',
     created_at      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    updated_at      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
 
     INDEX idx_user_id (user_id),
     INDEX idx_created_at (created_at)
@@ -566,7 +567,8 @@ INSERT INTO menu_item (id, group_id, title, path, icon, sort_order, enabled, adm
 -- 工具组
 INSERT INTO menu_item (id, group_id, title, path, icon, sort_order, enabled, admin_only) VALUES
 (11, 4, 'AI 助手', '/ai-assistant', 'ChatDotRound', 1, 1, 0),
-(12, 4, 'API 测试', '/api-tester',  'Monitor',      2, 1, 0);
+(12, 4, 'API 测试', '/api-tester',  'Monitor',      2, 1, 0),
+(19, 4, '搜索',     '/search',      'Search',       3, 1, 0);
 
 -- 管理后台组
 INSERT INTO menu_item (id, group_id, title, path, icon, sort_order, enabled, admin_only) VALUES
@@ -592,3 +594,17 @@ CREATE TABLE IF NOT EXISTS sensitive_word (
 
     UNIQUE KEY uk_word (word)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='敏感词库';
+
+-- ============================================================
+-- 搜索历史（用于热门搜索词统计）
+-- ============================================================
+CREATE TABLE IF NOT EXISTS search_history (
+    id          BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键',
+    keyword     VARCHAR(200) NOT NULL COMMENT '搜索关键词',
+    user_id     BIGINT       DEFAULT NULL COMMENT '用户 ID（NULL=匿名）',
+    created_at  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+
+    INDEX idx_keyword (keyword),
+    INDEX idx_user_id (user_id),
+    INDEX idx_created_at (created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='搜索历史';

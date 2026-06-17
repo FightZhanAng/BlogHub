@@ -299,6 +299,8 @@ const crumbConfig = {
   '/login': [{ path: '/login', title: '登录' }],
   '/register': [{ path: '/register', title: '注册' }],
   '/admin/menu-settings': [{ path: '/admin/menu-settings', title: '菜单配置' }],
+  '/sensitive-words': [{ path: '/sensitive-words', title: '敏感词管理' }],
+  '/health': [{ path: '/health', title: '健康检查' }],
 }
 
 const breadcrumbs = computed(() => {

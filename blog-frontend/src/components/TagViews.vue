@@ -68,6 +68,7 @@ const titleMap = {
   '/images': '图片管理', '/logs': '操作日志', '/about': '关于', '/profile': '个人中心',
   '/login': '登录', '/register': '注册', '/search': '搜索',
   '/admin/menu-settings': '菜单配置',
+  '/sensitive-words': '敏感词管理', '/health': '健康检查',
 }
 
 function getTitle(route) {
