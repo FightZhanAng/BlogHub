@@ -1,4 +1,4 @@
-﻿package com.blog.controller;
+package com.blog.controller;
 
 import com.blog.common.Result;
 import com.blog.common.VisitorIdUtil;
@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/bookmarks")
 @RequiredArgsConstructor
-@Tag(name = "鏀惰棌绠＄悊", description = "鏂囩珷鏀惰棌鍔熻兘")
+@Tag(name = "收藏管理", description = "文章收藏功能")
 public class BookmarkController {
 
     private static final Logger log = LoggerFactory.getLogger(BookmarkController.class);
@@ -41,12 +41,12 @@ public class BookmarkController {
                 String token = header.substring(7);
                 if (jwtUtil.validateToken(token)) return jwtUtil.getUserId(token);
             }
-        } catch (Exception e) { log.debug("操作失败: {}", e.getMessage()); }
+        } catch (Exception ignored) {}
         return null;
     }
 
-    /** 鑾峰彇褰撳墠鐢ㄦ埛鏀惰棌鐨勬枃绔犲垪琛紙宸茬櫥褰曟寜 user:id锛屾湭鐧诲綍鎸?IP锛?*/
-    @Operation(summary = "鑾峰彇鏀惰棌鐨勬枃绔犲垪琛?)
+    /** 获取当前用户收藏的文章列表（已登录按 user:id，未登录按 IP） */
+    @Operation(summary = "获取收藏的文章列表")
     @GetMapping
     public Result<List<PostResponse>> list() {
         Long userId = getUserIdFromToken();
@@ -61,7 +61,7 @@ public class BookmarkController {
         List<PostResponse> result = posts.stream()
                 .map(PostResponse::from)
                 .collect(Collectors.toList());
-        log.debug("璁垮 {} 鏀惰棌浜?{} 绡囨枃绔?, visitorId, result.size());
+        log.debug("访客 {} 收藏了 {} 篇文章", visitorId, result.size());
         return Result.success(result);
     }
 }

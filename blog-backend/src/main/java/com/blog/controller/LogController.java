@@ -1,4 +1,4 @@
-﻿package com.blog.controller;
+package com.blog.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -18,7 +18,7 @@ import javax.servlet.http.HttpServletRequest;
 @RestController
 @RequestMapping("/api/logs")
 @RequiredArgsConstructor
-@Tag(name = "鎿嶄綔鏃ュ織", description = "绯荤粺鎿嶄綔鏃ュ織鏌ヨ")
+@Tag(name = "操作日志", description = "系统操作日志查询")
 public class LogController {
 
     private final SysLogMapper sysLogMapper;
@@ -34,16 +34,16 @@ public class LogController {
                 String token = header.substring(7);
                 return "admin".equals(jwtUtil.getRole(token));
             }
-        } catch (Exception e) { log.debug("操作失败: {}", e.getMessage()); }
+        } catch (Exception ignored) {}
         return false;
     }
 
-    @Operation(summary = "鍒嗛〉鏌ヨ鎿嶄綔鏃ュ織")
+    @Operation(summary = "分页查询操作日志")
     @GetMapping
     public Result<PageResult<SysLog>> list(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "20") int size) {
-        if (!isAdmin()) return Result.error(403, "鏃犳潈璁块棶");
+        if (!isAdmin()) return Result.error(403, "无权访问");
 
         IPage<SysLog> ipage = sysLogMapper.selectPage(
                 new Page<>(page, size),

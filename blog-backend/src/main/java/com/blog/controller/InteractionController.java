@@ -1,4 +1,4 @@
-﻿package com.blog.controller;
+package com.blog.controller;
 
 import com.blog.common.Result;
 import com.blog.common.VisitorIdUtil;
@@ -20,7 +20,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/posts/{slug}")
 @RequiredArgsConstructor
-@Tag(name = "浜掑姩鍔熻兘", description = "鐐硅禐鍜屾敹钘忔搷浣?)
+@Tag(name = "互动功能", description = "点赞和收藏操作")
 public class InteractionController {
 
     private final PostService postService;
@@ -37,7 +37,7 @@ public class InteractionController {
 
     private final HttpServletRequest request;
 
-    /** 浠?Authorization 澶存彁鍙?userId锛堟湭鐧诲綍杩斿洖 null锛?*/
+    /** 从 Authorization 头提取 userId（未登录返回 null） */
     private Long getUserIdFromToken() {
         try {
             String header = request.getHeader("Authorization");
@@ -45,17 +45,17 @@ public class InteractionController {
                 String token = header.substring(7);
                 if (jwtUtil.validateToken(token)) return jwtUtil.getUserId(token);
             }
-        } catch (Exception e) { log.debug("操作失败: {}", e.getMessage()); }
+        } catch (Exception ignored) {}
         return null;
     }
 
-    /** 鑾峰彇鐧诲綍鐢ㄦ埛鐨?visitorId锛堝凡鐧诲綍 = user:id锛屾湭鐧诲綍 = visitor:ip锛?*/
+    /** 获取登录用户的 visitorId（已登录 = user:id，未登录 = visitor:ip） */
     private String getVisitorId() {
         Long userId = getUserIdFromToken();
         return VisitorIdUtil.getVisitorId(request, userId);
     }
 
-    @Operation(summary = "鍒囨崲鏂囩珷鐐硅禐鐘舵€?)
+    @Operation(summary = "切换文章点赞状态")
     @PostMapping("/like")
     public Result<Map<String, Object>> toggleLike(@PathVariable String slug) {
         Post post = postService.getBySlug(slug);
@@ -64,25 +64,25 @@ public class InteractionController {
         int count = likeService.getLikeCount(post.getId());
         post.setLikes(count);
         postService.updateById(post);
-        // 鐐硅禐閫氱煡
+        // 点赞通知
         if (liked && post.getAuthorId() != null && getUserIdFromToken() != null
                 && !getUserIdFromToken().equals(post.getAuthorId())) {
             try {
                 Notification n = new Notification();
                 n.setUserId(post.getAuthorId());
                 n.setType("like");
-                n.setMessage("鏈変汉璧炰簡浣犵殑鏂囩珷銆? + post.getTitle() + "銆?);
+                n.setMessage("有人赞了你的文章《" + post.getTitle() + "》");
                 n.setRelatedId(post.getId());
                 n.setIsRead(0);
                 n.setCreatedAt(java.time.LocalDateTime.now());
                 notificationMapper.insert(n);
-            } catch (Exception e) { log.debug("操作失败: {}", e.getMessage()); }
+            } catch (Exception ignored) {}
         }
         Map<String, Object> data = new HashMap<>();
         data.put("liked", liked);
         data.put("count", count);
 
-        // 妫€鏌ュ窘绔狅紙鏂囩珷琚偣璧烇級
+        // 检查徽章（文章被点赞）
         if (liked && post.getAuthorId() != null) {
             badgeService.checkAndGrant(post.getAuthorId(), "POST_LIKED");
         }
@@ -90,7 +90,7 @@ public class InteractionController {
         return Result.success(data);
     }
 
-    @Operation(summary = "鑾峰彇鏂囩珷鐐硅禐鐘舵€?)
+    @Operation(summary = "获取文章点赞状态")
     @GetMapping("/like")
     public Result<Map<String, Object>> getLikeStatus(@PathVariable String slug) {
         Post post = postService.getBySlug(slug);
@@ -103,7 +103,7 @@ public class InteractionController {
         return Result.success(data);
     }
 
-    @Operation(summary = "鍒囨崲鏂囩珷鏀惰棌鐘舵€?)
+    @Operation(summary = "切换文章收藏状态")
     @PostMapping("/bookmark")
     public Result<Map<String, Object>> toggleBookmark(@PathVariable String slug) {
         Post post = postService.getBySlug(slug);
@@ -112,7 +112,7 @@ public class InteractionController {
         Map<String, Object> data = new HashMap<>();
         data.put("bookmarked", bookmarked);
 
-        // 妫€鏌ュ窘绔狅紙鏂囩珷琚敹钘忥級
+        // 检查徽章（文章被收藏）
         if (bookmarked && post.getAuthorId() != null) {
             badgeService.checkAndGrant(post.getAuthorId(), "POST_BOOKMARKED");
         }
@@ -120,7 +120,7 @@ public class InteractionController {
         return Result.success(data);
     }
 
-    @Operation(summary = "鑾峰彇鏂囩珷鏀惰棌鐘舵€?)
+    @Operation(summary = "获取文章收藏状态")
     @GetMapping("/bookmark")
     public Result<Map<String, Object>> getBookmarkStatus(@PathVariable String slug) {
         Post post = postService.getBySlug(slug);
