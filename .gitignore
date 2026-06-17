@@ -62,3 +62,6 @@ xxl-job-admin/*.jar
 .mimocode/
 backend.log
 AGENTS.md
+
+minio/
+appendonly.aof
