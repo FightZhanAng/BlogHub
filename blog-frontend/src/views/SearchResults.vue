@@ -20,6 +20,23 @@
       搜索 <strong>"{{ query }}"</strong>，共 {{ total }} 条结果
     </div>
 
+    <!-- 热门搜索词（未搜索时展示） -->
+    <div v-if="!searched && hotKeywords.length" class="hot-keywords">
+      <div class="hot-title">🔥 热门搜索</div>
+      <div class="hot-list">
+        <el-tag
+          v-for="(kw, i) in hotKeywords"
+          :key="kw"
+          :type="i < 3 ? 'danger' : 'info'"
+          effect="plain"
+          class="hot-tag"
+          @click="keyword = kw; doSearch()"
+        >
+          {{ kw }}
+        </el-tag>
+      </div>
+    </div>
+
     <div v-if="loading" class="loading-state">
       <el-skeleton :rows="3" animated />
     </div>
@@ -77,6 +94,14 @@ const page = ref(1)
 const size = ref(10)
 const loading = ref(false)
 const searched = ref(false)
+const hotKeywords = ref([])
+
+async function fetchHotKeywords() {
+  try {
+    const res = await request.get('/stats/search-keywords')
+    hotKeywords.value = Array.isArray(res) ? res : []
+  } catch { hotKeywords.value = [] }
+}
 
 async function doSearch() {
   const q = keyword.value.trim()
@@ -120,6 +145,7 @@ function clearSearch() {
 
 // 如果 URL 带 ?q=xxx 自动搜索
 onMounted(() => {
+  fetchHotKeywords()
   const q = route.query.q
   if (q) {
     keyword.value = q
@@ -141,6 +167,33 @@ onMounted(() => {
   color: var(--color-text-tertiary);
   font-size: 14px;
   margin-bottom: 16px;
+}
+
+.hot-keywords {
+  margin-bottom: 24px;
+}
+
+.hot-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: 12px;
+}
+
+.hot-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.hot-tag {
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.hot-tag:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 .loading-state {
   padding: 40px 0;
