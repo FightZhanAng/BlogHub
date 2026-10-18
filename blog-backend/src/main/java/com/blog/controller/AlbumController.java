@@ -75,8 +75,23 @@ public class AlbumController {
     @GetMapping("/{id}")
     @Operation(summary = "相册详情")
     public Result<AlbumResponse> getAlbum(@PathVariable Long id) {
+        // 私密相册只有作者本人/管理员可见（is_private 之前只写不读，任何人可按 id 遍历）
+        if (!canReadAlbum(id)) {
+            return Result.error(404, "相册不存在");
+        }
         AlbumResponse album = albumService.getAlbumDetail(id);
         return Result.success(album);
+    }
+
+    /** 相册可见性判定：公开相册任何人可读，私密相册仅作者/管理员 */
+    private boolean canReadAlbum(Long albumId) {
+        com.blog.entity.Album album = albumService.getById(albumId);
+        if (album == null) return false;
+        String role = getCurrentRole();
+        if ("admin".equals(role)) return true;
+        Long userId = getCurrentUserId();
+        if (userId != null && userId.equals(album.getAuthorId())) return true;
+        return album.getIsPrivate() == null || !album.getIsPrivate();
     }
 
     @PostMapping
@@ -116,6 +131,10 @@ public class AlbumController {
             @PathVariable Long albumId,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "50") int size) {
+        // 照片列表同样要校验相册可见性，否则详情拦住了、照片仍可被直接拉走
+        if (!canReadAlbum(albumId)) {
+            return Result.error(404, "相册不存在");
+        }
         IPage<PhotoDTO> result = photoService.listPhotos(albumId, page, size);
         return Result.success(PageResult.of(result));
     }

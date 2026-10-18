@@ -3,6 +3,12 @@ import axiosRetry from 'axios-retry'
 import { ElMessage } from 'element-plus'
 import { getVisitorId } from '@/utils/visitorId'
 
+/** 由 main.js 注入的路由实例，用于在 401 时跳转而不整页刷新 */
+let routerInstance = null
+export function bindRouter(router) {
+  routerInstance = router
+}
+
 /**
  * Axios 实例
  */
@@ -40,6 +46,47 @@ function getAuthToken() {
   }
 }
 
+/**
+ * 是否是"可选鉴权"的公开接口。
+ *
+ * 这些接口游客也能访问，后端按 visitorId 返回游客数据；即使返回 401
+ * 也只应该静默降级，而不能把访客踢到登录页（否则公开站点对游客完全不可用）。
+ */
+const OPTIONAL_AUTH_PREFIXES = [
+  '/bookmarks',
+  '/comments/stats',
+  '/comments/',
+  '/posts/',
+  '/tags',
+  '/series',
+  '/stats/',
+  '/hot-topics',
+  '/menus/tree',
+  '/badges',
+  '/health',
+]
+
+function isOptionalAuthRequest(config) {
+  const url = config?.url || ''
+  if (OPTIONAL_AUTH_PREFIXES.some((p) => url.startsWith(p))) {
+    return true
+  }
+  // 游客场景：本身就没有 token
+  return !getAuthToken()
+}
+
+/** 处理未授权：清登录态并按需跳转 */
+function handleUnauthorized() {
+  localStorage.removeItem('blog_auth')
+  const current = routerInstance?.currentRoute?.value?.fullPath || window.location.pathname
+  if (current && current.startsWith('/login')) return
+  if (routerInstance) {
+    routerInstance.push({ path: '/login', query: { redirect: current } })
+  } else {
+    window.location.href = '/login'
+  }
+}
+
 /** 请求拦截器 — 注入访客 ID + Token */
 request.interceptors.request.use(
   (config) => {
@@ -66,10 +113,12 @@ request.interceptors.response.use(
     const res = response.data
     // 后端统一返回 Result { code, message, data }
     if (res.code !== undefined && res.code !== 200 && res.code !== 201) {
-      // 401 未授权 — 清除登录态并跳转
       if (res.code === 401) {
-        localStorage.removeItem('blog_auth')
-        window.location.href = '/login'
+        // 公开接口 / 游客请求：静默降级，返回 null 让调用方走空态
+        if (isOptionalAuthRequest(response.config)) {
+          return null
+        }
+        handleUnauthorized()
         return Promise.reject(new Error(res.message || '未授权'))
       }
       ElMessage.error(res.message || '请求失败')
@@ -81,9 +130,19 @@ request.interceptors.response.use(
     if (error.response) {
       const status = error.response.status
       const data = error.response.data
+
+      // 真正的 HTTP 401：公开接口静默降级，其余清登录态并跳转
+      if (status === 401) {
+        if (isOptionalAuthRequest(error.config)) {
+          return Promise.resolve(null)
+        }
+        handleUnauthorized()
+        return Promise.reject(error)
+      }
+
       const msg = data?.message || getStatusText(status)
       ElMessage.error(msg)
-    } else if (error.message.includes('timeout')) {
+    } else if (error.message?.includes('timeout')) {
       ElMessage.error('请求超时，请检查网络')
     } else {
       ElMessage.error('网络异常')
@@ -99,6 +158,7 @@ function getStatusText(status) {
     403: '禁止访问',
     404: '资源不存在',
     422: '参数校验失败',
+    429: '请求过于频繁，请稍后再试',
     500: '服务器内部错误',
     503: '服务不可用',
   }

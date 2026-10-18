@@ -78,6 +78,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         }
 
         String token = jwtUtil.generateToken(user.getId(), user.getUsername(), user.getRole());
+        // 同时签发 refresh token，否则前端的 /auth/refresh 流程根本没有令牌可用
+        String refreshToken = jwtUtil.generateRefreshToken(user.getId(), user.getUsername(), user.getRole());
         log.info("用户登录成功: username={}, role={}", user.getUsername(), user.getRole());
 
         // 检查徽章（登录）
@@ -88,7 +90,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             badgeService.grantBadge(user.getId(), 9L);
         }
 
-        return new LoginResponse(token, user.getUsername(), user.getNickname(), user.getAvatar(), user.getRole(), user.getId());
+        LoginResponse resp = new LoginResponse(token, user.getUsername(), user.getNickname(),
+                user.getAvatar(), user.getRole(), user.getId());
+        resp.setRefreshToken(refreshToken);
+        return resp;
     }
 
     @Override
@@ -114,12 +119,16 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         baseMapper.insert(user);
 
         String token = jwtUtil.generateToken(user.getId(), user.getUsername(), user.getRole());
+        String refreshToken = jwtUtil.generateRefreshToken(user.getId(), user.getUsername(), user.getRole());
         log.info("用户注册成功: username={}", user.getUsername());
 
         // 检查徽章（注册）
         badgeService.checkAndGrant(user.getId(), "USER_REGISTERED");
 
-        return new LoginResponse(token, user.getUsername(), user.getNickname(), user.getAvatar(), user.getRole(), user.getId());
+        LoginResponse resp = new LoginResponse(token, user.getUsername(), user.getNickname(),
+                user.getAvatar(), user.getRole(), user.getId());
+        resp.setRefreshToken(refreshToken);
+        return resp;
     }
 
     @Override
@@ -187,8 +196,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             throw new BusinessException(400, "新密码至少 6 位");
         }
 
-        String encryptedOld = encryptPassword(oldPassword);
-        if (!encryptedOld.equals(user.getPassword())) {
+        // 用 BCrypt.matches 校验原密码；encode 每次加随机盐，字符串相等比较永远失败
+        if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
             throw new BusinessException(400, "原密码错误");
         }
 
@@ -240,11 +249,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             throw new BusinessException(404, "用户不存在");
         }
 
-        String nickname = user.getNickname();
+        // 按 user_id 关联，不能按昵称：昵称可修改且不唯一，会串号
         IPage<Comment> ipage = commentMapper.selectPage(
                 new Page<>(page, size),
                 new LambdaQueryWrapper<Comment>()
-                        .eq(Comment::getNickname, nickname)
+                        .eq(Comment::getUserId, userId)
                         .orderByDesc(Comment::getCreatedAt));
 
         PageResult<Map<String, Object>> result = new PageResult<>();

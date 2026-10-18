@@ -24,12 +24,15 @@ services:
     image: redis:7-alpine
     container_name: bloghub-redis
     restart: unless-stopped
+    # 后端默认带 ${REDIS_PASSWORD:Aa123456} 认证，redis 侧必须设置同样的密码，
+    # 否则连接 AUTH 失败，所有 @Cacheable 接口（tags/menus/badges/hotTopics）全部 500
+    command: ["redis-server", "--requirepass", "Aa123456"]
     ports:
       - "6379:6379"
     volumes:
       - redis_data:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD", "redis-cli", "-a", "Aa123456", "ping"]
       interval: 10s
       timeout: 3s
       retries: 5
@@ -47,7 +50,9 @@ services:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/blog_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: root
-      JWT_SECRET: bloghub-docker-secret-key-change-in-production
+      # 必须是合法 Base64（JwtUtil 会先按 Base64 解码）。之前这里写的是带 "-" 的
+      # 明文串，解码会抛 IllegalArgumentException，导致后端 @PostConstruct 失败起不来。
+      JWT_SECRET: S/3WpGyBMa8cPDQH8XHl8E9iDLcArSkrIi2nNeSvOnQqoDsBFnfuhK5gyY4mdnnh
       UPLOAD_DIR: /app/uploads
       REDIS_HOST: redis
       REDIS_PASSWORD: Aa123456

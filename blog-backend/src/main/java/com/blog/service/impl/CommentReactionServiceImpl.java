@@ -25,14 +25,21 @@ public class CommentReactionServiceImpl implements CommentReactionService {
     @Override
     @Transactional
     public void react(Long commentId, Long userId, String ip, Integer reactionType) {
-        // 查询现有反应
+        if (reactionType == null || (reactionType != 0 && reactionType != 1)) {
+            throw new com.blog.exception.BusinessException(400, "反应类型非法，只能是 1=赞 / 0=踩");
+        }
+        // 登录用户按 user_id 去重，ip 必须留空：
+        // uk_ip_comment(comment_id, ip) 对所有行生效，若登录用户也写 ip，
+        // 同一出口 IP（NAT/公司网）下第二个用户点同一条评论会撞唯一键直接 500。
+        String dedupIp = (userId != null) ? null : ip;
+
         LambdaQueryWrapper<CommentReaction> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(CommentReaction::getCommentId, commentId);
         if (userId != null) {
             wrapper.eq(CommentReaction::getUserId, userId);
         } else {
             wrapper.isNull(CommentReaction::getUserId)
-                   .eq(CommentReaction::getIp, ip);
+                   .eq(CommentReaction::getIp, dedupIp);
         }
 
         CommentReaction existing = reactionMapper.selectOne(wrapper);
@@ -51,9 +58,14 @@ public class CommentReactionServiceImpl implements CommentReactionService {
             CommentReaction reaction = new CommentReaction();
             reaction.setCommentId(commentId);
             reaction.setUserId(userId);
-            reaction.setIp(ip);
+            reaction.setIp(dedupIp);
             reaction.setReactionType(reactionType);
-            reactionMapper.insert(reaction);
+            try {
+                reactionMapper.insert(reaction);
+            } catch (org.springframework.dao.DuplicateKeyException e) {
+                // 并发双击/重复提交：另一请求已插入，视为已完成
+                return;
+            }
         }
 
         // 检查徽章（评论被点赞）

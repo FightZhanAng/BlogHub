@@ -28,13 +28,10 @@ public class WebMvcConfig implements WebMvcConfigurer {
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
+        // 放行策略统一由 PublicApiRules 精确声明（HTTP 方法 + 路径），
+        // 不再用 /api/posts/** 之类的通配，避免把编辑/导出/版本等鉴权接口一并放开。
         registry.addInterceptor(authInterceptor)
                 .addPathPatterns("/api/**")
-                .excludePathPatterns("/api/auth/**", "/api/posts", "/api/posts/**",
-                        "/api/tags/**", "/api/series/**", "/api/users/*/profile",
-                        "/api/stats/**", "/api/upload/**", "/api/hot-topics/**",
-                        "/api/comments/*/replies", "/api/comments/*/reaction", "/api/comments/*/reactions",
-                        "/api/badges", "/api/users/*/badges", "/api/health",
-                        "/uploads/**");
+                .excludePathPatterns("/uploads/**");
     }
 }

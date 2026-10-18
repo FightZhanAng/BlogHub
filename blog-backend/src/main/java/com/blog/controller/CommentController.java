@@ -10,6 +10,7 @@ import com.blog.dto.ReactionRequest;
 import com.blog.dto.ReactionResponse;
 import com.blog.service.CommentReactionService;
 import com.blog.service.CommentService;
+import com.blog.entity.Comment;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +27,8 @@ import java.util.Map;
 public class CommentController {
 
     private final CommentService commentService;
+
+    private final com.blog.service.PostService postService;
 
     private final CommentReactionService reactionService;
 
@@ -51,6 +54,10 @@ public class CommentController {
     @Operation(summary = "获取文章评论列表")
     @GetMapping("/api/posts/{slug}/comments")
     public Result<List<Map<String, Object>>> postComments(@PathVariable String slug) {
+        // 评论列表也属于文章内容的一部分，私有/隐藏文章不应通过评论接口暴露
+        if (!canReadPost(slug)) {
+            return Result.error(404, "文章不存在");
+        }
         return Result.success(commentService.getPostComments(slug));
     }
 
@@ -58,10 +65,25 @@ public class CommentController {
     @PostMapping("/api/posts/{slug}/comments")
     public Result<Void> addComment(@PathVariable String slug,
                                     @Valid @RequestBody CommentRequest body) {
+        if (!canReadPost(slug)) {
+            return Result.error(404, "文章不存在");
+        }
         String content = HtmlSanitizer.stripHtml(body.getContent());
         Long userId = getCurrentUserId();
         commentService.addComment(slug, body.getNickname(), content, body.getParentId(), userId);
         return Result.success(null);
+    }
+
+    /** 复用统一的文章可见性判定 */
+    private boolean canReadPost(String slug) {
+        try {
+            com.blog.entity.Post post = postService.getBySlug(slug);
+            String role = request.getAttribute("role") instanceof String
+                    ? (String) request.getAttribute("role") : null;
+            return com.blog.common.PostVisibility.canRead(post, getCurrentUserId(), role);
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     @Operation(summary = "懒加载评论回复")
@@ -113,11 +135,8 @@ public class CommentController {
     }
 
     private String getClientIp() {
-        String xff = request.getHeader("X-Forwarded-For");
-        if (xff != null && !xff.isEmpty()) {
-            return xff.split(",")[0].trim();
-        }
-        return request.getRemoteAddr();
+        // 统一走 VisitorIdUtil：XFF 第一个值可被客户端伪造，会导致游客赞踩去重被绕过
+        return com.blog.common.VisitorIdUtil.getClientIp(request);
     }
 
     // ========== 评论统计 ==========
@@ -146,7 +165,10 @@ public class CommentController {
     @AuditLog(action = "删除评论", resource = "#id")
     public Result<Void> delete(@PathVariable Long id) {
         if (!isAdminUser()) return Result.error(403, "无权访问");
+        // 级联删除子回复，避免留下孤儿楼层并让 replyCount 统计错乱
         commentService.removeById(id);
+        commentService.remove(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<Comment>()
+                .eq(Comment::getParentId, id));
         return Result.success();
     }
 }

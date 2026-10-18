@@ -80,8 +80,9 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
                     "SELECT post_id FROM post_tag WHERE tag_id IN (" +
                     tagIds.stream().map(String::valueOf).collect(Collectors.joining(",")) + ")");
             } else {
-                // 无匹配标签，返回空结果
-                wrapper.inSql(Post::getId, "SELECT id FROM post WHERE 1=0");
+                // 无匹配标签：直接返回空结果（不能写 "SELECT id FROM post ..."，
+                // 表名是 posts，写错会抛 Table doesn't exist 变成 500）
+                wrapper.apply("1 = 0");
             }
         }
         if (keyword != null && !keyword.trim().isEmpty()) {
@@ -98,38 +99,36 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
         Post post = baseMapper.selectOne(
                 new LambdaQueryWrapper<Post>().eq(Post::getSlug, slug));
         if (post == null) {
+            // 草稿(count=0) 与不存在对外一视同仁
             throw new ResourceNotFoundException("文章", "slug", slug);
         }
-        // 草稿文章只允许作者本人访问
-        if (post.getStatus() == 0) {
+        if (post.getStatus() != null && post.getStatus() == 0) {
             throw new ResourceNotFoundException("文章", "slug", slug);
         }
         return post;
     }
 
     @Override
-    public Post getBySlugForEdit(String slug, Long userId) {
+    public Post getBySlugForEdit(String slug, Long userId, String role) {
         log.debug("查询文章(编辑): slug={}, userId={}", slug, userId);
         Post post = baseMapper.selectOne(
                 new LambdaQueryWrapper<Post>().eq(Post::getSlug, slug));
         if (post == null) {
             throw new ResourceNotFoundException("文章", "slug", slug);
         }
-        // 草稿文章只允许作者本人访问
-        if (post.getStatus() == 0) {
-            boolean isOwner = userId != null && post.getAuthorId() != null && userId.equals(post.getAuthorId());
-            if (!isOwner) {
-                throw new ResourceNotFoundException("文章", "slug", slug);
-            }
+        // 编辑入口需要管理权限：作者本人或管理员，其余一律 404（不泄露存在性）
+        if (!com.blog.common.PostVisibility.canManage(post, userId, role)) {
+            throw new ResourceNotFoundException("文章", "slug", slug);
         }
         return post;
     }
 
     @Override
     public boolean isSlugExists(String slug, Long userId, Long excludeId) {
+        // slug 在库中是全局唯一（uk_slug），这里必须全局判断，
+        // 否则两个作者都会通过校验，最终在 insert 时抛 Duplicate entry。
         LambdaQueryWrapper<Post> wrapper = new LambdaQueryWrapper<Post>()
-                .eq(Post::getSlug, slug)
-                .eq(Post::getAuthorId, userId);
+                .eq(Post::getSlug, slug);
         if (excludeId != null) {
             wrapper.ne(Post::getId, excludeId);
         }
@@ -202,45 +201,41 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
     public PostResponse createPost(CreatePostRequest request, Long userId) {
         log.info("创建文章: title={}, authorId={}", request.getTitle(), userId);
 
-        // 检查 slug 是否被其他用户占用
-        Post slugOwner = baseMapper.selectOne(
-                new LambdaQueryWrapper<Post>()
-                        .eq(Post::getSlug, request.getSlug())
-                        .select(Post::getAuthorId)
-                        .last("LIMIT 1")
-        );
-        if (slugOwner != null && slugOwner.getAuthorId() != null && !slugOwner.getAuthorId().equals(userId)) {
-            throw new BusinessException(400, "该 URL 标识已被其他用户占用，请更换");
-        }
+        int newStatus = normalizeStatus(request.getStatus());
+        java.time.LocalDateTime scheduledAt = parseScheduledAt(newStatus, request.getScheduledAt());
 
-        // 检查是否已存在同 slug 的文章（同作者），存在则更新而非新建
+        // slug 在库中全局唯一（uk_slug），先按全局查
         Post existing = baseMapper.selectOne(
                 new LambdaQueryWrapper<Post>()
                         .eq(Post::getSlug, request.getSlug())
-                        .eq(Post::getAuthorId, userId));
+                        .last("LIMIT 1"));
+
         if (existing != null) {
-            // 更新已有草稿
+            // 别人的文章：一律拒绝，不泄露归属细节
+            if (existing.getAuthorId() == null || !existing.getAuthorId().equals(userId)) {
+                throw new BusinessException(400, "该 URL 标识已被占用，请更换");
+            }
+            // 只有草稿允许"以创建的形式继续保存"；已发布/定时发布必须走显式更新，
+            // 否则用户从 slug 下拉里选到一篇已发布文章，一点"保存草稿"就会覆盖线上正文。
+            if (existing.getStatus() != null && existing.getStatus() != 0) {
+                throw new BusinessException(409,
+                        "该 URL 标识已存在已发布文章，请从编辑页修改，不能以新建方式覆盖");
+            }
             existing.setTitle(request.getTitle());
             existing.setDescription(request.getDescription());
             existing.setContent(request.getContent());
             existing.setTags(request.getTags());
-            int newStatus = request.getStatus() != null ? request.getStatus() : 1;
             existing.setStatus(newStatus);
             existing.setAuthorName(request.getAuthorName());
             existing.setCoverImage(request.getCoverImage());
             existing.setSeriesId(request.getSeriesId());
             if (request.getIsPrivate() != null) existing.setIsPrivate(request.getIsPrivate());
-            // 发布时清除定时发布时间
-            if (newStatus != 2) {
-                existing.setScheduledAt(null);
-            } else if (request.getScheduledAt() != null && !request.getScheduledAt().isEmpty()) {
-                existing.setScheduledAt(java.time.LocalDateTime.parse(request.getScheduledAt()));
-            }
+            existing.setScheduledAt(scheduledAt);
             baseMapper.updateById(existing);
             saveVersion(existing, getNextVersion(existing.getId()));
             tagService.updatePostTags(existing.getId(), request.getTags());
             linkPostImages(existing.getId(), request.getContent(), request.getCoverImage());
-            log.info("文章更新成功: id={}, slug={}", existing.getId(), existing.getSlug());
+            log.info("草稿更新成功: id={}, slug={}", existing.getId(), existing.getSlug());
             return PostResponse.from(existing);
         }
 
@@ -251,7 +246,6 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
         post.setDescription(request.getDescription());
         post.setContent(request.getContent());
         post.setTags(request.getTags());
-        int newStatus = request.getStatus() != null ? request.getStatus() : 1;
         post.setStatus(newStatus);
         post.setAuthorName(request.getAuthorName());
         post.setAuthorId(userId);
@@ -261,12 +255,7 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
         post.setSeriesId(request.getSeriesId());
         post.setIsPrivate(request.getIsPrivate() != null ? request.getIsPrivate() : 0);
         post.setIsHidden(0);
-        // 非定时发布时清除定时发布时间
-        if (newStatus != 2) {
-            post.setScheduledAt(null);
-        } else if (request.getScheduledAt() != null && !request.getScheduledAt().isEmpty()) {
-            post.setScheduledAt(java.time.LocalDateTime.parse(request.getScheduledAt()));
-        }
+        post.setScheduledAt(scheduledAt);
         baseMapper.insert(post);
         saveVersion(post, 1);
         tagService.updatePostTags(post.getId(), request.getTags());
@@ -297,15 +286,30 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
             throw new BusinessException(403, "无权修改此文章");
         }
 
-        if (request.getSlug() != null) post.setSlug(request.getSlug());
+        // 改 slug 前先做全局唯一校验，避免撞 uk_slug 直接 500
+        if (request.getSlug() != null && !request.getSlug().equals(post.getSlug())) {
+            if (isSlugExists(request.getSlug(), userId, id)) {
+                throw new BusinessException(400, "该 URL 标识已被占用，请更换");
+            }
+            post.setSlug(request.getSlug());
+        }
         if (request.getTitle() != null) post.setTitle(request.getTitle());
         if (request.getDescription() != null) post.setDescription(request.getDescription());
         if (request.getContent() != null) post.setContent(request.getContent());
         if (request.getTags() != null) post.setTags(request.getTags());
         if (request.getStatus() != null) {
-            post.setStatus(request.getStatus());
-            // 非定时发布时清除定时发布时间
-            if (request.getStatus() != 2) {
+            int newStatus = normalizeStatus(request.getStatus());
+            post.setStatus(newStatus);
+            if (newStatus == 2) {
+                java.time.LocalDateTime at = parseScheduledAt(newStatus, request.getScheduledAt());
+                // 定时发布必须带时间，且已有时间时保留原值
+                if (at != null) {
+                    post.setScheduledAt(at);
+                } else if (post.getScheduledAt() == null) {
+                    throw new BusinessException(400, "定时发布需要指定发布时间");
+                }
+            } else {
+                // 草稿/已发布不保留定时时间
                 post.setScheduledAt(null);
             }
         }
@@ -313,10 +317,6 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
         if (request.getCoverImage() != null) post.setCoverImage(request.getCoverImage());
         if (request.getSeriesId() != null) post.setSeriesId(request.getSeriesId());
         if (request.getIsPrivate() != null) post.setIsPrivate(request.getIsPrivate());
-        if (post.getStatus() != null && post.getStatus() == 2
-                && request.getScheduledAt() != null && !request.getScheduledAt().isEmpty()) {
-            post.setScheduledAt(java.time.LocalDateTime.parse(request.getScheduledAt()));
-        }
         baseMapper.updateById(post);
         saveVersion(post, getNextVersion(id));
         // 更新标签关联
@@ -343,13 +343,32 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
         }
 
         baseMapper.deleteById(id);
+        // 清理关联数据：post_versions 与 images.post_id 之前不回收，
+        // 会留下孤儿版本（含正文）和指向已删文章的图片记录。
+        try {
+            postVersionMapper.delete(new LambdaQueryWrapper<PostVersion>()
+                    .eq(PostVersion::getPostId, id));
+        } catch (Exception e) {
+            log.warn("清理文章版本失败: postId={}, err={}", id, e.getMessage());
+        }
+        try {
+            imageMapper.update(null, new LambdaUpdateWrapper<Image>()
+                    .set(Image::getPostId, null)
+                    .eq(Image::getPostId, id));
+        } catch (Exception e) {
+            log.warn("解除图片关联失败: postId={}, err={}", id, e.getMessage());
+        }
         log.info("文章删除成功: id={}", id);
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public PostResponse getPostDetail(String slug) {
+    public PostResponse getPostDetail(String slug, Long userId, String role) {
         Post post = getBySlug(slug);
+        // 私有/隐藏校验收敛到这里，任何走详情的地方都受同一规则约束
+        if (!com.blog.common.PostVisibility.canRead(post, userId, role)) {
+            throw new ResourceNotFoundException("文章", "slug", slug);
+        }
         incrementViews(post.getId());
         post.setViews(post.getViews() + 1);
         log.info("查看文章: slug={}, views={}", slug, post.getViews());
@@ -370,18 +389,17 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
     }
 
     @Override
-    public List<Post> getRelatedPosts(String slug, int limit) {
+    public List<Post> getRelatedPosts(String slug, int limit, Long userId, String role) {
         Post current = getBySlug(slug);
         int safeLimit = Math.max(1, Math.min(limit, 100));
         if (current.getTags() == null || current.getTags().trim().isEmpty()) {
-            return baseMapper.selectList(
-                    new LambdaQueryWrapper<Post>()
-                            .eq(Post::getStatus, 1)
-                            .eq(Post::getIsPrivate, 0)
-                            .eq(Post::getIsHidden, 0)
-                            .ne(Post::getId, current.getId())
-                            .orderByDesc(Post::getViews)
-                            .last("LIMIT " + safeLimit));
+            LambdaQueryWrapper<Post> w = new LambdaQueryWrapper<Post>()
+                    .eq(Post::getStatus, 1)
+                    .ne(Post::getId, current.getId())
+                    .orderByDesc(Post::getViews)
+                    .last("LIMIT " + safeLimit);
+            com.blog.common.PostVisibility.applyReadableFilter(w, userId, role);
+            return baseMapper.selectList(w);
         }
         // 按标签匹配（通过 post_tag 关联表），拆分逗号分隔的标签
         List<Long> tagIds = new ArrayList<>();
@@ -390,33 +408,36 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
         }
         tagIds = tagIds.stream().distinct().collect(Collectors.toList());
         if (tagIds.isEmpty()) {
-            return baseMapper.selectList(
-                    new LambdaQueryWrapper<Post>()
-                            .eq(Post::getStatus, 1)
-                            .ne(Post::getId, current.getId())
-                            .orderByDesc(Post::getViews)
-                            .last("LIMIT " + safeLimit));
+            LambdaQueryWrapper<Post> w = new LambdaQueryWrapper<Post>()
+                    .eq(Post::getStatus, 1)
+                    .ne(Post::getId, current.getId())
+                    .orderByDesc(Post::getViews)
+                    .last("LIMIT " + safeLimit);
+            com.blog.common.PostVisibility.applyReadableFilter(w, userId, role);
+            return baseMapper.selectList(w);
         }
-        return baseMapper.selectList(
-                new LambdaQueryWrapper<Post>()
-                        .eq(Post::getStatus, 1)
-                        .eq(Post::getIsPrivate, 0)
-                        .eq(Post::getIsHidden, 0)
-                        .ne(Post::getId, current.getId())
-                        .inSql(Post::getId,
-                                "SELECT DISTINCT pt.post_id FROM post_tag pt WHERE pt.tag_id IN (" +
-                                tagIds.stream().map(String::valueOf).collect(Collectors.joining(",")) + ")")
-                        .orderByDesc(Post::getViews)
-                        .last("LIMIT " + safeLimit));
+        LambdaQueryWrapper<Post> w = new LambdaQueryWrapper<Post>()
+                .eq(Post::getStatus, 1)
+                .ne(Post::getId, current.getId())
+                .inSql(Post::getId,
+                        "SELECT DISTINCT pt.post_id FROM post_tag pt WHERE pt.tag_id IN (" +
+                        tagIds.stream().map(String::valueOf).collect(Collectors.joining(",")) + ")")
+                .orderByDesc(Post::getViews)
+                .last("LIMIT " + safeLimit);
+        com.blog.common.PostVisibility.applyReadableFilter(w, userId, role);
+        return baseMapper.selectList(w);
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     @XxlJob("publishScheduledPosts")
     public int publishScheduledPosts() {
+        // 定时发布的文章状态为 2（与前端"定时发布"、updatePost 的写入口径一致）。
+        // 之前这里查 status=0，而保存时 status 恒为 0 且 scheduled_at 被清空，任务永远匹配不到。
         int count = baseMapper.update(null, new LambdaUpdateWrapper<Post>()
                 .set(Post::getStatus, 1)
-                .eq(Post::getStatus, 0)
+                .set(Post::getScheduledAt, null)
+                .eq(Post::getStatus, 2)
                 .isNotNull(Post::getScheduledAt)
                 .le(Post::getScheduledAt, LocalDateTime.now()));
         if (count > 0) {
@@ -424,6 +445,37 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
         }
         XxlJobHelper.log("定时发布: {} 篇文章已发布", count);
         return count;
+    }
+
+    /**
+     * 规范化文章状态：只允许 0(草稿) / 1(已发布) / 2(定时发布)。
+     * 之前 status 没有任何范围校验，写 99 之类的值会让文章从所有列表里消失。
+     */
+    private int normalizeStatus(Integer status) {
+        if (status == null) {
+            return com.blog.common.enums.PostStatus.PUBLISHED.getCode();
+        }
+        if (status < 0 || status > 2) {
+            throw new BusinessException(400, "文章状态非法，只能是 0=草稿 / 1=已发布 / 2=定时发布");
+        }
+        return status;
+    }
+
+    /**
+     * 解析定时发布时间。只有 status=2（定时发布）才需要时间，其它状态一律返回 null。
+     */
+    private java.time.LocalDateTime parseScheduledAt(int status, String raw) {
+        if (status != 2) {
+            return null;
+        }
+        if (raw == null || raw.trim().isEmpty()) {
+            throw new BusinessException(400, "定时发布需要指定发布时间");
+        }
+        try {
+            return java.time.LocalDateTime.parse(raw.trim());
+        } catch (Exception e) {
+            throw new BusinessException(400, "定时发布时间格式不正确，应为 yyyy-MM-ddTHH:mm:ss");
+        }
     }
 
     @Override

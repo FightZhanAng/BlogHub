@@ -50,13 +50,27 @@ public class AuthController {
     @PostMapping("/refresh")
     public Result<Map<String, String>> refresh(@Valid @RequestBody RefreshRequest body) {
         String refreshToken = body.getRefreshToken();
-        if (!jwtUtil.validateToken(refreshToken)) {
+        // 必须校验 type=refresh：之前只校验签名，任何人拿一个 24h 的 access token
+        // 当 refreshToken 提交也能换到新 token，等于永久会话、7 天上限失效。
+        if (!jwtUtil.validateToken(refreshToken, JwtUtil.TYPE_REFRESH)) {
             throw new BusinessException(401, "Refresh Token 无效或已过期");
         }
 
         Long userId = jwtUtil.getUserId(refreshToken);
-        String username = jwtUtil.getUsername(refreshToken);
-        String role = jwtUtil.getRole(refreshToken);
+
+        // 回查用户：被禁用/删除的用户不允许继续续期
+        com.blog.entity.User user;
+        try {
+            user = userService.getUserById(userId);
+        } catch (BusinessException e) {
+            throw new BusinessException(401, "账号不存在或已被禁用");
+        }
+        if (user == null || user.getStatus() == null || user.getStatus() != 1) {
+            throw new BusinessException(401, "账号不存在或已被禁用");
+        }
+        // 角色以库中最新值为准，避免降权后旧 token 仍带 admin
+        String username = user.getUsername();
+        String role = user.getRole() != null ? user.getRole() : jwtUtil.getRole(refreshToken);
 
         String newAccessToken = jwtUtil.generateToken(userId, username, role);
         String newRefreshToken = jwtUtil.generateRefreshToken(userId, username, role);

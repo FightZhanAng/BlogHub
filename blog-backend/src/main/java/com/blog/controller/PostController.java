@@ -72,35 +72,24 @@ public class PostController {
             HttpServletRequest httpRequest) {
         String role = getCurrentRole();
         Long userId = getCurrentUserId();
-        return Result.success(PageResult.of(postService.getPublishedPosts(page, size, tag, keyword, role, userId)));
+        return Result.success(PageResult.of(postService.getPublishedPosts(
+                com.blog.common.PageParams.page(page), com.blog.common.PageParams.size(size),
+                tag, keyword, role, userId)));
     }
 
     @Operation(summary = "文章详情")
     @GetMapping("/{slug}")
     public Result<PostResponse> detail(@PathVariable String slug) {
-        Post post = postService.getBySlug(slug);
-        // 私有文章仅作者可访问
-        if (post.getIsPrivate() != null && post.getIsPrivate() == 1) {
-            Long userId = getCurrentUserId();
-            if (userId == null || !userId.equals(post.getAuthorId())) {
-                return Result.error(404, "文章不存在");
-            }
-        }
-        // 隐藏文章仅管理员可访问
-        if (post.getIsHidden() != null && post.getIsHidden() == 1) {
-            String role = getCurrentRole();
-            if (!"admin".equals(role)) {
-                return Result.error(404, "文章不存在");
-            }
-        }
-        return Result.success(postService.getPostDetail(slug));
+        // 可见性判定下沉到 getPostDetail（内部走 PostVisibility），
+        // 避免这里判一套、service 里又是另一套。
+        return Result.success(postService.getPostDetail(slug, getCurrentUserId(), getCurrentRole()));
     }
 
     @Operation(summary = "获取文章（编辑用，允许草稿）")
     @GetMapping("/{slug}/edit")
     public Result<PostResponse> edit(@PathVariable String slug) {
         Long userId = getCurrentUserId();
-        Post post = postService.getBySlugForEdit(slug, userId);
+        Post post = postService.getBySlugForEdit(slug, userId, getCurrentRole());
         return Result.success(PostResponse.from(post));
     }
 
@@ -122,9 +111,16 @@ public class PostController {
 
     @Operation(summary = "导出 Markdown")
     @GetMapping("/{slug}/export")
-    public void export(@PathVariable String slug, javax.servlet.http.HttpServletResponse response) {
-        Post post = postService.getBySlug(slug);
-        if (post == null) {
+    public void export(@PathVariable String slug, javax.servlet.http.HttpServletResponse response) throws java.io.IOException {
+        Post post;
+        try {
+            post = postService.getBySlug(slug);
+        } catch (Exception e) {
+            response.setStatus(404);
+            return;
+        }
+        // 私有/隐藏文章不允许导出，否则可见性校验被完全绕过
+        if (!com.blog.common.PostVisibility.canRead(post, getCurrentUserId(), getCurrentRole())) {
             response.setStatus(404);
             return;
         }
@@ -197,22 +193,22 @@ public class PostController {
     @GetMapping("/{slug}/related")
     public Result<java.util.List<Post>> related(@PathVariable String slug,
             @RequestParam(defaultValue = "4") int limit) {
-        return Result.success(postService.getRelatedPosts(slug, limit));
+        return Result.success(postService.getRelatedPosts(slug, limit, getCurrentUserId(), getCurrentRole()));
     }
 
     @Operation(summary = "切换置顶（管理员）")
     @PutMapping("/{id}/pin")
+    @com.blog.common.RequireAdmin
     public Result<Map<String, Object>> togglePin(@PathVariable Long id) {
-        String role = getCurrentRole();
-        if (role == null) return Result.error(401, "请先登录");
-        if (!"admin".equals(role)) return Result.error(403, "无权操作");
         Post post = postService.getById(id);
         if (post == null) return Result.error(404, "文章不存在");
         boolean pinned = post.getIsPinned() != null && post.getIsPinned() == 1;
-        post.setIsPinned(pinned ? 0 : 1);
-        postService.updateById(post);
+        // 字段级更新：整行 updateById 会带旧快照写回，把并发累加的 views 覆盖回退
+        postService.update(new com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper<Post>()
+                .set(Post::getIsPinned, pinned ? 0 : 1)
+                .eq(Post::getId, id));
         Map<String, Object> r = new java.util.HashMap<>();
-        r.put("isPinned", post.getIsPinned());
+        r.put("isPinned", pinned ? 0 : 1);
         return Result.success(r);
     }
 
@@ -223,29 +219,31 @@ public class PostController {
         if (userId == null) return Result.error(401, "请先登录");
         Post post = postService.getById(id);
         if (post == null) return Result.error(404, "文章不存在");
-        if (!userId.equals(post.getAuthorId())) return Result.error(403, "只能操作自己的文章");
+        if (!"admin".equals(getCurrentRole()) && !userId.equals(post.getAuthorId())) {
+            return Result.error(403, "只能操作自己的文章");
+        }
         boolean priv = post.getIsPrivate() != null && post.getIsPrivate() == 1;
-        post.setIsPrivate(priv ? 0 : 1);
-        postService.updateById(post);
+        postService.update(new com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper<Post>()
+                .set(Post::getIsPrivate, priv ? 0 : 1)
+                .eq(Post::getId, id));
         Map<String, Object> r = new java.util.HashMap<>();
-        r.put("isPrivate", post.getIsPrivate());
+        r.put("isPrivate", priv ? 0 : 1);
         return Result.success(r);
     }
 
     @Operation(summary = "管理员隐藏文章")
     @PutMapping("/{id}/hide")
+    @com.blog.common.RequireAdmin
     public Result<Map<String, Object>> toggleHide(@PathVariable Long id) {
-        String role = getCurrentRole();
-        if (role == null) return Result.error(401, "请先登录");
-        if (!"admin".equals(role)) return Result.error(403, "无权操作");
         Post post = postService.getById(id);
         if (post == null) return Result.error(404, "文章不存在");
         boolean hidden = post.getIsHidden() != null && post.getIsHidden() == 1;
-        post.setIsHidden(hidden ? 0 : 1);
-        postService.updateById(post);
+        postService.update(new com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper<Post>()
+                .set(Post::getIsHidden, hidden ? 0 : 1)
+                .eq(Post::getId, id));
         tagService.recalcAllPostCounts();
         Map<String, Object> r = new java.util.HashMap<>();
-        r.put("isHidden", post.getIsHidden());
+        r.put("isHidden", hidden ? 0 : 1);
         return Result.success(r);
     }
 

@@ -2,6 +2,7 @@ package com.blog.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.blog.common.BaseEntity;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -14,7 +15,11 @@ import lombok.EqualsAndHashCode;
 public class User extends BaseEntity {
 
     private String username;
+
+    /** BCrypt 哈希，任何接口都不得序列化返回 */
+    @JsonIgnore
     private String password;
+
     private String nickname;
     private String avatar;
     private String role;

@@ -102,6 +102,7 @@ CREATE TABLE IF NOT EXISTS comments (
     likes       INT          DEFAULT 0 COMMENT '点赞数',
     dislikes    INT          DEFAULT 0 COMMENT '踩数',
     created_at  DATETIME     DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    updated_at  DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
 
     KEY idx_post_id (post_id),
     KEY idx_parent_id (parent_id),
@@ -117,6 +118,7 @@ CREATE TABLE IF NOT EXISTS likes (
     visitor_id  VARCHAR(64)  NOT NULL COMMENT '访客标识（IP 或设备 ID）',
     liked       TINYINT      DEFAULT 1 COMMENT '1=已赞, 0=取消',
     created_at  DATETIME     DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    updated_at  DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
 
     UNIQUE KEY uk_post_visitor (post_id, visitor_id),
     CONSTRAINT fk_like_post FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE
@@ -130,6 +132,7 @@ CREATE TABLE IF NOT EXISTS bookmarks (
     post_id     BIGINT       NOT NULL COMMENT '文章 ID',
     visitor_id  VARCHAR(64)  NOT NULL COMMENT '访客标识',
     created_at  DATETIME     DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    updated_at  DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
 
     UNIQUE KEY uk_bookmark (post_id, visitor_id),
     CONSTRAINT fk_bookmark_post FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE
@@ -146,6 +149,8 @@ CREATE TABLE IF NOT EXISTS comment_reaction (
     reaction_type TINYINT      NOT NULL COMMENT '1=赞, 0=踩',
     created_at    DATETIME     DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
 
+    -- 登录用户按 (comment_id,user_id) 去重；游客 user_id 为 NULL，按 (comment_id,ip) 去重。
+    -- MySQL 唯一索引允许多个 NULL，因此两条策略可共存于同一张表。
     UNIQUE KEY uk_user_comment (comment_id, user_id),
     UNIQUE KEY uk_ip_comment (comment_id, ip),
     INDEX idx_comment_id (comment_id)

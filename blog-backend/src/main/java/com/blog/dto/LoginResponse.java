@@ -3,6 +3,8 @@ package com.blog.dto;
 public class LoginResponse {
 
     private String token;
+    /** 用于换取新 token 的刷新令牌（之前没有该字段，前端永远拿不到 refreshToken） */
+    private String refreshToken;
     private String username;
     private String nickname;
     private String avatar;
@@ -22,6 +24,8 @@ public class LoginResponse {
 
     public String getToken() { return token; }
     public void setToken(String token) { this.token = token; }
+    public String getRefreshToken() { return refreshToken; }
+    public void setRefreshToken(String refreshToken) { this.refreshToken = refreshToken; }
     public String getUsername() { return username; }
     public void setUsername(String username) { this.username = username; }
     public String getNickname() { return nickname; }

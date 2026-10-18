@@ -171,8 +171,17 @@ async function saveProfile() {
   try {
     const res = await request.put('/users/me', { nickname: profileForm.nickname })
     userInfo.value = res
-    // 同步 authStore
-    authStore.saveUser(authStore.token, authStore.username, res.nickname, authStore.role, authStore.userId)
+    // 同步 authStore。
+    // 注意 saveUser 的签名是 (t, u, n, a, r, id) —— 之前这里漏传 avatar，
+    // 结果 role 落进 avatar、userId 落进 role，保存后 isAdmin 变 false、userId 丢失。
+    authStore.saveUser(
+      authStore.token,
+      authStore.username,
+      res.nickname,
+      res.avatar ?? authStore.avatar,
+      res.role ?? authStore.role,
+      res.id ?? authStore.userId,
+    )
     ElMessage.success('已保存')
   } catch {
   } finally {

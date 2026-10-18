@@ -11,6 +11,7 @@ import com.blog.entity.Post;
 import com.blog.mapper.CommentMapper;
 import com.blog.mapper.NotificationMapper;
 import com.blog.entity.User;
+import com.blog.exception.BusinessException;
 import com.blog.service.BadgeService;
 import com.blog.service.CommentService;
 import com.blog.service.PostService;
@@ -51,6 +52,23 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
                 .filter(c -> c.getParentId() != null)
                 .collect(Collectors.groupingBy(Comment::getParentId, Collectors.counting()));
 
+        // 批量取头像，避免逐条查库（N+1）；
+        // 同时避免 getUserById 在用户已删除时抛 404 把整个评论列表打成 500。
+        Map<Long, String> avatarMap = new HashMap<>();
+        Set<Long> userIds = list.stream()
+                .map(Comment::getUserId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+        if (!userIds.isEmpty()) {
+            try {
+                for (User u : userService.listByIds(userIds)) {
+                    avatarMap.put(u.getId(), u.getAvatar());
+                }
+            } catch (Exception e) {
+                log.warn("批量查询评论头像失败: {}", e.getMessage());
+            }
+        }
+
         return list.stream().map(c -> {
             Map<String, Object> m = new LinkedHashMap<>();
             m.put("id", c.getId());
@@ -65,8 +83,8 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
             m.put("replyCount", replyCountMap.getOrDefault(c.getId(), 0L).intValue());
             // 设置头像
             if (c.getUserId() != null) {
-                com.blog.entity.User u = userService.getUserById(c.getUserId());
-                if (u != null) m.put("avatar", u.getAvatar());
+                String avatar = avatarMap.get(c.getUserId());
+                if (avatar != null) m.put("avatar", avatar);
             }
             return m;
         }).collect(Collectors.toList());
@@ -76,24 +94,39 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
     @Transactional(rollbackFor = Exception.class)
     public void addComment(String slug, String nickname, String content, Long parentId, Long userId) {
         Post post = postService.getBySlug(slug);
+
+        // parentId 必须存在且属于同一篇文章，否则会挂到别的文章上或产生孤儿楼
+        Comment parent = null;
+        if (parentId != null) {
+            parent = baseMapper.selectById(parentId);
+            if (parent == null || !post.getId().equals(parent.getPostId())) {
+                throw new BusinessException(400, "回复的评论不存在或不属于本文");
+            }
+        }
+
         Comment comment = new Comment();
         comment.setPostId(post.getId());
         comment.setNickname(nickname != null ? nickname : "匿名");
         comment.setContent(content != null ? content : "");
         comment.setParentId(parentId);
         comment.setUserId(userId);
+        // 列有 DEFAULT 0，但显式赋值可避免 COUNT 之类的 NULL 传播
+        comment.setLikes(0);
+        comment.setDislikes(0);
         baseMapper.insert(comment);
 
-        // 创建评论通知（通知文章作者，自己评论自己除外）
-        if (userId == null || !userId.equals(post.getAuthorId())) {
+        // 通知对象：回复时发给被回复者，否则发给文章作者
+        Long notifyUserId = (parent != null) ? parent.getUserId() : post.getAuthorId();
+
+        if (notifyUserId != null && !notifyUserId.equals(userId)) {
             try {
                 Notification n = new Notification();
-                n.setUserId(post.getAuthorId());
+                n.setUserId(notifyUserId);
                 n.setType("comment");
                 n.setRelatedId(post.getId());
                 n.setIsRead(0);
                 n.setCreatedAt(java.time.LocalDateTime.now());
-                if (parentId != null) {
+                if (parent != null) {
                     n.setMessage(comment.getNickname() + " 回复了你的评论");
                 } else {
                     n.setMessage(comment.getNickname() + " 评论了你的文章《" + post.getTitle() + "》");
@@ -228,8 +261,11 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
                     new LambdaQueryWrapper<Comment>().eq(Comment::getParentId, c.getId()));
             m.put("replyCount", childCount != null ? childCount.intValue() : 0);
             if (c.getUserId() != null) {
-                User u = userService.getUserById(c.getUserId());
-                if (u != null) m.put("avatar", u.getAvatar());
+                // 用户可能已被删除，getUserById 会抛 404 把整个接口打成 500，这里兜住
+                try {
+                    User u = userService.getUserById(c.getUserId());
+                    if (u != null) m.put("avatar", u.getAvatar());
+                } catch (Exception ignored) { }
             }
             return m;
         }).collect(Collectors.toList());

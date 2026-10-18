@@ -49,7 +49,11 @@ export function useBookmarks(slug) {
   async function fetchBookmarks() {
     try {
       const res = await interactionApi.getBookmarks()
-      allBookmarks.value = (res || []).map((p) => p.slug)
+      // 后端游客/空数据可能返回 null（Result.success() 无 data），这里必须兜底成空数组，
+      // 否则 (null || []).map 之外的分支会拿到 undefined 语义
+      allBookmarks.value = Array.isArray(res)
+        ? res.map((p) => p && p.slug).filter(Boolean)
+        : []
     } catch {
       // 静默失败
     }

@@ -31,13 +31,39 @@ public class LoggingAspect {
         if (log.isDebugEnabled()) {
             MethodSignature sig = (MethodSignature) jp.getSignature();
             String args = Arrays.stream(jp.getArgs())
-                    .map(a -> a != null ? a.toString() : "null")
+                    .map(LoggingAspect::safeToString)
                     .collect(Collectors.joining(", "));
             log.debug("→ {}.{}({})",
                     sig.getDeclaringType().getSimpleName(),
                     sig.getName(),
                     args.length() > 200 ? args.substring(0, 200) + "..." : args);
         }
+    }
+
+    /**
+     * 脱敏输出参数。
+     *
+     * <p>login / register / changePassword 这类方法会收到 LoginRequest、
+     * ChangePasswordRequest 等 DTO，直接 toString() 会把明文密码写进日志
+     * （本项目 com.blog 的日志级别是 debug，于是生产日志里全是密码）。</p>
+     */
+    private static String safeToString(Object a) {
+        if (a == null) {
+            return "null";
+        }
+        if (a instanceof CharSequence) {
+            return a.toString();
+        }
+        String name = a.getClass().getSimpleName();
+        // 登录/注册/改密相关的 DTO 只记录类型，不记录内容
+        if (name.contains("LoginRequest") || name.contains("Password")
+                || name.contains("RegisterRequest") || name.contains("RefreshRequest")) {
+            return name + "{***redacted***}";
+        }
+        String s = a.toString();
+        // 兜底：把形如 password=xxx 的片段替换掉
+        return s.replaceAll("(?i)(password|oldPassword|newPassword|token|apiKey|secret)=([^,\\)\\s]+)",
+                "$1=***");
     }
 
     /** 方法执行后记录返回值 */

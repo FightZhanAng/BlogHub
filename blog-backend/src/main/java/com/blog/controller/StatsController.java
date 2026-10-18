@@ -115,18 +115,13 @@ public class StatsController {
     @Operation(summary = "获取热门搜索词")
     @GetMapping("/search-keywords")
     public Result<List<String>> searchKeywords() {
-        // 优先从搜索历史表获取热词（近30天）
-        // 优先从搜索历史表获取热词（近30天，按搜索次数排序）
-        List<com.blog.entity.SearchHistory> recent = searchHistoryMapper.selectList(
-                new LambdaQueryWrapper<com.blog.entity.SearchHistory>()
-                        .ge(com.blog.entity.SearchHistory::getCreatedAt,
-                                java.time.LocalDateTime.now().minusDays(30))
-                        .groupBy(com.blog.entity.SearchHistory::getKeyword)
-                        .last("LIMIT 10"));
+        // 用显式的 keyword + COUNT(*) 查询。
+        // 之前用 selectList + groupBy(keyword)，MyBatis-Plus 会生成
+        // "SELECT id,keyword,user_id,created_at ... GROUP BY keyword"，
+        // MySQL 8 默认 ONLY_FULL_GROUP_BY 下直接 ERROR 1055（接口 500），且没有按次数排序。
+        List<String> recent = searchHistoryMapper.selectHotKeywords(30, 10);
         if (recent != null && !recent.isEmpty()) {
-            return Result.success(recent.stream()
-                    .map(com.blog.entity.SearchHistory::getKeyword)
-                    .collect(java.util.stream.Collectors.toList()));
+            return Result.success(recent);
         }
         // 降级：热门标签
         List<String> keywords = tagMapper.selectList(

@@ -35,6 +35,9 @@ public class AiChatService {
     private final AiMessageMapper messageMapper;
     private final ObjectMapper objectMapper;
 
+    @org.springframework.beans.factory.annotation.Value("${upload.dir:./uploads}")
+    private String uploadDir;
+
     /**
      * 获取可用模型列表
      */
@@ -116,6 +119,17 @@ public class AiChatService {
                 emitter.send(SseEmitter.event().name("error").data("模型不存在"));
                 emitter.complete();
                 return;
+            }
+
+            // 0. 校验会话归属：之前不校验 conversationId，
+            // 任何登录用户都能往别人的会话里写消息（伪造/污染聊天历史）。
+            if (request.getConversationId() != null) {
+                AiConversation conv = conversationMapper.selectById(request.getConversationId());
+                if (conv == null || conv.getUserId() == null || !conv.getUserId().equals(userId)) {
+                    emitter.send(SseEmitter.event().name("error").data("对话不存在"));
+                    emitter.complete();
+                    return;
+                }
             }
 
             // 1. 保存用户消息
@@ -325,25 +339,45 @@ public class AiChatService {
     }
 
     /**
-     * 将 URL/路径转为 base64 字符串
+     * 将 URL/路径转为 base64 字符串。
+     *
+     * <p>之前对非 http 的字符串直接 {@code new File(path)} 读取，传 {@code ../../application-local.yml}
+     * 就能把服务器上任意文件 base64 后发往第三方 AI 接口。这里限定只能读取
+     * {@code <upload.dir>/ai-images/} 目录下的真实文件。</p>
      */
     private String convertUrlToBase64(String url) {
         try {
             java.io.InputStream is;
-            if (url.startsWith("http")) {
+            if (url == null) return null;
+            if (url.startsWith("http://") || url.startsWith("https://")) {
                 java.net.HttpURLConnection conn = (java.net.HttpURLConnection) new java.net.URL(url).openConnection();
                 conn.setConnectTimeout(5000);
                 conn.setReadTimeout(5000);
                 is = conn.getInputStream();
             } else {
-                // 本地相对路径，如 /uploads/ai-images/xxx.png
-                String path = url.startsWith("/") ? url.substring(1) : url;
-                java.io.File file = new java.io.File(path);
-                if (!file.exists()) {
-                    // 尝试从 upload.dir 拼接
-                    file = new java.io.File("./" + path);
+                // 只允许 /uploads/ai-images/... 形式的站内图片
+                String normalized = url.replace('\\', '/');
+                int idx = normalized.indexOf("/uploads/");
+                if (idx < 0) {
+                    log.warn("拒绝读取非 uploads 路径: {}", url);
+                    return null;
                 }
-                if (!file.exists()) {
+                String rel = normalized.substring(idx + "/uploads/".length());
+                java.nio.file.Path root = java.nio.file.Paths.get(uploadDir).toAbsolutePath().normalize();
+                java.nio.file.Path target = root.resolve(rel).normalize();
+                // normalize 之后必须仍在 root 之内，挡住 ../ 穿越
+                if (!target.startsWith(root)) {
+                    log.warn("拒绝读取越界路径: {}", url);
+                    return null;
+                }
+                // 只允许 AI 图片目录，避免读配置/日志等其它文件
+                java.nio.file.Path aiDir = root.resolve("ai-images").normalize();
+                if (!target.startsWith(aiDir)) {
+                    log.warn("拒绝读取非 ai-images 目录文件: {}", url);
+                    return null;
+                }
+                java.io.File file = target.toFile();
+                if (!file.exists() || !file.isFile()) {
                     log.warn("图片文件不存在: {}", url);
                     return null;
                 }

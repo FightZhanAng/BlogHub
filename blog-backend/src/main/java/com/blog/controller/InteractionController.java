@@ -62,8 +62,11 @@ public class InteractionController {
         String visitorId = getVisitorId();
         boolean liked = likeService.toggleLike(post.getId(), visitorId);
         int count = likeService.getLikeCount(post.getId());
-        post.setLikes(count);
-        postService.updateById(post);
+        // 只改 likes 字段：整行 updateById 会把旧快照（含旧 views/status）写回，
+        // 并发浏览时会把阅读数覆盖回退。
+        postService.update(new com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper<Post>()
+                .set(Post::getLikes, count)
+                .eq(Post::getId, post.getId()));
         // 点赞通知
         if (liked && post.getAuthorId() != null && getUserIdFromToken() != null
                 && !getUserIdFromToken().equals(post.getAuthorId())) {

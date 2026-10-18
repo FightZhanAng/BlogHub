@@ -9,7 +9,12 @@ function getMd() {
       typographer: true,
       breaks: true,
       highlight(str, lang) {
-        const language = lang || 'code'
+        // lang 来自 Markdown 源码里的 ```xxx 标记，是用户可控输入。
+        // 之前原样拼进 data-lang / class / <span>，html:false 拦不住，
+        // 例如 ```x"><svg onload=alert(1)> 会直接执行脚本。
+        // 这里只保留安全字符，并做 HTML 转义双保险。
+        const rawLang = String(lang || 'code')
+        const language = rawLang.replace(/[^a-zA-Z0-9+#._-]/g, '') || 'code'
         const escaped = str
           .replace(/&/g, '&amp;')
           .replace(/</g, '&lt;')

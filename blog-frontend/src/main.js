@@ -10,6 +10,7 @@ import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 
 import App from './App.vue'
 import router from './router'
+import { bindRouter } from './api/request'
 import './styles/global.css'
 
 // 修复 Edge/Chromium：history.replaceState 导致窗口最小化后重新聚焦
@@ -59,6 +60,9 @@ pinia.use(piniaPluginPersistedstate)
 app.use(pinia)
 app.use(router)
 app.use(ElementPlus, { locale: zhCn })
+
+// 让 axios 拦截器能拿到路由实例：401 时用 router.push 跳转而不是整页刷新
+bindRouter(router)
 
 // 全局错误处理
 app.config.errorHandler = (err, instance, info) => {

@@ -52,13 +52,14 @@ public class TagServiceImpl extends ServiceImpl<TagMapper, Tag> implements TagSe
     }
 
     @Override
-    public IPage<Post> getTagPosts(String slug, int page, int size) {
+    public IPage<Post> getTagPosts(String slug, int page, int size, Long userId, String role) {
         Tag tag = getBySlug(slug);
         if (tag == null) {
             return new Page<>(page, size, 0);
         }
-        // 查询关联该标签的已发布文章（按创建时间降序）
-        return postMapper.selectTagPosts(new Page<>(page, size), tag.getId());
+        // 查询关联该标签的已发布文章（按创建时间降序），并按访问者过滤私有/隐藏
+        int isAdmin = "admin".equals(role) ? 1 : 0;
+        return postMapper.selectTagPosts(new Page<>(page, size), tag.getId(), userId, isAdmin);
     }
 
     @Override

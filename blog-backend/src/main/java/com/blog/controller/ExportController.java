@@ -92,7 +92,16 @@ public class ExportController {
 
     private String escape(String s) {
         if (s == null) return "";
-        return "\"" + s.replace("\"", "\"\"") + "\"";
+        // 防 CSV 公式注入：以 = + - @ 开头的单元格会被 Excel/WPS 当公式执行，
+        // 前置单引号让它保持纯文本。
+        String v = s;
+        if (!v.isEmpty()) {
+            char c = v.charAt(0);
+            if (c == '=' || c == '+' || c == '-' || c == '@' || c == '\t' || c == '\r') {
+                v = "'" + v;
+            }
+        }
+        return "\"" + v.replace("\"", "\"\"") + "\"";
     }
 
     private ResponseEntity<byte[]> csvResponse(String filename, String csv) {

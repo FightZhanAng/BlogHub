@@ -26,7 +26,9 @@ public class MenuServiceImpl implements MenuService {
     private final MenuItemMapper itemMapper;
 
     @Override
-    @Cacheable(value = "menus", key = "#role")
+    // key 不能直接用 #role：匿名访客的 role 为 null，Spring Cache 会抛
+    // "Null key returned for cache operation"。这里把 null 规范化为 "guest"。
+    @Cacheable(value = "menus", key = "#role == null ? 'guest' : #role")
     public List<MenuTreeVO> getMenuTree(String role) {
         boolean isAdmin = "admin".equals(role);
 
@@ -60,44 +62,53 @@ public class MenuServiceImpl implements MenuService {
         for (MenuGroup g : groups) {
             unified.add(new Object[]{"group", g, g.getSortOrder()});
         }
-        unified.sort(Comparator.comparingInt(o -> (int) o[2]));
+        // sort_order 可能为 NULL（历史数据），直接强转/拆箱会 NPE，这里按 Integer.MAX_VALUE 兜底
+        unified.sort(Comparator.comparingInt(o -> o[2] != null ? (int) o[2] : Integer.MAX_VALUE));
 
         for (Object[] entry : unified) {
             String type = (String) entry[0];
 
             if ("item".equals(type)) {
                 MenuItem i = (MenuItem) entry[1];
-                if (isAdmin || i.getAdminOnly() == 0) {
+                if (isAdmin || isZero(i.getAdminOnly())) {
                     tree.add(new MenuTreeVO(
                         i.getId(), i.getTitle(), i.getPath(), i.getIcon(),
-                        null, i.getAdminOnly() == 1, null
+                        null, isOne(i.getAdminOnly()), null
                     ));
                 }
             } else {
                 MenuGroup group = (MenuGroup) entry[1];
-                if (!isAdmin && group.getAdminOnly() == 1) continue;
+                if (!isAdmin && isOne(group.getAdminOnly())) continue;
 
             List<MenuItem> groupItems = groupedItems.getOrDefault(group.getId(), Collections.emptyList());
             List<MenuTreeVO> children = new ArrayList<>();
 
             for (MenuItem item : groupItems) {
-                if (!isAdmin && item.getAdminOnly() == 1) continue;
+                if (!isAdmin && isOne(item.getAdminOnly())) continue;
                 children.add(new MenuTreeVO(
                     item.getId(), item.getTitle(), item.getPath(), item.getIcon(),
-                    null, item.getAdminOnly() == 1, null
+                    null, isOne(item.getAdminOnly()), null
                 ));
             }
 
             if (!children.isEmpty()) {
                 tree.add(new MenuTreeVO(
                     group.getId(), group.getName(), null, group.getIcon(),
-                    group.getId() + "-group", group.getAdminOnly() == 1, children
+                    group.getId() + "-group", isOne(group.getAdminOnly()), children
                 ));
             }
             }
         }
 
         return tree;
+    }
+
+    private static boolean isOne(Integer flag) {
+        return flag != null && flag == 1;
+    }
+
+    private static boolean isZero(Integer flag) {
+        return flag == null || flag == 0;
     }
 
     // ========== 菜单组 CRUD ==========
@@ -113,9 +124,15 @@ public class MenuServiceImpl implements MenuService {
     @CacheEvict(value = "menus", allEntries = true)
     public MenuGroup createGroup(MenuGroup group) {
         if (group.getSortOrder() == null) {
-            // 默认排到最后
-            Long max = groupMapper.selectCount(null);
-            group.setSortOrder(max.intValue() + 1);
+            // 默认排到最后：用 max(sort_order)+1，而不是 count(行数)。
+            // count 在删除过条目后会与现有排序号重复，导致排序错乱。
+            MenuGroup last = groupMapper.selectOne(
+                new LambdaQueryWrapper<MenuGroup>()
+                    .orderByDesc(MenuGroup::getSortOrder)
+                    .last("LIMIT 1")
+            );
+            int next = (last != null && last.getSortOrder() != null) ? last.getSortOrder() + 1 : 1;
+            group.setSortOrder(next);
         }
         if (group.getEnabled() == null) group.setEnabled(1);
         if (group.getAdminOnly() == null) group.setAdminOnly(0);

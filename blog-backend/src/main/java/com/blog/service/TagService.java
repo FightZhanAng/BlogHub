@@ -15,8 +15,8 @@ public interface TagService extends IService<Tag> {
     /** 按 slug 查询标签 */
     Tag getBySlug(String slug);
 
-    /** 获取标签下的文章（分页） */
-    IPage<Post> getTagPosts(String slug, int page, int size);
+    /** 获取标签下的文章（分页，按当前访问者可见性过滤） */
+    IPage<Post> getTagPosts(String slug, int page, int size, Long userId, String role);
 
     /** 查找或创建标签，返回 tagId */
     Long findOrCreate(String name);

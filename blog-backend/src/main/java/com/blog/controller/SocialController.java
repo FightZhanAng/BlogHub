@@ -181,11 +181,14 @@ public class SocialController {
     @Operation(summary = "获取文章排行榜")
     @GetMapping("/posts/ranking")
     public Result<List<Post>> ranking() {
-        List<Post> top = postMapper.selectList(
-                new LambdaQueryWrapper<Post>()
-                        .eq(Post::getStatus, 1)
-                        .orderByDesc(Post::getViews)
-                        .last("LIMIT 10"));
-        return Result.success(top);
+        Long userId = getUserId();
+        String role = null;
+        Object r = request.getAttribute("role");
+        if (r instanceof String) role = (String) r;
+        LambdaQueryWrapper<Post> w = new LambdaQueryWrapper<Post>().eq(Post::getStatus, 1);
+        // 之前只过滤 status，私有/隐藏文章会出现在公开排行榜里
+        com.blog.common.PostVisibility.applyReadableFilter(w, userId, role);
+        w.orderByDesc(Post::getViews).last("LIMIT 10");
+        return Result.success(postMapper.selectList(w));
     }
 }

@@ -457,7 +457,8 @@ function handleKeydown(e) {
   }
   if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'p' || e.key === 'P')) {
     e.preventDefault()
-    isPreview.value = !isPreview.value
+    // 快捷键切换"编辑/预览"标签。之前引用未定义的 isPreview，必定抛 ReferenceError
+    activeTab.value = activeTab.value === 'preview' ? 'edit' : 'preview'
   }
 }
 

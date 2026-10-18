@@ -2,6 +2,7 @@ package com.blog.controller;
 
 import com.blog.common.AuditLog;
 import com.blog.common.PageResult;
+import com.blog.common.RequireAdmin;
 import com.blog.common.Result;
 import com.blog.dto.ChangePasswordRequest;
 import com.blog.dto.CreateUserRequest;
@@ -44,6 +45,7 @@ public class UserController {
 
     @Operation(summary = "获取用户列表")
     @GetMapping
+    @RequireAdmin
     public Result<PageResult<User>> list(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -59,6 +61,7 @@ public class UserController {
 
     @Operation(summary = "创建用户")
     @PostMapping
+    @RequireAdmin
     @AuditLog(action = "创建用户", resource = "#body?.getUsername()")
     public Result<User> create(@Valid @RequestBody CreateUserRequest body) {
         return Result.success(userService.createUser(
@@ -68,6 +71,7 @@ public class UserController {
 
     @Operation(summary = "更新用户信息")
     @PutMapping("/{id}")
+    @RequireAdmin
     @AuditLog(action = "更新用户", resource = "#id")
     public Result<User> update(@PathVariable Long id, @Valid @RequestBody UpdateUserRequest body) {
         Map<String, String> map = new HashMap<>();
@@ -80,6 +84,7 @@ public class UserController {
 
     @Operation(summary = "删除用户")
     @DeleteMapping("/{id}")
+    @RequireAdmin
     @AuditLog(action = "删除用户", resource = "#id")
     public Result<Void> delete(@PathVariable Long id) {
         userService.removeById(id);
@@ -106,12 +111,28 @@ public class UserController {
             @RequestAttribute Long userId,
             @RequestParam("file") org.springframework.web.multipart.MultipartFile file) {
         if (file.isEmpty()) return Result.error(400, "文件不能为空");
+        if (file.getSize() > com.blog.common.UploadValidator.MAX_IMAGE_SIZE) {
+            return Result.error(400, "头像不能超过 5MB");
+        }
         try {
+            // 之前直接用原始文件名的扩展名落盘，可写入 xxx.html 到 /uploads 下同源打开。
+            // 现在按文件头魔数判定真实类型，扩展名由服务端决定。
+            byte[] header = new byte[12];
+            try (java.io.InputStream in = file.getInputStream()) {
+                int read = 0;
+                while (read < header.length) {
+                    int n = in.read(header, read, header.length - read);
+                    if (n < 0) break;
+                    read += n;
+                }
+            }
+            String ext = com.blog.common.UploadValidator.detectImageExtension(header);
+            if (ext == null) {
+                return Result.error(400, "头像必须是 jpg/png/gif/webp/bmp 图片");
+            }
             String dateDir = java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy/MM"));
             Path targetDir = Paths.get(uploadDir).toAbsolutePath().normalize().resolve("avatars").resolve(dateDir);
             java.nio.file.Files.createDirectories(targetDir);
-            String ext = file.getOriginalFilename();
-            ext = ext != null && ext.contains(".") ? ext.substring(ext.lastIndexOf('.') + 1).toLowerCase() : "png";
             String filename = "avatar_" + userId + "_" + java.util.UUID.randomUUID().toString().substring(0, 8) + "." + ext;
             file.transferTo(targetDir.resolve(filename).toFile());
             String url = "/uploads/avatars/" + dateDir + "/" + filename;

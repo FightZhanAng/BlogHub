@@ -41,7 +41,11 @@ public class AlbumServiceImpl extends ServiceImpl<AlbumMapper, Album> implements
     public IPage<AlbumResponse> listAlbums(int page, int size, Long authorId) {
         LambdaQueryWrapper<Album> wrapper = new LambdaQueryWrapper<>();
         if (authorId != null) {
+            // 列表按作者过滤时（"我的相册"），私密和公开都要返回给作者本人
             wrapper.eq(Album::getAuthorId, authorId);
+        } else {
+            // 未指定作者时不额外暴露任何东西，交由调用方决定；这里保持"只看公开"
+            wrapper.eq(Album::getIsPrivate, false);
         }
         wrapper.orderByDesc(Album::getCreatedAt);
 

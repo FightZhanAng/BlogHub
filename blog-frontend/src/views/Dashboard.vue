@@ -39,7 +39,10 @@
 import { ref, computed, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import request from '@/api/request'
+import { useAuthStore } from '@/stores/auth'
 import * as echarts from 'echarts'
+
+const authStore = useAuthStore()
 
 const chartRef = ref(null)
 const stats = ref({})
@@ -53,7 +56,9 @@ const statCards = computed(() => [
 ])
 
 function download(url) {
-  const token = localStorage.getItem('blog_token')
+  // 之前读的是已废弃的 blog_token（main.js 启动时会把旧键全部删除），
+  // 导致导出永远提示"请先登录"。统一从 authStore（pinia 持久化）取 token。
+  const token = authStore.token
   if (!token) { ElMessage.warning('请先登录'); return }
   fetch(url, {
     headers: { 'Authorization': `Bearer ${token}` }

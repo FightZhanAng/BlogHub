@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -47,8 +48,11 @@ public class TagController {
     public Result<PageResult<Post>> posts(
             @PathVariable String slug,
             @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        IPage<Post> postPage = tagService.getTagPosts(slug, page, size);
+            @RequestParam(defaultValue = "10") int size,
+            HttpServletRequest request) {
+        Long userId = request.getAttribute("userId") instanceof Long ? (Long) request.getAttribute("userId") : null;
+        String role = request.getAttribute("role") instanceof String ? (String) request.getAttribute("role") : null;
+        IPage<Post> postPage = tagService.getTagPosts(slug, page, size, userId, role);
         return Result.success(PageResult.of(postPage));
     }
 }

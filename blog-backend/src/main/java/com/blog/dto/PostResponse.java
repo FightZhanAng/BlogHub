@@ -50,6 +50,9 @@ public class PostResponse {
         r.setIsPinned(post.getIsPinned());
         r.setIsPrivate(post.getIsPrivate());
         r.setIsHidden(post.getIsHidden());
+        r.setSeriesId(post.getSeriesId());
+        // 之前漏了这一行：定时发布时间不会返回给前端，编辑页重新打开会丢失定时设置
+        r.setScheduledAt(post.getScheduledAt() != null ? post.getScheduledAt().toString() : null);
         return r;
     }
 

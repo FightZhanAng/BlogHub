@@ -1,6 +1,7 @@
 package com.blog.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.blog.common.RequireAdmin;
 import com.blog.common.Result;
 import com.blog.entity.SensitiveWord;
 import com.blog.service.SensitiveWordService;
@@ -15,6 +16,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/admin/sensitive-words")
 @RequiredArgsConstructor
+@RequireAdmin
 @Tag(name = "敏感词管理", description = "管理员敏感词库管理")
 public class SensitiveWordController {
 

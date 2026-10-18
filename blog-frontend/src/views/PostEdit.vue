@@ -104,6 +104,8 @@ import TagSelector from '@/components/TagSelector.vue'
 
 const route = useRoute()
 const router = useRouter()
+// 之前漏了这一行：文件里到处用 authStore，但没有实例化，点"清空内容"会 ReferenceError
+const authStore = useAuthStore()
 const formRef = ref(null)
 const loading = ref(true)
 const saving = ref(false)

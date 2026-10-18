@@ -15,10 +15,10 @@ public interface PostService extends IService<Post> {
     /** 根据 slug 查询文章（仅已发布） */
     Post getBySlug(String slug);
 
-    /** 根据 slug 查询文章（编辑用，允许作者查看草稿） */
-    Post getBySlugForEdit(String slug, Long userId);
+    /** 根据 slug 查询文章（编辑用：仅作者本人或管理员） */
+    Post getBySlugForEdit(String slug, Long userId, String role);
 
-    /** 检查 slug 是否已被同用户占用 */
+    /** 检查 slug 是否已被占用（全局唯一） */
     boolean isSlugExists(String slug, Long userId, Long excludeId);
 
     /** 获取用户的所有 slug 列表 */
@@ -42,11 +42,11 @@ public interface PostService extends IService<Post> {
     /** 删除文章（含权限校验） */
     void deletePost(Long id, Long userId, String role);
 
-    /** 获取文章详情（自动 +1 阅读量） */
-    PostResponse getPostDetail(String slug);
+    /** 获取文章详情（自动 +1 阅读量，含可见性校验） */
+    PostResponse getPostDetail(String slug, Long userId, String role);
 
-    /** 相关文章推荐 */
-    java.util.List<Post> getRelatedPosts(String slug, int limit);
+    /** 相关文章推荐（按当前访问者可见性过滤） */
+    java.util.List<Post> getRelatedPosts(String slug, int limit, Long userId, String role);
 
     /** 定时发布：扫描并发布到期的文章 */
     int publishScheduledPosts();

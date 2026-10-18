@@ -32,10 +32,10 @@ public class ApiTesterProxyServiceImpl implements ApiTesterProxyService {
 
     @Override
     public ApiTestProxyResponse proxy(ApiTestProxyRequest request, Long userId, String role) {
-        // 1. URL 安全校验（管理员跳过）
-        if (!"admin".equals(role)) {
-            validateUrl(request.getUrl());
-        }
+        // 1. URL 安全校验。
+        // 之前是 if (!"admin".equals(role)) 才校验，管理员账号可直接打内网；
+        // SSRF 防护属于基础设施约束，不应该因为角色就关闭。
+        validateUrl(request.getUrl());
 
         // 2. 构建请求头
         HttpHeaders headers = new HttpHeaders();
@@ -108,24 +108,66 @@ public class ApiTesterProxyServiceImpl implements ApiTesterProxyService {
     private void validateUrl(String urlStr) {
         try {
             URL url = new URL(urlStr);
-            String host = url.getHost().toLowerCase();
 
-            // 禁止访问内网地址
-            for (String blocked : BLOCKED_HOSTS) {
-                if (host.equals(blocked)) {
-                    throw new BusinessException(400, "禁止访问本地地址: " + host);
-                }
+            // 只允许 http/https，防止 file:/gopher:/jar: 之类的协议被代理
+            String protocol = url.getProtocol() == null ? "" : url.getProtocol().toLowerCase();
+            if (!"http".equals(protocol) && !"https".equals(protocol)) {
+                throw new BusinessException(400, "仅支持 http/https 协议");
             }
 
-            // 禁止访问内网 IP 段
-            if (host.matches("^10\\..*") || host.matches("^172\\.(1[6-9]|2[0-9]|3[01])\\..*") || host.matches("^192\\.168\\..*")) {
-                throw new BusinessException(400, "禁止访问内网地址: " + host);
+            String host = url.getHost();
+            if (host == null || host.isEmpty()) {
+                throw new BusinessException(400, "URL 缺少主机名");
+            }
+            host = host.toLowerCase();
+            // URL.getHost() 对 IPv6 会带上方括号，去掉后再比较
+            if (host.startsWith("[") && host.endsWith("]")) {
+                host = host.substring(1, host.length() - 1);
+            }
+
+            // 解析所有 A/AAAA 记录后逐个判断，避免 2130706433、127.0.0.1.nip.io 这类绕过
+            java.net.InetAddress[] addresses = java.net.InetAddress.getAllByName(host);
+            if (addresses.length == 0) {
+                throw new BusinessException(400, "无法解析主机: " + host);
+            }
+            for (java.net.InetAddress addr : addresses) {
+                if (isBlocked(addr)) {
+                    throw new BusinessException(400, "禁止访问内网/本地地址: " + host);
+                }
             }
         } catch (BusinessException e) {
             throw e;
         } catch (Exception e) {
             throw new BusinessException(400, "URL 格式无效: " + e.getMessage());
         }
+    }
+
+    /** 判断地址是否属于内网/保留网段 */
+    private boolean isBlocked(java.net.InetAddress addr) {
+        if (addr.isLoopbackAddress() || addr.isSiteLocalAddress()
+                || addr.isLinkLocalAddress() || addr.isAnyLocalAddress()
+                || addr.isMulticastAddress()) {
+            return true;
+        }
+        byte[] raw = addr.getAddress();
+        if (raw.length == 4) {
+            int b0 = raw[0] & 0xFF;
+            int b1 = raw[1] & 0xFF;
+            // CGNAT 100.64/10
+            if (b0 == 100 && b1 >= 64 && b1 <= 127) return true;
+            // 169.254/16
+            if (b0 == 169 && b1 == 254) return true;
+            // 0.0.0.0/8
+            if (b0 == 0) return true;
+            // 127/8
+            if (b0 == 127) return true;
+        }
+        if (raw.length == 16) {
+            // IPv6 唯一本地地址 fc00::/7
+            int b0 = raw[0] & 0xFF;
+            if ((b0 & 0xFE) == 0xFC) return true;
+        }
+        return false;
     }
 
     private String getContentType(String bodyType) {

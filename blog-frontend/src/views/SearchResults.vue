@@ -127,12 +127,28 @@ watch(keyword, (val) => {
   }
 })
 
-/** 高亮关键词 */
+/** HTML 转义：标题/摘要来自用户输入，必须先转义再拼 <mark>，否则 v-html 会执行脚本 */
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
+/** 高亮关键词（先转义原文，再只对匹配到的关键词包 <mark>） */
 function highlight(text) {
-  if (!text || !query.value) return text
+  if (!text) return ''
+  // 没有查询词时也要转义，否则原文里的 HTML 会直接渲染
+  if (!query.value) return escapeHtml(text)
   const escaped = query.value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
   const regex = new RegExp(`(${escaped})`, 'gi')
-  return text.replace(regex, '<mark class="hl">$1</mark>')
+  // 用占位符方式：先切分再逐段转义，避免转义后的实体被正则再次匹配
+  return String(text)
+    .split(regex)
+    .map((part, i) => (i % 2 === 1 ? `<mark class="hl">${escapeHtml(part)}</mark>` : escapeHtml(part)))
+    .join('')
 }
 
 /** 解析标签字符串 */

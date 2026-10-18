@@ -268,8 +268,9 @@ function handleLogout() {
 
 onMounted(() => {
   fetchNotifications()
-  // 刷新后如果已登录但菜单为空，重新加载
-  if (authStore.isLoggedIn && menuTree.value.length === 0) {
+  // 菜单接口已对游客开放（匿名按 user 角色过滤），所以无论是否登录都要加载，
+  // 否则游客的侧边栏完全空白、站点没有任何导航入口。
+  if (menuTree.value.length === 0) {
     menuStore.fetchMenuTree()
   }
 })

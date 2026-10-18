@@ -23,16 +23,33 @@ public class VisitorIdUtil {
         if (userId != null) {
             return "user:" + userId;
         }
-        String ip = request.getHeader("X-Forwarded-For");
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getHeader("X-Real-IP");
+        return "visitor:" + getClientIp(request);
+    }
+
+    /**
+     * 获取客户端 IP。
+     *
+     * <p>X-Forwarded-For 是客户端可伪造的请求头，之前取第一个值意味着任何人换一个头
+     * 就能绕过全部"游客去重"（刷赞/刷收藏/刷评论赞踩）。这里改为：
+     * 优先取可信反代追加的 X-Real-IP（nginx 用 proxy_set_header 覆盖写入，客户端无法伪造），
+     * 其次取 XFF 的最后一跳（由最近的可信代理追加），最后才用 remoteAddr。</p>
+     */
+    public static String getClientIp(HttpServletRequest request) {
+        String realIp = request.getHeader("X-Real-IP");
+        if (isUsable(realIp)) {
+            return realIp.trim();
         }
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getRemoteAddr();
+        String xff = request.getHeader("X-Forwarded-For");
+        if (isUsable(xff)) {
+            String[] parts = xff.split(",");
+            // 取最后一跳（可信代理追加的那一个），而不是客户端可随意填写的第一个
+            return parts[parts.length - 1].trim();
         }
-        if (ip != null && ip.contains(",")) {
-            ip = ip.split(",")[0].trim();
-        }
-        return "visitor:" + ip;
+        String remote = request.getRemoteAddr();
+        return remote != null ? remote : "unknown";
+    }
+
+    private static boolean isUsable(String ip) {
+        return ip != null && !ip.isEmpty() && !"unknown".equalsIgnoreCase(ip);
     }
 }

@@ -35,10 +35,21 @@ public class SeriesController {
             String h = request.getHeader("Authorization");
             if (h != null && h.startsWith("Bearer ")) {
                 String token = h.substring(7);
-                return jwtUtil.getUserId(token);
+                if (jwtUtil.validateToken(token)) return jwtUtil.getUserId(token);
             }
         } catch (Exception ignored) {}
         return null;
+    }
+
+    private boolean isAdmin() {
+        try {
+            String h = request.getHeader("Authorization");
+            if (h != null && h.startsWith("Bearer ")) {
+                String token = h.substring(7);
+                if (jwtUtil.validateToken(token)) return "admin".equals(jwtUtil.getRole(token));
+            }
+        } catch (Exception ignored) {}
+        return false;
     }
 
     @Operation(summary = "获取所有系列")
@@ -74,8 +85,14 @@ public class SeriesController {
     @Operation(summary = "更新系列")
     @PutMapping("/{id}")
     public Result<Series> update(@PathVariable Long id, @Valid @RequestBody UpdateSeriesRequest body) {
+        Long userId = getUserId();
+        if (userId == null) return Result.error(401, "请先登录");
         Series s = seriesMapper.selectById(id);
         if (s == null) return Result.error(404, "系列不存在");
+        // 归属校验：只能改自己的系列（管理员除外）
+        if (!isAdmin() && !userId.equals(s.getAuthorId())) {
+            return Result.error(403, "无权修改");
+        }
         if (body.getTitle() != null) s.setTitle(body.getTitle());
         if (body.getDescription() != null) s.setDescription(body.getDescription());
         if (body.getCoverImage() != null) s.setCoverImage(body.getCoverImage());
@@ -90,7 +107,7 @@ public class SeriesController {
         if (userId == null) return Result.error(401, "请先登录");
         Series s = seriesMapper.selectById(id);
         if (s == null) return Result.error(404, "系列不存在");
-        if (!userId.equals(s.getAuthorId())) return Result.error(403, "无权删除");
+        if (!isAdmin() && !userId.equals(s.getAuthorId())) return Result.error(403, "无权删除");
         seriesMapper.deleteById(id);
         return Result.success();
     }

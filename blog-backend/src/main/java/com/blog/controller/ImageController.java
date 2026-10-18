@@ -28,6 +28,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/images")
 @RequiredArgsConstructor
+@com.blog.common.RequireAdmin
 @Tag(name = "图片管理", description = "上传图片的管理和删除")
 public class ImageController {
 

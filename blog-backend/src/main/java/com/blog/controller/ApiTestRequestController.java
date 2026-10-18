@@ -23,8 +23,11 @@ public class ApiTestRequestController {
 
     @Operation(summary = "获取集合下的请求列表")
     @GetMapping("/collections/{collectionId}/requests")
-    public Result<List<ApiTestRequest>> listByCollection(@PathVariable Long collectionId) {
-        return Result.success(requestService.listByCollection(collectionId));
+    public Result<List<ApiTestRequest>> listByCollection(@PathVariable Long collectionId,
+                                                         HttpServletRequest request) {
+        Long userId = (Long) request.getAttribute("userId");
+        // 需要校验集合归属：否则可读取他人集合里保存的请求（headers 常含 Token/API Key）
+        return Result.success(requestService.listByCollection(collectionId, userId));
     }
 
     @Operation(summary = "保存请求")
